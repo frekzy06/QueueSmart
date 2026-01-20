@@ -416,44 +416,49 @@
 
     // --- 2. CREATE ACCOUNT / SAVE PROFILE ---
     document.getElementById('btn-save-profile').onclick = async () => {
+        const btn = document.getElementById('btn-save-profile');
+    const name = document.getElementById('setup-name').value;
+    const age = document.getElementById('setup-age').value;
+    const gender = document.getElementById('setup-gender').value;
+
+    if (!name || !age || !gender) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    btn.innerText = "SAVING...";
+    btn.disabled = true;
+
+    try {
         const user = auth.currentUser;
-        const name = document.getElementById('setup-name').value.trim();
-        const age = document.getElementById('setup-age').value;
-        const gender = document.getElementById('setup-gender').value;
-        const photoFile = document.getElementById('input-photo').files[0];
         
+        // Instead of uploading to Firebase Storage (which is blocked), 
+        // we use a free automatic avatar service.
+        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
 
-        if (!name || !age || !gender) return alert("Please complete all fields.");
+        // Save directly to Firestore (Database)
+        // This is still 100% free and does not require a bucket.
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        
+        await setDoc(doc(db, "users", user.uid), {
+            name: name,
+            age: age,
+            gender: gender,
+            photoURL: photoURL, // Saves the link to the avatar
+            uid: user.uid,
+            createdAt: new Date()
+        });
 
-        try {
-            document.getElementById('btn-save-profile').innerText = "INITIALIZING...";
-            let photoURL = `https://ui-avatars.com/api/?name=${name}&background=random`;
+        console.log("Success!");
+        location.reload(); // This will refresh and log the user in
 
-            // If user uploaded a custom photo, send to Firebase Storage
-            if (photoFile) {
-                const storageRef = ref(storage, `profiles/${user.uid}`);
-                const uploadTask = await uploadBytes(storageRef, photoFile);
-                photoURL = await getDownloadURL(uploadTask.ref);
-            }
-
-            // Save user data to Firestore
-            await setDoc(doc(db, "users", user.uid), {
-                uid: user.uid,
-                name: name,
-                age: age,
-                gender: gender,
-                photoURL: photoURL,
-                email: user.email,
-                createdAt: new Date()
-            });
-
-            console.log("Profile Created successfully.");
-            location.reload(); // Refresh to trigger the onAuthStateChanged logic
-        } catch (err) {
-            console.error(err);
-            alert("Error creating profile. Check Firebase Rules.");
-        }
-    };
+    } catch (error) {
+        console.error("Error:", error);
+        alert("System Error: " + error.message);
+        btn.innerText = "RETRY";
+        btn.disabled = false;
+    }
+};
 
     // --- 3. DYNAMIC LOCATION LOADER ---
     async function loadLocations() {
