@@ -309,6 +309,7 @@
     import { 
         getStorage, ref, uploadBytes, getDownloadURL 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+    import { uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const storage = getStorage();
 
@@ -421,6 +422,7 @@
         const age = document.getElementById('setup-age').value;
         const gender = document.getElementById('setup-gender').value;
         const photoFile = document.getElementById('input-photo').files[0];
+        
 
         if (!name || !age || !gender) return alert("Please complete all fields.");
 
@@ -445,6 +447,27 @@
                 email: user.email,
                 createdAt: new Date()
             });
+            if (photoFile) {
+    const storageRef = ref(storage, 'profiles/' + user.uid);
+    const uploadTask = uploadBytesResumable(storageRef, photoFile);
+
+    await new Promise((resolve, reject) => {
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                document.getElementById('btn-save-profile').innerText = `UPLOADING ${Math.round(progress)}%`;
+            }, 
+            (error) => {
+                console.error("Upload failed:", error);
+                reject(error);
+            }, 
+            async () => {
+                photoURL = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve();
+            }
+        );
+    });
+}
 
             console.log("Profile Created successfully.");
             location.reload(); // Refresh to trigger the onAuthStateChanged logic
