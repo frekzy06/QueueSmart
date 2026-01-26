@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v10.0</title>
+    <title>QueueSmart AI | v11.0 Vision</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
@@ -41,6 +44,20 @@
             margin-bottom: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* AI CAMERA CONTAINER */
+        .cam-container {
+            position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        .alert-box {
+            background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757;
+            padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         .ai-card {
             background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
@@ -103,7 +120,7 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v10.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Vision OS v11.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -171,6 +188,34 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="color: var(--primary); margin:0;">GOD MODE</h3>
             <button onclick="goBack()" style="background:none; border:none; color:#888;">EXIT</button>
+        </div>
+
+        <div id="god-alert-box" class="alert-box hidden">
+            <i data-lucide="siren" style="width:20px;"></i>
+            <div style="flex:1;">
+                <strong id="alert-title">OVERCROWDED</strong><br>
+                <span id="alert-msg">Density too high!</span>
+            </div>
+            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK CHECK-INS</button>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <h4 style="font-size:11px; color:#666; margin-bottom:10px;">CROWD DENSITY DETECTOR (AI)</h4>
+            <div id="cam-wrapper" class="cam-container hidden">
+                <video id="webcam" autoplay playsinline muted></video>
+                <canvas id="cam-overlay"></canvas>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:10px; font-size:11px;">
+                    <i data-lucide="camera"></i> ACTIVATE CAMERA
+                </button>
+                <div style="font-size:11px; color:#888;">
+                    People Count: <b id="cam-count" style="color:var(--primary); font-size:14px;">0</b>
+                </div>
+            </div>
+            <div style="font-size:10px; color:#555; margin-top:5px;">
+                <i>Fallback: If camera off, system tracks Check-in Rate (>3/min triggers alert)</i>
+            </div>
         </div>
 
         <button onclick="toggleAnalytics()" class="btn btn-outline" style="font-size:11px; margin-bottom: 20px;">📊 LIVE ANALYTICS</button>
@@ -257,11 +302,14 @@
     let trafficChart = null;
     let statusChart = null;
     let allLocations = [];
+    
+    // AI CAMERA VARS
+    let aiModel = null;
+    let camInterval = null;
+    let isCamActive = false;
 
-    // --- UTILITY: STABLE HASH WITH DAILY ROTATION ---
-    // Uses Location ID + Day of Month (e.g. 27) to change "Best Time" daily but keep it stable for 24h
+    // --- STABLE HASH ---
     function getStableRandom(seed, max) {
-        // Add current Date to seed
         const dailySeed = seed + new Date().getDate(); 
         let hash = 0;
         for (let i = 0; i < dailySeed.length; i++) {
@@ -320,11 +368,9 @@
         onSnapshot(q, (snap) => {
             listDiv.innerHTML = "";
             allLocations = [];
-            
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
                 allLocations.push({id: docSnap.id, ...loc}); 
-                
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
                 const el = document.createElement('div');
                 el.className = 'list-item';
@@ -348,9 +394,7 @@
         const nameEl = document.getElementById('ai-rec-name');
         const descEl = document.getElementById('ai-rec-desc');
         const openLocs = allLocations.filter(l => checkTimeStatus(l.openTime, l.closeTime));
-        
         if (openLocs.length > 0) {
-            // Stable daily choice
             const todayIndex = new Date().getDate() % openLocs.length;
             const best = openLocs[todayIndex];
             nameEl.innerText = best.name;
@@ -369,12 +413,8 @@
         const [closeH, closeM] = closeStr.split(':').map(Number);
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
-
-        if (endMins < startMins) {
-            return currentMins >= startMins || currentMins < endMins;
-        } else {
-            return currentMins >= startMins && currentMins < endMins;
-        }
+        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
+        return currentMins >= startMins && currentMins < endMins;
     }
 
     window.selectLocation = (locId) => {
@@ -396,7 +436,6 @@
                 uid: currentUser.uid, name: currentUser.displayName || "User",
                 locationId: currentLocId, timestamp: serverTimestamp(), allocatedTime: null
             });
-            // LOGGING
             await addDoc(collection(db, "logs"), {
                 locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp()
             });
@@ -411,7 +450,6 @@
         const snap = await getDocs(q);
         snap.forEach(async (d) => {
             await deleteDoc(d.ref);
-            // LOGGING
             await addDoc(collection(db, "logs"), {
                 locationId: currentLocId, action: 'LEFT', details: currentUser.displayName, timestamp: serverTimestamp()
             });
@@ -420,15 +458,10 @@
 
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
-        
-        // --- DATA-DYNAMIC PREDICTION (CHANGES DAILY) ---
         const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays'];
         const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM', '1:00 PM'];
-        
-        // Use "locId" + "Date" to rotate daily
         const dayIndex = getStableRandom(locId + "day", days.length);
         const timeIndex = getStableRandom(locId + "time", times.length);
-        
         document.getElementById('dash-best-time').innerText = `${days[dayIndex]} around ${times[timeIndex]}`;
 
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
@@ -437,15 +470,8 @@
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             document.getElementById('dash-loc-name').innerText = data.name;
             const badge = document.getElementById('dash-status-badge');
-            
-            if(isOpen) {
-                badge.innerText = "OPERATIONAL";
-                badge.className = "badge open";
-            } else {
-                badge.innerText = "OFFLINE";
-                badge.className = "badge closed";
-            }
-            
+            if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
+            else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
             const btn = document.getElementById('btn-join-queue');
             if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
             else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
@@ -458,16 +484,11 @@
             snap.docs.forEach((d, index) => {
                 if(d.data().uid === currentUser.uid) { myPos = index; allocated = d.data().allocatedTime; }
             });
-
             if (myPos !== -1) {
                 document.getElementById('dash-main-counter').innerText = myPos;
                 const estTimeDiv = document.getElementById('dash-est-time');
-                if(allocated) {
-                    estTimeDiv.innerText = allocated + " mins (Admin Set)";
-                } else {
-                    const aiTime = (myPos * 5) + 2; 
-                    estTimeDiv.innerText = "~" + aiTime + " mins";
-                }
+                if(allocated) { estTimeDiv.innerText = allocated + " mins (Admin Set)"; } 
+                else { estTimeDiv.innerText = "~" + ((myPos * 5) + 2) + " mins"; }
                 document.getElementById('btn-join-queue').classList.add('hidden');
                 document.getElementById('btn-leave-queue').classList.remove('hidden');
                 document.getElementById('btn-join-queue').innerText = "JOIN QUEUE";
@@ -481,19 +502,89 @@
         });
     }
 
+    // --- AI CAMERA FUNCTIONS ---
+    window.toggleCamera = async () => {
+        const video = document.getElementById('webcam');
+        const wrapper = document.getElementById('cam-wrapper');
+        const btn = document.getElementById('btn-toggle-cam');
+        
+        if(!isCamActive) {
+            // START
+            wrapper.classList.remove('hidden');
+            btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP CAMERA`;
+            if(!aiModel) aiModel = await cocoSsd.load();
+            
+            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
+            video.srcObject = stream;
+            isCamActive = true;
+            
+            camInterval = setInterval(async () => {
+                const predictions = await aiModel.detect(video);
+                const people = predictions.filter(p => p.class === 'person');
+                document.getElementById('cam-count').innerText = people.length;
+                
+                // Alert Trigger
+                if(people.length > 5) {
+                    const alertBox = document.getElementById('god-alert-box');
+                    alertBox.classList.remove('hidden');
+                    document.getElementById('alert-msg').innerText = `Camera detected ${people.length} people!`;
+                } else {
+                    document.getElementById('god-alert-box').classList.add('hidden');
+                }
+                
+                // Draw Boxes
+                const canvas = document.getElementById('cam-overlay');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 4;
+                people.forEach(p => {
+                   ctx.strokeRect(p.bbox[0], p.bbox[1], p.bbox[2], p.bbox[3]); 
+                });
+            }, 1000); // Check every second
+            
+        } else {
+            // STOP
+            wrapper.classList.add('hidden');
+            btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE CAMERA`;
+            clearInterval(camInterval);
+            video.srcObject.getTracks().forEach(track => track.stop());
+            isCamActive = false;
+        }
+    };
+
+    window.emergencyLock = async () => {
+        // Close the current location
+        await updateDoc(doc(db, "locations", currentLocId), { status: "closed" });
+        alert("EMERGENCY PROTOCOL: Location has been locked.");
+    };
+
     function initGodMode(locId) {
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        
+        // --- VELOCITY CHECK (FALLBACK IF NO CAMERA) ---
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
             list.innerHTML = "";
             document.getElementById('god-waiting').innerText = snap.size;
-            snap.docs.forEach((d, i) => {
+            
+            // Check Check-in Velocity
+            const now = new Date();
+            let recentJoins = 0;
+            snap.forEach(d => {
                 const data = d.data();
+                if(data.timestamp) {
+                    const joinTime = data.timestamp.toDate();
+                    const diffMins = (now - joinTime) / 60000;
+                    if(diffMins < 1) recentJoins++;
+                }
+                
+                // Render List
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
                     <div style="flex:1;">
-                        <div style="font-weight:700; font-size:13px;">#${i+1} ${data.name}</div>
+                        <div style="font-weight:700; font-size:13px;">#${data.name}</div>
                         <div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:5px;">
@@ -504,9 +595,15 @@
                 `;
                 list.appendChild(div);
             });
+            
+            // Trigger alert if velocity is high (fallback)
+            if(!isCamActive && recentJoins > 3) {
+                 const alertBox = document.getElementById('god-alert-box');
+                 alertBox.classList.remove('hidden');
+                 document.getElementById('alert-msg').innerText = `High Velocity: ${recentJoins} joins in last min!`;
+            }
         });
 
-        // UPDATE STATS
         const locRef = doc(db, "locations", locId);
         onSnapshot(locRef, (docSnap) => {
              if(docSnap.exists()) {
@@ -515,14 +612,10 @@
              }
         });
 
-        // LOGS LISTENER (WITH MISSING INDEX ERROR CATCHER)
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
-        
         logsUnsub = onSnapshot(logQ, (snap) => {
-            // HIDE ERROR IF IT WORKS
             document.getElementById('index-error-msg').classList.add('hidden');
-            
             const logDiv = document.getElementById('god-log-list');
             logDiv.innerHTML = "";
             snap.forEach(d => {
@@ -533,20 +626,14 @@
                 if(l.action === 'LEFT') color = "#ffaa00";
                 if(l.action === 'SERVED') color = "#00ff9d";
                 if(l.action === 'REMOVED') color = "#ff4757";
-
                 const div = document.createElement('div');
                 div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
                 div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
         }, (error) => {
-            // IF INDEX IS MISSING, SHOW THE LINK
-            if(error.message.includes("index")) {
-                console.error("Missing Index:", error);
-                document.getElementById('index-error-msg').classList.remove('hidden');
-            }
+            if(error.message.includes("index")) document.getElementById('index-error-msg').classList.remove('hidden');
         });
-        
         initCharts();
     }
     
@@ -554,14 +641,11 @@
 
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
-        // LOGGING
         await addDoc(collection(db, "logs"), {
             locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED',
             details: `User: ${name} | By: Admin`, timestamp: serverTimestamp()
         });
-        if(type === 'done') {
-            await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
-        }
+        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         await deleteDoc(docRef);
     };
 
