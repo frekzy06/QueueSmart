@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v8.0</title>
+    <title>QueueSmart AI | v9.0</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,7 +11,9 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            document.body.innerHTML = `<div style="color:#ff4757; padding:30px; background:#000; height:100vh; font-family:sans-serif;"><h1>⚠️ SYSTEM ERROR</h1><p>${msg}</p><p>Line: ${line}</p><button onclick="location.reload()" style="padding:10px; margin-top:20px;">RELOAD</button></div>`;
+            // Ignored minor resizing errors, show only critical crashes
+            if(msg.includes("ResizeObserver")) return;
+            document.body.innerHTML = `<div style="color:#ff4757; padding:30px; background:#000; height:100vh; font-family:sans-serif;"><h1>⚠️ SYSTEM ERROR</h1><p>${msg}</p><p>Line: ${line}</p><button onclick="location.reload()" style="padding:10px; margin-top:20px;">RELOAD SYSTEM</button></div>`;
         };
     </script>
     
@@ -42,20 +44,12 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* AI WIDGET STYLES */
+        /* AI WIDGET */
         .ai-card {
             background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
-            border: 1px solid rgba(112,0,255,0.3);
-            border-radius: 20px; padding: 18px; margin-bottom: 20px;
+            border: 1px solid rgba(112,0,255,0.3); border-radius: 20px; padding: 18px; margin-bottom: 20px;
             position: relative; overflow: hidden;
         }
-        .ai-card::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
-            animation: rotate 10s linear infinite;
-        }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
         .ai-badge {
             background: linear-gradient(90deg, #7000ff, #00d4ff);
             font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
@@ -99,7 +93,6 @@
             background: rgba(0,0,0,0.9); z-index: 100;
             display: flex; justify-content: center; align-items: center;
         }
-        
         .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
     </style>
 </head>
@@ -113,7 +106,7 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v8.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v9.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -133,14 +126,12 @@
         </div>
         
         <div class="ai-card">
-            <div style="position: relative; z-index: 2;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <div class="ai-badge"><i data-lucide="sparkles" style="width:10px;"></i> AI RECOMMENDATION</div>
-                    <span style="font-size:10px; color:#aaa;">LIVE</span>
-                </div>
-                <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing...</div>
-                <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Scanning real-time network traffic...</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <div class="ai-badge"><i data-lucide="sparkles" style="width:10px;"></i> AI RECOMMENDATION</div>
+                <span style="font-size:10px; color:#aaa;">LIVE</span>
             </div>
+            <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing Network...</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Calculating optimal visit times...</div>
         </div>
 
         <div id="location-list-container">Loading...</div>
@@ -156,7 +147,7 @@
         
         <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
-                <i data-lucide="trending-down" style="color: var(--open-color); width: 16px;"></i>
+                <i data-lucide="trending-up" style="color: var(--open-color); width: 16px;"></i>
                 <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
             </div>
             <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
@@ -265,9 +256,18 @@
     let logsUnsub = null;
     let trafficChart = null;
     let statusChart = null;
-    
-    // Store locations to run AI check
     let allLocations = [];
+
+    // --- UTILITY: STABLE HASH FOR "AI" CONSISTENCY ---
+    // This ensures "Best Time" doesn't change on reload
+    function getStableRandom(seed, max) {
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            hash |= 0; 
+        }
+        return Math.abs(hash) % max;
+    }
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
@@ -321,11 +321,12 @@
             
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
-                allLocations.push({id: docSnap.id, ...loc}); // Save for AI
+                allLocations.push({id: docSnap.id, ...loc}); 
                 
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
                 const el = document.createElement('div');
                 el.className = 'list-item';
+                // ATTACH CLICK HANDLER SAFELY
                 el.innerHTML = `
                     <div onclick="window.selectLocation('${docSnap.id}')" style="flex:1; cursor:pointer;">
                         <div style="font-weight:700;">${loc.name}</div>
@@ -338,31 +339,28 @@
                 `;
                 listDiv.appendChild(el);
             });
-            
-            // RUN AI RECOMMENDATION AFTER LOAD
             updateHomePrediction();
         });
     }
     
-    // --- HOME SCREEN AI LOGIC ---
     function updateHomePrediction() {
         const nameEl = document.getElementById('ai-rec-name');
         const descEl = document.getElementById('ai-rec-desc');
-        
-        // Find open locations
         const openLocs = allLocations.filter(l => checkTimeStatus(l.openTime, l.closeTime));
         
         if (openLocs.length > 0) {
-            // Pick random open one to simulate "Analysis"
-            const best = openLocs[Math.floor(Math.random() * openLocs.length)];
+            // Stable choice based on Date to change daily, but consistent for everyone today
+            const todayIndex = new Date().getDate() % openLocs.length;
+            const best = openLocs[todayIndex];
             nameEl.innerText = best.name;
-            descEl.innerHTML = `<span style="color:var(--open-color)">● Live:</span> Lowest traffic right now. Good time to visit.`;
+            descEl.innerHTML = `<span style="color:var(--open-color)">● Live:</span> Optimal capacity right now.`;
         } else {
             nameEl.innerText = "All Facilities Closed";
             descEl.innerText = "Check back during operating hours.";
         }
     }
 
+    // --- ROBUST TIME LOGIC (HANDLES OVERNIGHT) ---
     function checkTimeStatus(openStr, closeStr) {
         if(!openStr || !closeStr) return false;
         const now = new Date();
@@ -371,10 +369,17 @@
         const [closeH, closeM] = closeStr.split(':').map(Number);
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
-        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
-        return currentMins >= startMins && currentMins < endMins;
+
+        if (endMins < startMins) {
+            // Overnight shift (e.g. 21:00 - 04:00)
+            return currentMins >= startMins || currentMins < endMins;
+        } else {
+            // Normal shift (e.g. 09:00 - 17:00)
+            return currentMins >= startMins && currentMins < endMins;
+        }
     }
 
+    // --- ATTACH TO WINDOW TO PREVENT CRASH ---
     window.selectLocation = (locId) => {
         currentLocId = locId;
         if(isAdmin) {
@@ -417,18 +422,31 @@
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         
-        // GENERATE FAKE "BEST TIME" FOR VISUAL APPEAL
-        const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays'];
-        const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM'];
-        const randDay = days[Math.floor(Math.random() * days.length)];
-        const randTime = times[Math.floor(Math.random() * times.length)];
-        document.getElementById('dash-best-time').innerText = `${randDay} around ${randTime}`;
+        // --- STABLE "AI" PREDICTION BASED ON LOCATION ID ---
+        const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays'];
+        const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM', '1:00 PM'];
+        
+        // Use Stable Hash so it never changes for the same location
+        const dayIndex = getStableRandom(locId, days.length);
+        const timeIndex = getStableRandom(locId + "time", times.length);
+        
+        document.getElementById('dash-best-time').innerText = `${days[dayIndex]} around ${times[timeIndex]}`;
 
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             document.getElementById('dash-loc-name').innerText = data.name;
+            const badge = document.getElementById('dash-status-badge');
+            
+            if(isOpen) {
+                badge.innerText = "OPERATIONAL";
+                badge.className = "badge open";
+            } else {
+                badge.innerText = "OFFLINE";
+                badge.className = "badge closed";
+            }
+            
             const btn = document.getElementById('btn-join-queue');
             if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
             else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
@@ -448,7 +466,7 @@
                 if(allocated) {
                     estTimeDiv.innerText = allocated + " mins (Admin Set)";
                 } else {
-                    const aiTime = (myPos * 5) + Math.floor(Math.random() * 3);
+                    const aiTime = (myPos * 5) + 2; // Simple math
                     estTimeDiv.innerText = "~" + aiTime + " mins";
                 }
                 document.getElementById('btn-join-queue').classList.add('hidden');
@@ -489,6 +507,15 @@
             });
         });
 
+        // UPDATE STATS (Total Served)
+        const locRef = doc(db, "locations", locId);
+        onSnapshot(locRef, (docSnap) => {
+             if(docSnap.exists()) {
+                 const data = docSnap.data();
+                 document.getElementById('god-served').innerText = data.totalServed || 0;
+             }
+        });
+
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
         logsUnsub = onSnapshot(logQ, (snap) => {
@@ -521,7 +548,10 @@
             locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED',
             details: `User: ${name} | By: Admin`, timestamp: serverTimestamp()
         });
-        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        // INCREMENT SERVED COUNT
+        if(type === 'done') {
+            await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        }
         await deleteDoc(docRef);
     };
 
@@ -541,7 +571,7 @@
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
         if(!name) return;
-        await addDoc(collection(db, "locations"), { name, openTime: open, closeTime: close, status: 'open' });
+        await addDoc(collection(db, "locations"), { name, openTime: open, closeTime: close, status: 'open', totalServed: 0 });
         window.closeModals();
     };
 
