@@ -3,181 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart Enterprise | Real-Time OS</title>
+    <title>QueueSmart Enterprise</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        window.onerror = function(msg, url, line) {
+            document.body.innerHTML = `
+                <div style="color:#ff4757; padding:30px; font-family:sans-serif; background:#000; height:100vh;">
+                    <h1 style="font-size:24px;">⚠️ SYSTEM CRASH</h1>
+                    <p style="font-size:16px;">${msg}</p>
+                    <p style="color:#666; font-family:monospace;">Line: ${line}</p>
+                    <button onclick="location.reload()" style="padding:10px; margin-top:20px;">RELOAD</button>
+                </div>
+            `;
+        };
+    </script>
     
     <style>
         :root {
-            /* --- ENTERPRISE THEME VARIABLES --- */
-            --primary: #00d4ff;     /* Electric Blue */
+            --primary: #00d4ff;
             --primary-dim: rgba(0, 212, 255, 0.1);
-            --secondary: #7000ff;   /* Deep Violet */
+            --secondary: #7000ff;
             --bg-dark: #050507;
             --glass-panel: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-muted: #888899;
-            
-            /* Status Colors */
-            --open-color: #00ff9d;  /* Neon Green */
-            --closed-color: #ff2a2a; /* Neon Red */
-            --busy-color: #ffaa00;  /* Neon Orange */
-            
-            /* Animation Speeds */
-            --anim-speed: 0.3s;
+            --open-color: #00ff9d;
+            --closed-color: #ff2a2a;
         }
 
-        /* GOD MODE OVERRIDE (Red Theme) */
         body.god-mode {
             --primary: #ff2a2a; 
             --primary-dim: rgba(255, 42, 42, 0.1);
-            --open-color: #ff2a2a; /* Everything feels dangerous in God Mode */
+            --open-color: #ff2a2a;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: radial-gradient(circle at top right, #1a1a2e 0%, var(--bg-dark) 60%);
             color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Better for scrolling lists */
-            padding-top: 40px;
-            overflow-x: hidden;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding-top: 40px; overflow-x: hidden;
         }
 
-        /* --- UI COMPONENTS --- */
-        .app-shell {
-            width: 100%;
-            max-width: 460px;
-            padding: 0 20px 40px 20px;
-            perspective: 1000px;
-        }
+        .app-shell { width: 100%; max-width: 460px; padding: 0 20px 40px 20px; }
 
-        /* Glass Cards */
         .glass-card {
             background: var(--glass-panel);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 28px;
+            border-radius: 24px; padding: 28px;
             margin-bottom: 20px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
+            animation: slideUp 0.5s ease;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Inputs */
-        .input-group { margin-bottom: 16px; position: relative; }
-        .input-field, select.input-field {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--glass-border);
-            padding: 16px;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 15px;
-            transition: var(--anim-speed);
-            outline: none;
-            font-family: inherit;
+        .input-field {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            padding: 16px; border-radius: 14px; color: #fff; font-size: 15px; outline: none; margin-bottom: 15px;
         }
-        .input-field:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary-dim);
-            background: rgba(0,0,0,0.5);
-        }
+        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
-        /* Buttons */
         .btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            transition: var(--anim-speed);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-transform: uppercase;
+            width: 100%; padding: 18px; border: none; border-radius: 16px;
+            font-weight: 700; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            text-transform: uppercase; margin-bottom: 10px;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #fff;
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
-        }
-        .btn-primary:active { transform: scale(0.98); }
-        
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
 
-        /* Status Badges */
         .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1px;
         }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
 
-        /* Lists */
         .list-item {
-            background: rgba(255,255,255,0.02);
-            padding: 16px;
-            border-radius: 16px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid transparent;
-            transition: var(--anim-speed);
+            background: rgba(255,255,255,0.02); padding: 16px; border-radius: 16px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid transparent; cursor: pointer;
         }
         .list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--glass-border); }
 
-        /* Neon Text & Utilities */
         .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
         .hidden { display: none !important; }
-        
-        /* Modal Overlay */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            z-index: 100; display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; justify-content: center; align-items: center;
         }
-
-        /* Loading Spinner */
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top: 2px solid #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        <body>
+    </style>
+</head>
+<body>
 
 <div class="app-shell">
     
@@ -187,75 +116,44 @@
                 <i data-lucide="layers" style="color: #fff;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">Enterprise Capacity OS v5.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v5.0</p>
         </div>
-        
-        <button id="btn-login" class="btn btn-primary">
-            <i data-lucide="shield"></i> Authenticate with Google
-        </button>
+        <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Login with Google</button>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
-        <h2 style="margin-top: 0;">Identity Setup</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Create your digital pass.</p>
-        
-        <div class="input-group">
-            <input type="text" id="setup-name" class="input-field" placeholder="Full Legal Name">
-        </div>
-        <div class="input-group" style="display: flex; gap: 10px;">
-            <input type="number" id="setup-age" class="input-field" placeholder="Age">
-            <select id="setup-gender" class="input-field">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
-        </div>
-        
-        <button id="btn-save-profile" class="btn btn-primary">Generate ID</button>
+        <h2>Identity Setup</h2>
+        <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
+        <input type="number" id="setup-age" class="input-field" placeholder="Age">
+        <select id="setup-gender" class="input-field">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        <button id="btn-save-profile" class="btn btn-primary">Create ID</button>
     </div>
 
     <div id="view-select" class="glass-card hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;">Facilities</h3>
+            <h3>Facilities</h3>
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 35px; height: 35px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
-
-        <input type="text" id="loc-search" class="input-field" placeholder="Search locations..." style="margin-bottom: 20px; padding: 12px;">
-
         <div id="location-list-container">
-            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
-                <div class="spinner" style="margin: 0 auto 10px;"></div>
-                Scanning Network...
-            </div>
+            <div style="padding:20px; text-align:center; color:#666;">Loading Network...</div>
         </div>
-        
-        <button id="admin-add-loc-btn" class="btn btn-outline hidden" style="margin-top: 20px; font-size: 12px;" onclick="openAddLocModal()">
-            <i data-lucide="plus"></i> Add Facility
-        </button>
+        <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 20px;">+ Add Facility</button>
     </div>
 
     <div id="view-dashboard" class="glass-card hidden">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <button onclick="goBack()" style="background: none; border: none; color: var(--text-muted); cursor: pointer;">← Back</button>
+        <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px;">← BACK</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 id="dash-loc-name" style="margin:0;">Location</h2>
             <div id="dash-status-badge" class="badge closed">OFFLINE</div>
         </div>
-
-        <h1 id="dash-loc-name" style="font-size: 22px; margin: 0 0 5px 0;">Location Name</h1>
-        <p id="dash-hours" style="color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">00:00 - 00:00</p>
+        <p id="dash-hours" style="color:#666; font-family:monospace; font-size:12px;">00:00 - 00:00</p>
 
         <div style="text-align: center; margin: 40px 0;">
             <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
-            <p style="color: var(--text-muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">People Ahead</p>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 30px;">
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: center;">
-                <div style="font-size: 10px; color: var(--text-muted);">EST. WAIT</div>
-                <div id="dash-est-time" style="font-size: 18px; font-weight: 700; color: var(--primary);">0m</div>
-            </div>
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: center;">
-                <div style="font-size: 10px; color: var(--text-muted);">STATUS</div>
-                <div id="dash-flow-status" style="font-size: 18px; font-weight: 700; color: #fff;">Flowing</div>
-            </div>
+            <p style="color: var(--text-muted); font-size: 12px; letter-spacing: 2px;">PEOPLE AHEAD</p>
         </div>
 
         <button id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
@@ -264,39 +162,25 @@
 
     <div id="view-god-mode" class="glass-card hidden" style="border-color: rgba(255, 42, 42, 0.3);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: var(--primary);">GOD MODE</h3>
-            <button onclick="goBack()" style="background: none; border: none; color: var(--text-muted);">EXIT</button>
+            <h3 style="color: var(--primary); margin:0;">GOD MODE</h3>
+            <button onclick="goBack()" style="background:none; border:none; color:#888;">EXIT</button>
         </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px;">
-            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
-                <div style="font-size: 18px; font-weight: 700;" id="god-waiting">0</div>
-                <div style="font-size: 9px; color: #888;">WAIT</div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+            <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:10px; text-align:center;">
+                <div id="god-waiting" style="font-size:20px; font-weight:700;">0</div>
+                <div style="font-size:10px; color:#666;">WAITING</div>
             </div>
-            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
-                <div style="font-size: 18px; font-weight: 700;" id="god-served">0</div>
-                <div style="font-size: 9px; color: #888;">DONE</div>
-            </div>
-            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
-                <div style="font-size: 18px; font-weight: 700;" id="god-open">ON</div>
-                <div style="font-size: 9px; color: #888;">STATUS</div>
+            <div style="background:rgba(0,0,0,0.4); padding:10px; border-radius:10px; text-align:center;">
+                <div id="god-served" style="font-size:20px; font-weight:700;">0</div>
+                <div style="font-size:10px; color:#666;">SERVED</div>
             </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button onclick="godForceClose()" class="btn btn-danger" style="padding: 10px; font-size: 11px;">
-                <i data-lucide="lock"></i> FORCE CLOSE
-            </button>
-            <button onclick="godEditHours()" class="btn btn-outline" style="padding: 10px; font-size: 11px;">
-                <i data-lucide="clock"></i> HRS
-            </button>
-        </div>
-
-        <h4 style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted);">ACTIVE QUEUE</h4>
-        <div id="god-queue-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;"></div>
-
-        <h4 style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted);">LIVE LOGS</h4>
-        <div id="god-log-list" style="max-height: 150px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #888;"></div>
+        <button onclick="godForceClose()" class="btn btn-danger" style="font-size:12px; padding:12px;">⚠️ FORCE CLEAR QUEUE</button>
+        
+        <h4 style="margin:20px 0 10px 0; font-size:12px; color:#666;">ACTIVE QUEUE</h4>
+        <div id="god-queue-list"></div>
     </div>
 
 </div>
@@ -304,39 +188,31 @@
 <div id="modal-add-loc" class="modal-overlay hidden">
     <div class="glass-card" style="width: 90%; max-width: 350px;">
         <h3>New Facility</h3>
-        <input id="new-loc-name" type="text" class="input-field" placeholder="Facility Name (e.g. Lab 1)" style="margin-bottom: 10px;">
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <div>
-                <label style="font-size: 10px;">OPEN</label>
-                <input id="new-loc-open" type="time" class="input-field">
-            </div>
-            <div>
-                <label style="font-size: 10px;">CLOSE</label>
-                <input id="new-loc-close" type="time" class="input-field">
-            </div>
-        </div>
+        <input id="new-loc-name" type="text" class="input-field" placeholder="Name">
+        <label style="font-size:12px; color:#888;">Opens At:</label>
+        <input id="new-loc-open" type="time" class="input-field">
+        <label style="font-size:12px; color:#888;">Closes At:</label>
+        <input id="new-loc-close" type="time" class="input-field">
         <button onclick="createLocation()" class="btn btn-primary">DEPLOY</button>
-        <button onclick="closeModals()" class="btn btn-outline" style="margin-top: 10px;">CANCEL</button>
+        <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
     </div>
 </div>
 
 <div id="modal-profile" class="modal-overlay hidden">
     <div class="glass-card" style="width: 90%; max-width: 350px;">
         <h3>Edit Profile</h3>
-        <input id="edit-profile-name" type="text" class="input-field" style="margin-bottom: 20px;">
-        <button onclick="updateProfile()" class="btn btn-primary">SAVE CHANGES</button>
-        <button onclick="closeModals()" class="btn btn-outline" style="margin-top: 10px;">CANCEL</button>
-        <button onclick="logout()" style="margin-top: 20px; width: 100%; border: none; background: none; color: #ff2a2a; font-weight: 700;">LOGOUT</button>
+        <input id="edit-profile-name" type="text" class="input-field">
+        <button onclick="updateProfile()" class="btn btn-primary">SAVE</button>
+        <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
+        <button onclick="logout()" style="margin-top:20px; background:none; border:none; color:#ff4757; width:100%;">LOGOUT</button>
     </div>
 </div>
-        <script type="module">
-    // --- 1. DIRECT FIREBASE IMPORTS (No separate file needed) ---
+
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-    // --- 2. CONFIGURATION (Embedded) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
       authDomain: "queuesmart-c3c28.firebaseapp.com",
@@ -347,150 +223,94 @@
       measurementId: "G-34TC8L9HJJ"
     };
 
-    // Initialize
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-    const storage = getStorage(app); // Just to prevent errors, we won't use it
 
-    // --- 3. ICONS ---
     if(window.lucide) lucide.createIcons();
 
-    // --- 4. STATE & LOGIC ---
     let currentUser = null;
     let currentLocId = null;
     let isAdmin = false;
     let locUnsub = null;
     let queueUnsub = null;
 
-    // --- AUTH LISTENER ---
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
-        // Hide loader or initial screen here if you had one
-        
         if (user) {
-            console.log("User detected:", user.uid);
-            // Check User Profile
             const userRef = doc(db, "users", user.uid);
-            try {
-                const snap = await getDoc(userRef);
+            const snap = await getDoc(userRef);
+            
+            if (!snap.exists()) {
+                showView('view-setup');
+            } else {
+                const userData = snap.data();
+                isAdmin = (userData.role === 'admin');
+                const bubble = document.getElementById('profile-bubble');
+                if(bubble) bubble.style.backgroundImage = `url('${userData.photoURL}')`;
                 
-                if (!snap.exists()) {
-                    showView('view-setup');
-                    // Pre-fill name if available
-                    if(document.getElementById('setup-name')) {
-                        document.getElementById('setup-name').value = user.displayName || "";
-                    }
+                if (isAdmin) {
+                    document.body.classList.add('god-mode');
+                    document.getElementById('admin-add-loc-btn').classList.remove('hidden');
                 } else {
-                    const userData = snap.data();
-                    isAdmin = (userData.role === 'admin');
-                    
-                    // Update Profile Bubble
-                    const bubble = document.getElementById('profile-bubble');
-                    if(bubble) bubble.style.backgroundImage = `url('${userData.photoURL}')`;
-                    
-                    // Show Admin Controls
-                    if (isAdmin) {
-                        document.body.classList.add('god-mode');
-                        const adminBtn = document.getElementById('admin-add-loc-btn');
-                        if(adminBtn) adminBtn.classList.remove('hidden');
-                    } else {
-                        document.body.classList.remove('god-mode');
-                    }
-                    
-                    showView('view-select');
-                    loadLocationsList();
+                    document.body.classList.remove('god-mode');
                 }
-            } catch (err) {
-                console.error("Database Error:", err);
-                alert("Database Connection Failed. Check Console.");
+                showView('view-select');
+                loadLocationsList();
             }
         } else {
             showView('view-login');
         }
     });
 
-    // --- LOGIN ---
-    const loginBtn = document.getElementById('btn-login');
-    if(loginBtn) {
-        loginBtn.onclick = async () => {
-            try { await signInWithPopup(auth, provider); } catch(e) { alert(e.message); }
-        };
-    }
+    document.getElementById('btn-login').onclick = async () => {
+        try { await signInWithPopup(auth, provider); } catch(e) { console.error(e); }
+    };
 
-    // --- PROFILE SETUP ---
-    const saveProfileBtn = document.getElementById('btn-save-profile');
-    if(saveProfileBtn) {
-        saveProfileBtn.onclick = async () => {
-            const name = document.getElementById('setup-name').value;
-            const age = document.getElementById('setup-age').value;
-            const gender = document.getElementById('setup-gender').value;
+    document.getElementById('btn-save-profile').onclick = async () => {
+        const name = document.getElementById('setup-name').value;
+        const age = document.getElementById('setup-age').value;
+        const gender = document.getElementById('setup-gender').value;
+        if(!name || !age) return alert("Required");
 
-            if(!name || !age) return alert("Fill all fields");
+        document.getElementById('btn-save-profile').innerText = "Working...";
+        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
 
-            saveProfileBtn.innerText = "Encrypting...";
-            const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+        await setDoc(doc(db, "users", currentUser.uid), {
+            uid: currentUser.uid, name, age, gender, photoURL, 
+            role: 'user', createdAt: serverTimestamp()
+        });
+        location.reload();
+    };
 
-            try {
-                await setDoc(doc(db, "users", currentUser.uid), {
-                    uid: currentUser.uid, name, age, gender, photoURL, 
-                    role: 'user', 
-                    createdAt: serverTimestamp()
-                });
-                location.reload();
-            } catch(e) {
-                console.error(e);
-                alert("Save Failed: " + e.message);
-                saveProfileBtn.innerText = "TRY AGAIN";
-            }
-        };
-    }
-
-    // --- LOCATION LIST ---
     function loadLocationsList() {
         const listDiv = document.getElementById('location-list-container');
-        if(!listDiv) return;
-        
         const q = query(collection(db, "locations"), orderBy("name"));
 
         onSnapshot(q, (snap) => {
             listDiv.innerHTML = "";
             if(snap.empty) {
-                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>No locations found.<br>Admin must add one.</div>";
-                return;
+                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No Facilities Found.<br>Admin, please add one.</div>";
             }
-
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
-                
                 const el = document.createElement('div');
                 el.className = 'list-item';
                 el.onclick = () => selectLocation(docSnap.id);
                 el.innerHTML = `
                     <div>
-                        <div style="font-weight: 700; font-size: 16px;">${loc.name}</div>
-                        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
-                            ${loc.openTime} - ${loc.closeTime}
-                        </div>
+                        <div style="font-weight:700;">${loc.name}</div>
+                        <div style="font-size:11px; color:#888; font-family:monospace;">${loc.openTime} - ${loc.closeTime}</div>
                     </div>
-                    <div class="badge ${isOpen ? 'open' : 'closed'}">
-                        ${isOpen ? 'OPEN' : 'CLOSED'}
-                    </div>
+                    <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
                 `;
                 listDiv.appendChild(el);
             });
-        }, (error) => {
-            console.error("Location Error:", error);
-            // This usually happens if index is missing
-            if(error.message.includes("index")) {
-                console.log("CLICK THE LINK IN CONSOLE TO CREATE INDEX");
-            }
         });
     }
 
-    // --- TIME LOGIC ---
     function checkTimeStatus(openStr, closeStr) {
         if(!openStr || !closeStr) return false;
         const now = new Date();
@@ -500,8 +320,7 @@
         return minsNow >= (oH*60 + oM) && minsNow < (cH*60 + cM);
     }
 
-    // --- SELECT LOCATION ---
-    window.selectLocation = async (locId) => {
+    window.selectLocation = (locId) => {
         currentLocId = locId;
         if(isAdmin) {
             showView('view-god-mode');
@@ -512,124 +331,86 @@
         }
     };
 
-    // --- USER DASHBOARD ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
-            if(!doc.exists()) return;
             const data = doc.data();
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
-            
             document.getElementById('dash-loc-name').innerText = data.name;
             document.getElementById('dash-hours').innerText = `${data.openTime} - ${data.closeTime}`;
-            
             const badge = document.getElementById('dash-status-badge');
             badge.className = `badge ${isOpen ? 'open' : 'closed'}`;
             badge.innerText = isOpen ? 'OPERATIONAL' : 'CLOSED';
             
             const joinBtn = document.getElementById('btn-join-queue');
             if(!isOpen) {
-                joinBtn.disabled = true;
-                joinBtn.style.opacity = "0.5";
-                joinBtn.innerText = "FACILITY CLOSED";
+                joinBtn.disabled = true; joinBtn.style.opacity = "0.5"; joinBtn.innerText = "CLOSED";
             } else {
-                joinBtn.disabled = false;
-                joinBtn.style.opacity = "1";
-                joinBtn.innerText = "JOIN QUEUE";
+                joinBtn.disabled = false; joinBtn.style.opacity = "1"; joinBtn.innerText = "JOIN QUEUE";
             }
         });
 
         if(queueUnsub) queueUnsub();
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
-        
         queueUnsub = onSnapshot(q, (snap) => {
-            let myPos = -1;
-            let count = 0;
+            let myPos = -1; let count = 0;
             snap.docs.forEach((d, index) => {
                 if(d.data().uid === currentUser.uid) myPos = index;
                 count++;
             });
-
             if (myPos !== -1) {
                 document.getElementById('dash-main-counter').innerText = myPos;
-                document.getElementById('dash-est-time').innerText = (myPos * 5) + "m";
                 document.getElementById('btn-join-queue').classList.add('hidden');
                 document.getElementById('btn-leave-queue').classList.remove('hidden');
             } else {
                 document.getElementById('dash-main-counter').innerText = count;
-                document.getElementById('dash-est-time').innerText = (count * 5) + "m";
                 document.getElementById('btn-join-queue').classList.remove('hidden');
                 document.getElementById('btn-leave-queue').classList.add('hidden');
             }
         });
     }
 
-    // --- USER ACTIONS ---
-    const joinQBtn = document.getElementById('btn-join-queue');
-    if(joinQBtn) {
-        joinQBtn.onclick = async () => {
-            const locSnap = await getDoc(doc(db, "locations", currentLocId));
-            if(!checkTimeStatus(locSnap.data().openTime, locSnap.data().closeTime)) {
-                return alert("Facility is currently closed.");
-            }
-            await addDoc(collection(db, "queue"), {
-                uid: currentUser.uid,
-                name: currentUser.displayName || "User", // Fallback name
-                locationId: currentLocId,
-                timestamp: serverTimestamp(),
-                status: 'waiting'
-            });
-        };
-    }
+    document.getElementById('btn-join-queue').onclick = async () => {
+        await addDoc(collection(db, "queue"), {
+            uid: currentUser.uid, name: currentUser.displayName || "User",
+            locationId: currentLocId, timestamp: serverTimestamp()
+        });
+    };
 
-    const leaveQBtn = document.getElementById('btn-leave-queue');
-    if(leaveQBtn) {
-        leaveQBtn.onclick = async () => {
-            const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
-            const snap = await getDocs(q);
-            snap.forEach(async (d) => { await deleteDoc(d.ref); });
-        };
-    }
+    document.getElementById('btn-leave-queue').onclick = async () => {
+        const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
+        const snap = await getDocs(q);
+        snap.forEach(async (d) => await deleteDoc(d.ref));
+    };
 
-    // --- GOD MODE ---
     function initGodMode(locId) {
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
-            if(list) {
-                list.innerHTML = "";
-                document.getElementById('god-waiting').innerText = snap.size;
-                snap.docs.forEach((d, i) => {
-                    const data = d.data();
-                    const div = document.createElement('div');
-                    div.className = 'list-item';
-                    div.style.padding = "10px";
-                    div.innerHTML = `
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <div style="font-weight:800; color:var(--primary)">#${i+1}</div>
-                            <div>${data.name}</div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--primary); border:none; border-radius:5px; padding:5px 10px; font-weight:700;">✓</button>
-                            <button onclick="window.godAction('${d.id}', 'remove', '${data.name}')" style="background:#333; color:#fff; border:none; border-radius:5px; padding:5px 10px;">✕</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            }
+            list.innerHTML = "";
+            document.getElementById('god-waiting').innerText = snap.size;
+            snap.docs.forEach((d, i) => {
+                const data = d.data();
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.padding = "10px";
+                div.innerHTML = `
+                    <div style="display:flex; gap:10px;">
+                        <div style="font-weight:800; color:var(--primary)">#${i+1}</div>
+                        <div>${data.name}</div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="window.godAction('${d.id}', 'done')" style="background:var(--primary); border:none; border-radius:5px; padding:5px 10px; color:#000; font-weight:700;">✓</button>
+                        <button onclick="window.godAction('${d.id}', 'remove')" style="background:#333; color:#fff; border:none; border-radius:5px; padding:5px 10px;">✕</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
         });
     }
 
-    // --- GLOBAL HELPERS (Window Scope) ---
-    window.godAction = async (docId, type, userName) => {
+    window.godAction = async (docId, type) => {
         const docRef = doc(db, "queue", docId);
-        await addDoc(collection(db, "logs"), {
-            locationId: currentLocId,
-            action: type === 'done' ? 'SERVED' : 'REMOVED',
-            details: userName,
-            admin: currentUser.email,
-            timestamp: serverTimestamp()
-        });
         if(type === 'done') {
             await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         }
@@ -637,13 +418,12 @@
     };
 
     window.godForceClose = async () => {
-        if(!confirm("WARNING: This will kick everyone out.")) return;
+        if(!confirm("Kick everyone out?")) return;
         const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
         const snap = await getDocs(q);
         const batch = writeBatch(db);
         snap.forEach(d => batch.delete(d.ref));
         await batch.commit();
-        alert("Queue cleared.");
     };
 
     window.openAddLocModal = () => document.getElementById('modal-add-loc').classList.remove('hidden');
@@ -651,49 +431,27 @@
         const name = document.getElementById('new-loc-name').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        if(!name || !open || !close) return alert("Fill all fields");
-        await addDoc(collection(db, "locations"), {
-            name, openTime: open, closeTime: close, status: 'open', totalServed: 0
-        });
+        if(!name) return alert("Name needed");
+        await addDoc(collection(db, "locations"), { name, openTime: open, closeTime: close, status: 'open' });
         window.closeModals();
     };
 
     window.showView = (id) => {
         ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => {
-            const el = document.getElementById(v);
-            if(el) el.classList.add('hidden');
+            const el = document.getElementById(v); if(el) el.classList.add('hidden');
         });
-        const target = document.getElementById(id);
-        if(target) target.classList.remove('hidden');
+        document.getElementById(id).classList.remove('hidden');
     };
     
-    window.closeModals = () => {
-        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
-    };
-    
-    window.goBack = () => {
-        if(locUnsub) locUnsub();
-        if(queueUnsub) queueUnsub();
-        showView('view-select');
-    };
-    
-    window.openProfileEdit = () => {
-        document.getElementById('modal-profile').classList.remove('hidden');
-        document.getElementById('edit-profile-name').value = currentUser.displayName || "";
-    };
-
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; };
     window.updateProfile = async () => {
         const newName = document.getElementById('edit-profile-name').value;
-        await updateDoc(doc(db, "users", currentUser.uid), {
-            name: newName,
-            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128`
-        });
+        await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128` });
         location.reload();
     };
-
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
 </html>
-    </style>
-</head>
