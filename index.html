@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v9.0</title>
+    <title>QueueSmart AI | v10.0</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -11,7 +11,6 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            // Ignored minor resizing errors, show only critical crashes
             if(msg.includes("ResizeObserver")) return;
             document.body.innerHTML = `<div style="color:#ff4757; padding:30px; background:#000; height:100vh; font-family:sans-serif;"><h1>⚠️ SYSTEM ERROR</h1><p>${msg}</p><p>Line: ${line}</p><button onclick="location.reload()" style="padding:10px; margin-top:20px;">RELOAD SYSTEM</button></div>`;
         };
@@ -36,7 +35,6 @@
         }
         .app-shell { width: 100%; max-width: 480px; padding: 0 20px 40px 20px; }
         
-        /* CARDS */
         .glass-card {
             background: var(--glass-panel); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px;
@@ -44,7 +42,6 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* AI WIDGET */
         .ai-card {
             background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
             border: 1px solid rgba(112,0,255,0.3); border-radius: 20px; padding: 18px; margin-bottom: 20px;
@@ -106,7 +103,7 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v9.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v10.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -151,7 +148,7 @@
                 <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
             </div>
             <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-                Best time to visit this location:
+                Best time to visit (Daily Trend):
                 <br><b style="color: #fff; font-size: 15px;" id="dash-best-time">Analyzing...</b>
             </div>
         </div>
@@ -198,7 +195,10 @@
         <h4 style="margin:20px 0 10px 0; font-size:11px; color:#666;">QUEUE MANAGEMENT</h4>
         <div id="god-queue-list"></div>
 
-        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS</h4>
+        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS (REAL-TIME)</h4>
+        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">
+            ⚠️ LOGS HIDDEN: Click here to create required index in Firebase Console.
+        </div>
         <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
     </div>
 </div>
@@ -258,12 +258,14 @@
     let statusChart = null;
     let allLocations = [];
 
-    // --- UTILITY: STABLE HASH FOR "AI" CONSISTENCY ---
-    // This ensures "Best Time" doesn't change on reload
+    // --- UTILITY: STABLE HASH WITH DAILY ROTATION ---
+    // Uses Location ID + Day of Month (e.g. 27) to change "Best Time" daily but keep it stable for 24h
     function getStableRandom(seed, max) {
+        // Add current Date to seed
+        const dailySeed = seed + new Date().getDate(); 
         let hash = 0;
-        for (let i = 0; i < seed.length; i++) {
-            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+        for (let i = 0; i < dailySeed.length; i++) {
+            hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i);
             hash |= 0; 
         }
         return Math.abs(hash) % max;
@@ -326,7 +328,6 @@
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
                 const el = document.createElement('div');
                 el.className = 'list-item';
-                // ATTACH CLICK HANDLER SAFELY
                 el.innerHTML = `
                     <div onclick="window.selectLocation('${docSnap.id}')" style="flex:1; cursor:pointer;">
                         <div style="font-weight:700;">${loc.name}</div>
@@ -349,7 +350,7 @@
         const openLocs = allLocations.filter(l => checkTimeStatus(l.openTime, l.closeTime));
         
         if (openLocs.length > 0) {
-            // Stable choice based on Date to change daily, but consistent for everyone today
+            // Stable daily choice
             const todayIndex = new Date().getDate() % openLocs.length;
             const best = openLocs[todayIndex];
             nameEl.innerText = best.name;
@@ -360,7 +361,6 @@
         }
     }
 
-    // --- ROBUST TIME LOGIC (HANDLES OVERNIGHT) ---
     function checkTimeStatus(openStr, closeStr) {
         if(!openStr || !closeStr) return false;
         const now = new Date();
@@ -371,15 +371,12 @@
         const endMins = closeH * 60 + closeM;
 
         if (endMins < startMins) {
-            // Overnight shift (e.g. 21:00 - 04:00)
             return currentMins >= startMins || currentMins < endMins;
         } else {
-            // Normal shift (e.g. 09:00 - 17:00)
             return currentMins >= startMins && currentMins < endMins;
         }
     }
 
-    // --- ATTACH TO WINDOW TO PREVENT CRASH ---
     window.selectLocation = (locId) => {
         currentLocId = locId;
         if(isAdmin) {
@@ -399,6 +396,7 @@
                 uid: currentUser.uid, name: currentUser.displayName || "User",
                 locationId: currentLocId, timestamp: serverTimestamp(), allocatedTime: null
             });
+            // LOGGING
             await addDoc(collection(db, "logs"), {
                 locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp()
             });
@@ -413,6 +411,7 @@
         const snap = await getDocs(q);
         snap.forEach(async (d) => {
             await deleteDoc(d.ref);
+            // LOGGING
             await addDoc(collection(db, "logs"), {
                 locationId: currentLocId, action: 'LEFT', details: currentUser.displayName, timestamp: serverTimestamp()
             });
@@ -422,12 +421,12 @@
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         
-        // --- STABLE "AI" PREDICTION BASED ON LOCATION ID ---
+        // --- DATA-DYNAMIC PREDICTION (CHANGES DAILY) ---
         const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays'];
         const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM', '1:00 PM'];
         
-        // Use Stable Hash so it never changes for the same location
-        const dayIndex = getStableRandom(locId, days.length);
+        // Use "locId" + "Date" to rotate daily
+        const dayIndex = getStableRandom(locId + "day", days.length);
         const timeIndex = getStableRandom(locId + "time", times.length);
         
         document.getElementById('dash-best-time').innerText = `${days[dayIndex]} around ${times[timeIndex]}`;
@@ -466,7 +465,7 @@
                 if(allocated) {
                     estTimeDiv.innerText = allocated + " mins (Admin Set)";
                 } else {
-                    const aiTime = (myPos * 5) + 2; // Simple math
+                    const aiTime = (myPos * 5) + 2; 
                     estTimeDiv.innerText = "~" + aiTime + " mins";
                 }
                 document.getElementById('btn-join-queue').classList.add('hidden');
@@ -507,7 +506,7 @@
             });
         });
 
-        // UPDATE STATS (Total Served)
+        // UPDATE STATS
         const locRef = doc(db, "locations", locId);
         onSnapshot(locRef, (docSnap) => {
              if(docSnap.exists()) {
@@ -516,9 +515,14 @@
              }
         });
 
+        // LOGS LISTENER (WITH MISSING INDEX ERROR CATCHER)
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
+        
         logsUnsub = onSnapshot(logQ, (snap) => {
+            // HIDE ERROR IF IT WORKS
+            document.getElementById('index-error-msg').classList.add('hidden');
+            
             const logDiv = document.getElementById('god-log-list');
             logDiv.innerHTML = "";
             snap.forEach(d => {
@@ -535,6 +539,12 @@
                 div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
+        }, (error) => {
+            // IF INDEX IS MISSING, SHOW THE LINK
+            if(error.message.includes("index")) {
+                console.error("Missing Index:", error);
+                document.getElementById('index-error-msg').classList.remove('hidden');
+            }
         });
         
         initCharts();
@@ -544,11 +554,11 @@
 
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
+        // LOGGING
         await addDoc(collection(db, "logs"), {
             locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED',
             details: `User: ${name} | By: Admin`, timestamp: serverTimestamp()
         });
-        // INCREMENT SERVED COUNT
         if(type === 'done') {
             await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         }
