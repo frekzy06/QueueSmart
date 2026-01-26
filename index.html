@@ -3,144 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v18.0 Ultimate</title>
+    <title>QueueSmart AI | V19 </title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
-            // Suppress minor rendering errors to keep app alive
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) {
-                console.warn("Suppressed UI Error:", msg);
-                return true; 
+                console.warn("Suppressed UI Error:", msg); return true; 
             }
-            // Show critical errors
-            alert("Critical System Error: " + msg);
             return false;
         };
     </script>
     
     <style>
         :root {
-            --primary: #00d4ff; 
-            --primary-dim: rgba(0, 212, 255, 0.1);
-            --secondary: #7000ff; 
-            --bg-dark: #050507;
-            --glass-panel: rgba(255, 255, 255, 0.03); 
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff; 
-            --text-muted: #888899;
-            --open-color: #00ff9d; 
-            --closed-color: #ff2a2a;
+            --primary: #00d4ff; --primary-dim: rgba(0, 212, 255, 0.1);
+            --secondary: #7000ff; --bg-dark: #050507;
+            --glass-panel: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff; --text-muted: #888899;
+            --open-color: #00ff9d; --closed-color: #ff2a2a;
         }
-
-        body.god-mode { 
-            --primary: #ff2a2a; 
-            --primary-dim: rgba(255, 42, 42, 0.1); 
-            --open-color: #ff2a2a; 
-        }
-
+        body.god-mode { --primary: #ff2a2a; --primary-dim: rgba(255, 42, 42, 0.1); --open-color: #ff2a2a; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body {
-            margin: 0; padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif;
             background: radial-gradient(circle at top right, #1a1a2e 0%, var(--bg-dark) 60%);
-            color: var(--text-main);
-            min-height: 100vh;
+            color: var(--text-main); min-height: 100vh;
             display: flex; justify-content: center; align-items: flex-start;
             padding-top: 20px; overflow-x: hidden;
         }
-
-        .app-shell { width: 100%; max-width: 480px; padding: 0 20px 60px 20px; }
-
-        /* GLASS CARDS */
+        .app-shell { width: 100%; max-width: 480px; padding: 0 20px 40px 20px; }
+        
         .glass-card {
-            background: var(--glass-panel);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px; padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: slideUp 0.5s ease;
+            background: var(--glass-panel); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px;
+            margin-bottom: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LOCATIONS CARDS */
-        .loc-card {
-            border-radius: 20px; overflow: hidden; margin-bottom: 15px; position: relative;
-            border: 1px solid var(--glass-border); background: var(--glass-panel);
-            transition: transform 0.2s;
-        }
-        .loc-card:active { transform: scale(0.98); }
-        .loc-img {
-            height: 140px; width: 100%; background-size: cover; background-position: center;
-            position: relative;
-        }
-        .loc-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, #000 0%, transparent 100%);
-            padding: 40px 15px 15px 15px;
-        }
-        .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* CHAT STYLES */
-        .chat-box { 
-            max-height: 300px; overflow-y: auto; margin-top: 20px; 
-            padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px;
-        }
-        .chat-msg { display: flex; gap: 10px; margin-bottom: 12px; animation: fadeIn 0.3s; }
+        .chat-box { max-height: 300px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
+        .chat-msg { display: flex; gap: 10px; margin-bottom: 12px; }
         .chat-pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--glass-border); }
-        .chat-content { background: rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 0 12px 12px 12px; max-width: 85%; }
-        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .chat-content { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 0 12px 12px 12px; max-width: 85%; }
+        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
         .chat-text { font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* AI & CAMERA */
-        .cam-container { 
-            position: relative; width: 100%; height: 250px; background: #000; 
-            border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; 
-        }
+        .cam-container { position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
         .ai-card {
             background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
-            border: 1px solid rgba(112,0,255,0.3); border-radius: 20px; padding: 18px; 
-            margin-bottom: 20px; position: relative; overflow: hidden;
+            border: 1px solid rgba(112,0,255,0.3); border-radius: 20px; padding: 18px; margin-bottom: 20px;
+            position: relative; overflow: hidden;
         }
         .ai-badge {
-            background: linear-gradient(90deg, #7000ff, #00d4ff);
-            font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
-            color: #fff; display: inline-flex; align-items: center; gap: 4px; 
-            box-shadow: 0 0 10px rgba(112,0,255,0.5);
+            background: linear-gradient(90deg, #7000ff, #00d4ff); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
+            color: #fff; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(112,0,255,0.5);
         }
 
-        /* QR CODE */
-        #qr-code { 
-            background: #fff; padding: 10px; border-radius: 10px; 
-            display: inline-block; margin: 15px 0; 
-        }
-
-        /* FORMS & BUTTONS */
-        .input-field {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-            padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
-        }
-        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-        .btn {
-            width: 100%; padding: 16px; border: none; border-radius: 14px;
-            font-weight: 700; font-size: 13px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            text-transform: uppercase; margin-bottom: 8px; transition: 0.2s;
-        }
-        .btn:active { transform: scale(0.98); }
+        .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; margin-bottom: 8px; }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
@@ -149,30 +77,23 @@
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
         
-        .profile-uploader {
-            width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 15px;
-            border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;
-            overflow: hidden; position: relative; cursor: pointer;
-        }
+        .loc-card { border-radius: 20px; overflow: hidden; margin-bottom: 15px; position: relative; border: 1px solid var(--glass-border); background: var(--glass-panel); }
+        .loc-img { height: 120px; width: 100%; background-size: cover; background-position: center; position: relative; }
+        .loc-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #000 0%, transparent 100%); padding: 40px 15px 10px 15px; }
+        .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        .profile-uploader { width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 15px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; cursor: pointer; }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
 
         .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
         .hidden { display: none !important; }
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
-            display: flex; justify-content: center; align-items: center;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; justify-content: center; align-items: center; }
         .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
-        .alert-box {
-            background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757;
-            padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite;
-        }
+        .alert-box { background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757; padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
         
-        .edit-btn, .delete-btn { background: none; border: none; cursor: pointer; padding: 5px; }
-        .edit-btn { color: var(--primary); } .delete-btn { color: #ff4757; }
+        .edit-btn { background: none; border: none; color: var(--primary); cursor: pointer; padding: 5px; }
+        .delete-btn { background: none; border: none; color: #ff4757; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
@@ -185,7 +106,7 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v18.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v19.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -213,7 +134,7 @@
                 <span style="font-size:10px; color:#aaa;">LIVE</span>
             </div>
             <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing...</div>
-            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Calculating optimal visit times...</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Optimal visit calculation...</div>
         </div>
 
         <div id="location-list-container">
@@ -235,19 +156,14 @@
         <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
                 <i data-lucide="trending-up" style="color: var(--open-color); width: 16px;"></i>
-                <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
+                <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">REAL-TIME AI FORECAST</span>
             </div>
             <div style="font-size: 13px; color: var(--text-muted);">
-                Best time (Daily Trend): <b style="color: #fff;" id="dash-best-time">Analyzing...</b>
+                <span id="dash-best-time">Gathering historical data...</span>
             </div>
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-            <div id="qr-container" class="hidden">
-                <div id="qr-code"></div>
-                <div style="font-size:10px; color:#888; margin-bottom:15px;">SCAN TO VERIFY</div>
-            </div>
-
             <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
             <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 10px;">PEOPLE AHEAD</p>
             <div id="dash-est-time" style="color:var(--primary); font-weight:700; margin-top:10px;">-- mins</div>
@@ -334,7 +250,7 @@
             <option value="week" selected>Every Week</option>
             <option value="month">Every Month</option>
         </select>
-        <button onclick="createLocation()" class="btn btn-primary">DEPLOY</button>
+        <button onclick="createLocation()" class="btn btn-primary" id="btn-save-loc">DEPLOY</button>
         <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
     </div>
 </div>
@@ -355,7 +271,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -385,17 +301,12 @@
     let tempProfileBase64 = null;
     let previousPosition = -1;
 
-    // --- HELPER: SAFE DOM UPDATE (PREVENTS CRASH) ---
+    // --- UTILS ---
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
-    function getStableRandom(seed, max) {
-        const dailySeed = seed + new Date().getDate(); 
-        let hash = 0; for (let i = 0; i < dailySeed.length; i++) { hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i); hash |= 0; }
-        return Math.abs(hash) % max;
-    }
 
-    // --- GLOBAL BUTTON HANDLERS ---
+    // --- GLOBALS ---
     window.handleImageUpload = (input, previewId) => {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -451,9 +362,7 @@
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
-            // Notification Request
             if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
-            
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
             if (!snap.exists()) { showView('view-setup'); } else {
@@ -479,20 +388,16 @@
     // --- LOCATIONS ---
     function loadLocationsList() {
         const listDiv = document.getElementById('location-list-container');
-        // CLIENT-SIDE SORTING to avoid Missing Index Error
         const q = collection(db, "locations"); 
-        
         onSnapshot(q, (snap) => {
             listDiv.innerHTML = "";
             allLocations = [];
             if(snap.empty) listDiv.innerHTML = "<div style='text-align:center;padding:20px;color:#888'>No locations found.</div>";
-            
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
                 allLocations.push({id: docSnap.id, ...loc}); 
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x200/?abstract,${docSnap.id}`;
-                
                 const el = document.createElement('div');
                 el.className = 'loc-card';
                 el.innerHTML = `
@@ -541,30 +446,64 @@
         }
     }
 
+    // --- REAL AI ANALYTICS ---
+    async function analyzeTrends(locId) {
+        // Fetch last 50 logs to analyze real traffic patterns
+        const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(50));
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+            safeText('dash-best-time', "Learning patterns...");
+            return;
+        }
+
+        // Count logs per hour
+        const hourCounts = {};
+        snapshot.forEach(doc => {
+            if(doc.data().timestamp) {
+                const hour = doc.data().timestamp.toDate().getHours();
+                hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+            }
+        });
+
+        // Find quietest hour between 9am - 5pm
+        let quietestHour = -1;
+        let minTraffic = 9999;
+        
+        for(let h=9; h<=17; h++) {
+            const count = hourCounts[h] || 0;
+            if(count < minTraffic) {
+                minTraffic = count;
+                quietestHour = h;
+            }
+        }
+        
+        if (quietestHour !== -1) {
+            safeText('dash-best-time', `Usually quiet around ${quietestHour}:00`);
+        } else {
+            safeText('dash-best-time', "Analyzing data...");
+        }
+    }
+
     // --- DASHBOARD & CHAT ---
     function loadChat(locId, purgePolicy = 'week') {
         if(chatUnsub) chatUnsub();
-        
-        // Auto-Purge Old Messages
-        const now = new Date();
-        let cutoff = new Date();
+        // Purge
+        const now = new Date(); let cutoff = new Date();
         if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
         else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
-        else if(purgePolicy === 'month') cutoff.setMonth(now.getMonth() - 1);
+        else cutoff.setMonth(now.getMonth() - 1);
         
         const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
-        getDocs(oldQ).then(snap => {
-            if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }
-        });
+        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
 
-        // Load Messages (Client Sort to fix index error)
+        // Load
         const q = query(collection(db, "comments"), where("locationId", "==", locId));
         chatUnsub = onSnapshot(q, (snap) => {
             const box = document.getElementById('location-chat-box'); if(!box) return;
             box.innerHTML = "";
             const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            
-            if(msgs.length === 0) box.innerHTML = `<div style="text-align:center; color:#666; font-size:12px; margin-top:20px;">No messages yet. Say hi!</div>`;
+            if(msgs.length === 0) box.innerHTML = `<div style="text-align:center; color:#666; font-size:12px; margin-top:20px;">No messages yet.</div>`;
             msgs.forEach(c => {
                 const div = document.createElement('div'); div.className = 'chat-msg';
                 div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-content"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
@@ -576,11 +515,9 @@
 
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
-        // AI Stable Time
-        const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays'];
-        const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM'];
-        const dI = getStableRandom(locId + "day", days.length); const tI = getStableRandom(locId + "time", times.length);
-        safeText('dash-best-time', `${days[dI]} around ${times[tI]}`);
+        
+        // Trigger AI Analysis
+        analyzeTrends(locId);
 
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
             if(!doc.exists()) return;
@@ -605,16 +542,13 @@
         if(queueUnsub) queueUnsub();
         const q = query(collection(db, "queue"), where("locationId", "==", locId));
         queueUnsub = onSnapshot(q, (snap) => {
-            // Client-side sort
             const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            
             let myPos = -1; let allocated = null;
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            // DING
             if(myPos !== -1 && myPos < previousPosition && myPos === 0) {
                  const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                 alertSound.play().catch(e => console.log("Audio play failed (user interaction needed)"));
+                 alertSound.play().catch(e=>{});
                  if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
             }
             previousPosition = myPos;
@@ -624,19 +558,11 @@
                 safeText('dash-est-time', allocated ? allocated + " mins (Set)" : "~" + ((myPos * 5) + 2) + " mins");
                 safeClass('btn-join-queue', 'hidden', 'add');
                 safeClass('btn-leave-queue', 'hidden', 'remove');
-                safeClass('qr-container', 'hidden', 'remove');
-                
-                // GENERATE QR
-                const qrDiv = document.getElementById('qr-code');
-                qrDiv.innerHTML = "";
-                new QRCode(qrDiv, { text: currentUser.uid, width: 100, height: 100 });
-                
             } else {
                 safeText('dash-main-counter', docs.length);
                 safeText('dash-est-time', "-- mins");
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
-                safeClass('qr-container', 'hidden', 'add');
             }
         });
     }
@@ -649,23 +575,15 @@
             list.innerHTML = "";
             const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
             safeText('god-waiting', docs.length);
-            
             docs.forEach(data => {
                 const div = document.createElement('div'); div.className = 'list-item';
-                div.innerHTML = `
-                    <div style="flex:1;"><div style="font-weight:700; font-size:13px;">${data.name}</div></div>
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
-                        <button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--closed-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button>
-                    </div>
-                `;
+                div.innerHTML = `<div style="flex:1;"><div style="font-weight:700; font-size:13px;">${data.name}</div></div><div style="display:flex; align-items:center; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--closed-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div>`;
                 list.appendChild(div);
             });
         });
-
         const locRef = doc(db, "locations", locId);
         onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
-
+        
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
         logsUnsub = onSnapshot(logQ, (snap) => {
@@ -673,7 +591,8 @@
             logDiv.innerHTML = "";
             const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
             logs.forEach(l => {
-                const div = document.createElement('div'); div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
                 div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:#fff">${l.action}</b></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
@@ -698,7 +617,9 @@
     }
 
     window.toggleCamera = async () => {
-        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
+        const video = document.getElementById('webcam');
+        const wrapper = document.getElementById('cam-wrapper');
+        const btn = document.getElementById('btn-toggle-cam');
         if(!isCamActive) {
             wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP CAMERA`;
             if(!aiModel) aiModel = await cocoSsd.load();
@@ -753,18 +674,8 @@
     window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
     window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
     window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
-    
-    window.openProfileEdit = () => { 
-        document.getElementById('modal-profile').classList.remove('hidden'); 
-        document.getElementById('edit-profile-name').value = currentUser.displayName || ""; 
-        document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2);
-    };
-    window.updateProfile = async () => { 
-        const newName = document.getElementById('edit-profile-name').value; 
-        const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src;
-        await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); 
-        location.reload(); 
-    };
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2); };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
