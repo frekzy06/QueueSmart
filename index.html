@@ -78,6 +78,19 @@
             background: rgba(0,0,0,0.9); z-index: 100;
             display: flex; justify-content: center; align-items: center;
         }
+        
+        /* LOG STYLE */
+        .log-item {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 0;
+            font-size: 12px;
+        }
+        .log-time {
+            font-family: 'JetBrains Mono', monospace;
+            color: #888;
+            font-size: 10px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -90,7 +103,7 @@
                 <i data-lucide="layers" style="color: #fff;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v5.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v6.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Login with Google</button>
     </div>
@@ -153,8 +166,11 @@
 
         <button onclick="godForceClose()" class="btn btn-danger" style="font-size:12px; padding:12px;">⚠️ FORCE CLEAR QUEUE</button>
         
-        <h4 style="margin:20px 0 10px 0; font-size:12px; color:#666;">ACTIVE QUEUE</h4>
+        <h4 style="margin:30px 0 10px 0; font-size:12px; color:#666; letter-spacing:1px;">ACTIVE QUEUE</h4>
         <div id="god-queue-list"></div>
+
+        <h4 style="margin:30px 0 10px 0; font-size:12px; color:#666; letter-spacing:1px;">LIVE LOGS (IN / OUT)</h4>
+        <div id="god-log-list" style="max-height: 200px; overflow-y: auto;"></div>
     </div>
 
 </div>
@@ -209,13 +225,13 @@
     let isAdmin = false;
     let locUnsub = null;
     let queueUnsub = null;
+    let logsUnsub = null;
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
-            
             if (!snap.exists()) {
                 showView('view-setup');
             } else {
@@ -247,10 +263,8 @@
         const age = document.getElementById('setup-age').value;
         const gender = document.getElementById('setup-gender').value;
         if(!name || !age) return alert("Required");
-
         document.getElementById('btn-save-profile').innerText = "Working...";
         const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
-
         await setDoc(doc(db, "users", currentUser.uid), {
             uid: currentUser.uid, name, age, gender, photoURL, 
             role: 'user', createdAt: serverTimestamp()
@@ -289,7 +303,6 @@
 
     function checkTimeStatus(openStr, closeStr) {
         if(!openStr || !closeStr) return false;
-        
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = openStr.split(':').map(Number);
@@ -297,16 +310,10 @@
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
 
-        if (endMins < startMins) {
-            // Overnight
-            return currentMins >= startMins || currentMins < endMins;
-        } else {
-            // Standard
-            return currentMins >= startMins && currentMins < endMins;
-        }
+        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
+        return currentMins >= startMins && currentMins < endMins;
     }
 
-    // --- GLOBAL FUNCTIONS TO FIX CLICK ISSUES ---
     window.selectLocation = (locId) => {
         currentLocId = locId;
         if(isAdmin) {
@@ -327,13 +334,11 @@
         const btn = document.getElementById('btn-join-queue');
         btn.innerText = "JOINING...";
         btn.disabled = true;
-        
         try {
             await addDoc(collection(db, "queue"), {
                 uid: currentUser.uid, name: currentUser.displayName || "User",
                 locationId: currentLocId, timestamp: serverTimestamp()
             });
-            // Success! The snapshot listener will update the UI automatically.
         } catch (e) {
             alert("Error: " + e.message);
             btn.innerText = "JOIN QUEUE";
@@ -379,7 +384,6 @@
                 document.getElementById('dash-main-counter').innerText = myPos;
                 document.getElementById('btn-join-queue').classList.add('hidden');
                 document.getElementById('btn-leave-queue').classList.remove('hidden');
-                // Reset text just in case
                 document.getElementById('btn-join-queue').innerText = "JOIN QUEUE";
                 document.getElementById('btn-join-queue').disabled = false;
             } else {
@@ -387,16 +391,11 @@
                 document.getElementById('btn-join-queue').classList.remove('hidden');
                 document.getElementById('btn-leave-queue').classList.add('hidden');
             }
-        }, (err) => {
-            // CATCH INDEX ERRORS HERE
-            console.error(err);
-            if(err.message.includes("index")) {
-                alert("SYSTEM UPDATE NEEDED: Open Console (F12) and click the link to enable sorting.");
-            }
         });
     }
 
     function initGodMode(locId) {
+        // Queue Listener
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
@@ -420,10 +419,59 @@
                 list.appendChild(div);
             });
         });
+
+        // Logs Listener (WITH TIME FORMATTING)
+        if(logsUnsub) logsUnsub();
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("checkOutTime", "desc"), limit(20));
+        logsUnsub = onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list');
+            logDiv.innerHTML = "";
+            snap.forEach(d => {
+                const l = d.data();
+                
+                // Format Times
+                let inStr = "--:--";
+                let outStr = "--:--";
+                if(l.checkInTime && l.checkInTime.toDate) {
+                    inStr = l.checkInTime.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                }
+                if(l.checkOutTime && l.checkOutTime.toDate) {
+                    outStr = l.checkOutTime.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                }
+
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:${l.action==='SERVED' ? 'var(--open-color)' : 'var(--closed-color)'}; font-weight:700;">${l.action}</span>
+                        <span>${l.details}</span>
+                    </div>
+                    <div class="log-time">IN: ${inStr} &nbsp;➜&nbsp; OUT: ${outStr}</div>
+                `;
+                logDiv.appendChild(div);
+            });
+        });
     }
 
+    // --- UPDATED GOD ACTIONS WITH TIMESTAMP SAVING ---
     window.godAction = async (docId, type) => {
         const docRef = doc(db, "queue", docId);
+        
+        // 1. Get the Queue Data BEFORE deleting
+        const docSnap = await getDoc(docRef);
+        if(!docSnap.exists()) return;
+        const qData = docSnap.data();
+
+        // 2. Save Log with BOTH timestamps
+        await addDoc(collection(db, "logs"), {
+            locationId: currentLocId,
+            action: type === 'done' ? 'SERVED' : 'REMOVED',
+            details: qData.name,
+            checkInTime: qData.timestamp,  // <--- The original Join Time
+            checkOutTime: serverTimestamp(), // <--- The current Finish Time
+            admin: currentUser.email
+        });
+
         if(type === 'done') {
             await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         }
