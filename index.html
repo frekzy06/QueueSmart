@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v16.0 Stable</title>
+    <title>QueueSmart v17 | Restored</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
-            console.warn("Suppressed Error:", msg);
-            // If it's a minor UI error, ignore it and keep running
-            if(msg.includes("null") || msg.includes("innerText")) return true; 
-            return false; 
+            // Ignore benign resizing errors
+            if(msg.includes("ResizeObserver")) return;
+            alert("System Error: " + msg + " (Line " + line + ")");
         };
     </script>
     
@@ -46,71 +43,16 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* CHAT */
         .chat-box { max-height: 300px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
-        .chat-msg { display: flex; gap: 10px; margin-bottom: 12px; animation: fadeIn 0.3s; }
+        .chat-msg { display: flex; gap: 10px; margin-bottom: 12px; }
         .chat-pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--glass-border); }
         .chat-content { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 0 12px 12px 12px; max-width: 85%; }
-        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; display: flex; justify-content: space-between; gap: 10px; }
+        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
         .chat-text { font-size: 13px; color: #fff; line-height: 1.4; word-break: break-word; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .edit-btn { background: none; border: none; color: var(--primary); cursor: pointer; padding: 5px; }
-        .delete-btn { background: none; border: none; color: #ff4757; cursor: pointer; padding: 5px; }
-
-        .profile-uploader {
-            width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 15px;
-            border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;
-            overflow: hidden; position: relative; cursor: pointer;
-        }
-        .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .loc-card {
-            border-radius: 20px; overflow: hidden; margin-bottom: 15px; position: relative;
-            border: 1px solid var(--glass-border); background: var(--glass-panel); transition: transform 0.2s;
-        }
-        .loc-card:active { transform: scale(0.98); }
-        .loc-img { height: 120px; width: 100%; background-size: cover; background-position: center; position: relative; }
-        .loc-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, #000 0%, transparent 100%);
-            padding: 40px 15px 10px 15px;
-        }
-        .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-
-        .cam-container { position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        
-        .alert-box {
-            background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757;
-            padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-
-        .ai-card {
-            background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
-            border: 1px solid rgba(112,0,255,0.3); border-radius: 20px; padding: 18px; margin-bottom: 20px;
-            position: relative; overflow: hidden;
-        }
-        .ai-badge {
-            background: linear-gradient(90deg, #7000ff, #00d4ff);
-            font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
-            color: #fff; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(112,0,255,0.5);
-        }
-
-        .input-field {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-            padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
-        }
-        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-        .btn {
-            width: 100%; padding: 16px; border: none; border-radius: 14px;
-            font-weight: 700; font-size: 13px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            text-transform: uppercase; margin-bottom: 8px; transition: 0.2s;
-        }
-        .btn:active { transform: scale(0.98); }
+        .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; margin-bottom: 8px; }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
@@ -119,13 +61,14 @@
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
         
+        .loc-card { border-radius: 20px; overflow: hidden; margin-bottom: 15px; position: relative; border: 1px solid var(--glass-border); background: var(--glass-panel); }
+        .loc-img { height: 120px; width: 100%; background-size: cover; background-position: center; position: relative; }
+        .loc-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, #000 0%, transparent 100%); padding: 40px 15px 10px 15px; }
+        .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+
         .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
         .hidden { display: none !important; }
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 100;
-            display: flex; justify-content: center; align-items: center;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: flex; justify-content: center; align-items: center; }
         .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
     </style>
 </head>
@@ -139,21 +82,14 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">AI Social OS v16.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">Enterprise OS v17.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
         <h2>Identity Setup</h2>
-        <label class="profile-uploader">
-            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=333&color=fff">
-            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
-        </label>
-        <p style="text-align:center; font-size:10px; color:#666; margin-top:-10px; margin-bottom:15px;">Tap to upload photo</p>
         <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
-        <input type="number" id="setup-age" class="input-field" placeholder="Age">
-        <select id="setup-gender" class="input-field"><option>Male</option><option>Female</option></select>
         <button id="btn-save-profile" class="btn btn-primary">Create ID</button>
     </div>
 
@@ -162,22 +98,16 @@
             <h3>Facilities</h3>
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
-        
-        <div class="ai-card">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <div class="ai-badge"><i data-lucide="sparkles" style="width:10px;"></i> AI RECOMMENDATION</div>
-                <span style="font-size:10px; color:#aaa;">LIVE</span>
+        <div id="location-list-container">
+            <div style="text-align:center; padding:20px; color:#888;">
+                Loading Network...<br><span style="font-size:10px;">(If stuck, check connection)</span>
             </div>
-            <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing Network...</div>
-            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Calculating optimal visit times...</div>
         </div>
-
-        <div id="location-list-container">Loading...</div>
         <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 20px;">+ Add Facility</button>
     </div>
 
     <div id="view-dashboard" class="glass-card hidden">
-        <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px; font-size: 12px; font-weight: 700;">← BACK TO HUB</button>
+        <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px; font-size: 12px; font-weight: 700;">← BACK</button>
         
         <div id="dash-banner" style="height: 120px; border-radius: 16px; background: #222; background-size: cover; background-position: center; margin-bottom: 20px; position: relative;">
             <div style="position: absolute; bottom:0; left:0; width:100%; padding:15px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
@@ -187,26 +117,21 @@
         </div>
         
         <div style="text-align: center; margin: 30px 0;">
-            <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1; background: -webkit-linear-gradient(#fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+            <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
             <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 10px;">PEOPLE AHEAD</p>
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; margin-top: 15px;">
-                <i data-lucide="clock" style="width: 12px; color: var(--primary);"></i>
-                <span id="dash-est-time" style="font-size: 13px; font-weight: 700; color: #fff;">-- mins</span>
-            </div>
+            <div id="dash-est-time" style="color:var(--primary); font-weight:700; margin-top:10px;">-- mins</div>
         </div>
 
         <button onclick="window.joinQueue()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
         <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
 
         <div style="margin-top: 40px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
-            <h4 style="margin: 0 0 15px 0;">Live Community Chat</h4>
-            <div class="input-group" style="display:flex; gap:10px;">
-                <input type="text" id="chat-input" class="input-field" placeholder="Share updates..." style="margin-bottom:0;">
+            <h4 style="margin: 0 0 15px 0;">Live Chat</h4>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="chat-input" class="input-field" placeholder="Say something..." style="margin-bottom:0;">
                 <button onclick="window.sendChat()" class="btn btn-outline" style="width:auto; padding:12px; margin:0;"><i data-lucide="send"></i></button>
             </div>
-            <div id="location-chat-box" class="chat-box">
-                <div style="text-align:center; color:#666; font-size:12px;">Loading comments...</div>
-            </div>
+            <div id="location-chat-box" class="chat-box"></div>
         </div>
     </div>
 
@@ -214,33 +139,6 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="color: var(--primary); margin:0;">GOD MODE</h3>
             <button onclick="goBack()" style="background:none; border:none; color:#888;">EXIT</button>
-        </div>
-
-        <div id="god-alert-box" class="alert-box hidden">
-            <i data-lucide="siren" style="width:20px;"></i>
-            <div style="flex:1;"><strong id="alert-title">OVERCROWDED</strong><br><span id="alert-msg">Density high!</span></div>
-            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK</button>
-        </div>
-
-        <div style="margin-bottom:20px;">
-            <div id="cam-wrapper" class="cam-container hidden">
-                <video id="webcam" autoplay playsinline muted></video>
-                <canvas id="cam-overlay"></canvas>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:10px; font-size:11px;">
-                    <i data-lucide="camera"></i> ACTIVATE CAMERA
-                </button>
-                <div style="font-size:11px; color:#888;">Count: <b id="cam-count" style="color:var(--primary);">0</b></div>
-            </div>
-        </div>
-
-        <button onclick="toggleAnalytics()" class="btn btn-outline" style="font-size:11px; margin-bottom: 20px;">📊 LIVE ANALYTICS</button>
-        <div id="god-analytics-panel" class="hidden">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div class="chart-container"><canvas id="trafficChart"></canvas></div>
-                <div class="chart-container"><canvas id="statusChart"></canvas></div>
-            </div>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
@@ -258,7 +156,6 @@
         <div id="god-queue-list"></div>
 
         <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS</h4>
-        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">⚠️ Click to Fix Logs</div>
         <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
     </div>
 </div>
@@ -273,14 +170,7 @@
             <div style="flex:1"><label style="font-size:10px;">Open</label><input id="new-loc-open" type="time" class="input-field"></div>
             <div style="flex:1"><label style="font-size:10px;">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
         </div>
-        <label style="font-size:10px; color:#888;">Chat Purge Policy (Auto-Delete)</label>
-        <select id="new-loc-purge" class="input-field">
-            <option value="day">Every 24 Hours</option>
-            <option value="week" selected>Every Week</option>
-            <option value="month">Every Month</option>
-            <option value="year">Every Year</option>
-        </select>
-        <button onclick="createLocation()" class="btn btn-primary" id="btn-save-loc">DEPLOY</button>
+        <button onclick="createLocation()" class="btn btn-primary">DEPLOY</button>
         <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
     </div>
 </div>
@@ -288,11 +178,8 @@
 <div id="modal-profile" class="modal-overlay hidden">
     <div class="glass-card" style="width: 90%; max-width: 350px;">
         <h3>Edit Profile</h3>
-        <label class="profile-uploader">
-            <img id="edit-preview" src="">
-            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'edit-preview')">
-        </label>
         <input id="edit-profile-name" type="text" class="input-field">
+        <input id="edit-profile-url" type="text" class="input-field" placeholder="Photo URL">
         <button onclick="updateProfile()" class="btn btn-primary">SAVE</button>
         <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
         <button onclick="logout()" style="margin-top:20px; background:none; border:none; color:#ff4757; width:100%;">LOGOUT</button>
@@ -325,84 +212,16 @@
     let currentLocId = null;
     let isAdmin = false;
     let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
-    let trafficChart = null, statusChart = null;
-    let allLocations = [];
-    let aiModel = null, camInterval = null, isCamActive = false;
-    let tempProfileBase64 = null;
     let previousPosition = -1;
 
-    // --- HELPER: SAFE DOM UPDATE (PREVENTS CRASHES) ---
-    function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
-    function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
-    function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
-
-    function getStableRandom(seed, max) {
-        const dailySeed = seed + new Date().getDate(); 
-        let hash = 0;
-        for (let i = 0; i < dailySeed.length; i++) { hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i); hash |= 0; }
-        return Math.abs(hash) % max;
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        if (user) {
-            const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-            if (!snap.exists()) {
-                showView('view-setup');
-            } else {
-                const userData = snap.data();
-                isAdmin = (userData.role === 'admin');
-                safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
-                
-                if (isAdmin) {
-                    document.body.classList.add('god-mode');
-                    safeClass('admin-add-loc-btn', 'hidden', 'remove');
-                } else {
-                    document.body.classList.remove('god-mode');
-                }
-                showView('view-select');
-                loadLocationsList();
-            }
-        } else {
-            showView('view-login');
-        }
-    });
-
-    // --- GLOBAL ATTACHMENTS (CRITICAL FIX FOR "NOT DEFINED" ERROR) ---
-    window.handleImageUpload = (input, previewId) => {
-        const file = input.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 150; canvas.height = 150;
-                ctx.drawImage(img, 0, 0, 150, 150);
-                tempProfileBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById(previewId).src = tempProfileBase64;
-            }
-        }
-        reader.readAsDataURL(file);
-    };
-
+    // --- GLOBALS (Buttons) ---
     window.selectLocation = (locId) => {
         currentLocId = locId;
-        if(isAdmin) {
-            showView('view-god-mode');
-            initGodMode(locId);
-        } else {
-            showView('view-dashboard');
-            initUserDashboard(locId);
-        }
+        if(isAdmin) { showView('view-god-mode'); initGodMode(locId); } 
+        else { showView('view-dashboard'); initUserDashboard(locId); }
     };
 
     window.joinQueue = async () => {
-        const btn = document.getElementById('btn-join-queue');
-        btn.innerText = "JOINING..."; btn.disabled = true;
         try {
             await addDoc(collection(db, "queue"), {
                 uid: currentUser.uid, name: currentUser.displayName || "User",
@@ -411,10 +230,7 @@
             await addDoc(collection(db, "logs"), {
                 locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp()
             });
-        } catch (e) {
-            alert("Error: " + e.message);
-            btn.innerText = "JOIN QUEUE"; btn.disabled = false;
-        }
+        } catch (e) { alert(e.message); }
     };
 
     window.leaveQueue = async () => {
@@ -435,35 +251,110 @@
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const pfp = userDoc.exists() ? userDoc.data().photoURL : "";
         await addDoc(collection(db, "comments"), {
-            locationId: currentLocId, text: text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp()
+            locationId: currentLocId, text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp()
         });
         input.value = "";
     };
 
-    function loadChat(locId, purgePolicy = 'week') {
-        if(chatUnsub) chatUnsub();
-        const now = new Date();
-        let cutoff = new Date();
-        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
-        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
-        else if(purgePolicy === 'month') cutoff.setMonth(now.getMonth() - 1);
-        else if(purgePolicy === 'year') cutoff.setFullYear(now.getFullYear() - 1);
-        
-        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
-        getDocs(oldQ).then(snap => {
-            if(!snap.empty) {
-                const batch = writeBatch(db);
-                snap.forEach(d => batch.delete(d.ref));
-                batch.commit();
+    // --- AUTH ---
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) {
+                showView('view-setup');
+            } else {
+                const userData = snap.data();
+                isAdmin = (userData.role === 'admin');
+                document.getElementById('profile-bubble').style.backgroundImage = `url('${userData.photoURL}')`;
+                
+                if (isAdmin) {
+                    document.body.classList.add('god-mode');
+                    document.getElementById('admin-add-loc-btn').classList.remove('hidden');
+                } else {
+                    document.body.classList.remove('god-mode');
+                }
+                showView('view-select');
+                loadLocationsList();
             }
-        });
+        } else {
+            showView('view-login');
+        }
+    });
 
+    document.getElementById('btn-login').onclick = async () => { await signInWithPopup(auth, provider); };
+    document.getElementById('btn-save-profile').onclick = async () => {
+        const name = document.getElementById('setup-name').value;
+        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+        await setDoc(doc(db, "users", currentUser.uid), {
+            uid: currentUser.uid, name, photoURL, role: 'user', createdAt: serverTimestamp()
+        });
+        location.reload();
+    };
+
+    // --- LOCATIONS ---
+    function loadLocationsList() {
+        const listDiv = document.getElementById('location-list-container');
+        // REMOVED SORTING TO PREVENT HANGING ON MISSING INDEX
+        const q = collection(db, "locations"); 
+        
+        onSnapshot(q, (snap) => {
+            listDiv.innerHTML = "";
+            if(snap.empty) listDiv.innerHTML = "<div style='text-align:center;padding:20px;color:#666'>No locations found.</div>";
+            
+            snap.forEach(docSnap => {
+                const loc = docSnap.data();
+                const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
+                const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x200/?abstract,${docSnap.id}`;
+                
+                const el = document.createElement('div');
+                el.className = 'loc-card';
+                el.innerHTML = `
+                    <div class="loc-img" style="background-image: url('${bgImage}');" onclick="window.selectLocation('${docSnap.id}')">
+                        <div class="loc-overlay">
+                            <div style="font-weight:800; font-size:18px;">${loc.name}</div>
+                            <div style="font-size:11px; color:#ddd;">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
+                        </div>
+                    </div>
+                    <div class="loc-body">
+                        <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
+                        ${isAdmin ? `
+                            <div style="display:flex; gap:10px;">
+                                <button onclick="window.openEditModal('${docSnap.id}')" class="edit-btn"><i data-lucide="pencil" style="width:16px;"></i></button>
+                                <button onclick="window.deleteLocation('${docSnap.id}')" class="delete-btn"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                listDiv.appendChild(el);
+            });
+            if(window.lucide) lucide.createIcons();
+        }, (err) => {
+            listDiv.innerHTML = "<div style='color:red;padding:20px;'>Error Loading: " + err.message + "</div>";
+        });
+    }
+
+    function checkTimeStatus(openStr, closeStr) {
+        if(!openStr || !closeStr) return false;
+        const now = new Date();
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        const [openH, openM] = openStr.split(':').map(Number);
+        const [closeH, closeM] = closeStr.split(':').map(Number);
+        const startMins = openH * 60 + openM;
+        const endMins = closeH * 60 + closeM;
+        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
+        return currentMins >= startMins && currentMins < endMins;
+    }
+
+    // --- DASHBOARD & CHAT ---
+    function loadChat(locId) {
+        if(chatUnsub) chatUnsub();
+        // Simple chat query (requires index usually, but we will try without sorting if fails)
         const q = query(collection(db, "comments"), where("locationId", "==", locId), orderBy("timestamp", "asc"), limit(50));
         chatUnsub = onSnapshot(q, (snap) => {
             const box = document.getElementById('location-chat-box');
-            if(!box) return;
             box.innerHTML = "";
-            if(snap.empty) box.innerHTML = `<div style="text-align:center; color:#666; font-size:12px; margin-top:20px;">No messages yet. Say hi!</div>`;
             snap.forEach(d => {
                 const c = d.data();
                 const div = document.createElement('div');
@@ -472,40 +363,39 @@
                 box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
-        });
+        }, (err) => console.log("Chat load error (Index needed):", err));
     }
 
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
-        
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
-            loadChat(locId, data.purgeSetting || 'week');
+            loadChat(locId);
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
-            safeText('dash-loc-name', data.name);
-            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
+            document.getElementById('dash-loc-name').innerText = data.name;
+            if(data.imageURL) document.getElementById('dash-banner').style.backgroundImage = `url('${data.imageURL}')`;
             
             const badge = document.getElementById('dash-status-badge');
-            if(badge) {
-                if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
-                else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
-            }
             const btn = document.getElementById('btn-join-queue');
-            if(btn) {
-                if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
-                else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
-            }
+            
+            if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
+            else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
+            
+            if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
+            else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
         });
 
         if(queueUnsub) queueUnsub();
-        const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        const q = query(collection(db, "queue"), where("locationId", "==", locId)); // Removed sorting to prevent hang
         queueUnsub = onSnapshot(q, (snap) => {
-            let myPos = -1; let allocated = null;
-            snap.docs.forEach((d, index) => {
-                if(d.data().uid === currentUser.uid) { myPos = index; allocated = d.data().allocatedTime; }
-            });
+            // Sort client-side to avoid index requirement
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
             
+            let myPos = -1;
+            docs.forEach((d, index) => { if(d.uid === currentUser.uid) myPos = index; });
+
+            // DING
             if(myPos !== -1 && myPos < previousPosition && myPos === 0) {
                  const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                  alertSound.play().catch(e => console.log("Audio requires interaction"));
@@ -513,70 +403,36 @@
             previousPosition = myPos;
 
             if (myPos !== -1) {
-                safeText('dash-main-counter', myPos);
-                safeText('dash-est-time', allocated ? allocated + " mins (Set)" : "~" + ((myPos * 5) + 2) + " mins");
-                safeClass('btn-join-queue', 'hidden', 'add');
-                safeClass('btn-leave-queue', 'hidden', 'remove');
-                // Re-enable in case it was disabled
-                const btn = document.getElementById('btn-join-queue');
-                if(btn) { btn.innerText = "JOIN QUEUE"; btn.disabled = false; }
+                document.getElementById('dash-main-counter').innerText = myPos;
+                document.getElementById('dash-est-time').innerText = "~" + ((myPos * 5) + 2) + " mins";
+                document.getElementById('btn-join-queue').classList.add('hidden');
+                document.getElementById('btn-leave-queue').classList.remove('hidden');
             } else {
-                safeText('dash-main-counter', snap.size);
-                safeText('dash-est-time', "-- mins");
-                safeClass('btn-join-queue', 'hidden', 'remove');
-                safeClass('btn-leave-queue', 'hidden', 'add');
+                document.getElementById('dash-main-counter').innerText = docs.length;
+                document.getElementById('dash-est-time').innerText = "-- mins";
+                document.getElementById('btn-join-queue').classList.remove('hidden');
+                document.getElementById('btn-leave-queue').classList.add('hidden');
             }
         });
     }
 
-    window.toggleCamera = async () => {
-        const video = document.getElementById('webcam');
-        const wrapper = document.getElementById('cam-wrapper');
-        const btn = document.getElementById('btn-toggle-cam');
-        if(!isCamActive) {
-            wrapper.classList.remove('hidden');
-            btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP CAMERA`;
-            if(!aiModel) aiModel = await cocoSsd.load();
-            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
-            video.srcObject = stream;
-            isCamActive = true;
-            camInterval = setInterval(async () => {
-                const predictions = await aiModel.detect(video);
-                const people = predictions.filter(p => p.class === 'person');
-                safeText('cam-count', people.length);
-                if(people.length > 5) {
-                    safeClass('god-alert-box', 'hidden', 'remove');
-                    safeText('alert-msg', `Camera detected ${people.length} people!`);
-                } else { safeClass('god-alert-box', 'hidden', 'add'); }
-            }, 1000);
-        } else {
-            wrapper.classList.add('hidden');
-            btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE CAMERA`;
-            clearInterval(camInterval);
-            video.srcObject.getTracks().forEach(track => track.stop());
-            isCamActive = false;
-        }
-    };
-
-    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
-
+    // --- GOD MODE ---
     function initGodMode(locId) {
-        const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
-            if(!list) return;
             list.innerHTML = "";
-            safeText('god-waiting', snap.size);
-            snap.forEach(d => {
-                const data = d.data();
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            document.getElementById('god-waiting').innerText = docs.length;
+            
+            docs.forEach(data => {
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <div style="flex:1;"><div style="font-weight:700; font-size:13px;">#${data.name}</div><div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div></div>
+                    <div style="flex:1;"><div style="font-weight:700; font-size:13px;">${data.name}</div></div>
                     <div style="display:flex; align-items:center; gap:5px;">
-                        <input type="number" placeholder="Min" style="width:40px; background:#222; border:1px solid #444; color:#fff; padding:4px; font-size:10px;" onchange="window.allocateTime('${d.id}', this.value)">
-                        <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
-                        <button onclick="window.godAction('${d.id}', 'remove', '${data.name}')" style="background:var(--closed-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button>
+                        <button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
+                        <button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--closed-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button>
                     </div>
                 `;
                 list.appendChild(div);
@@ -584,105 +440,65 @@
         });
 
         const locRef = doc(db, "locations", locId);
-        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
+        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) document.getElementById('god-served').innerText = docSnap.data().totalServed || 0; });
 
         if(logsUnsub) logsUnsub();
-        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
+        // Basic log query without complex sorting to ensure it loads
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
         logsUnsub = onSnapshot(logQ, (snap) => {
-            safeClass('index-error-msg', 'hidden', 'add');
             const logDiv = document.getElementById('god-log-list');
-            if(!logDiv) return;
             logDiv.innerHTML = "";
             snap.forEach(d => {
                 const l = d.data();
-                const timeStr = l.timestamp ? l.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--';
-                let color = "#fff";
-                if(l.action === 'JOINED') color = "#00d4ff"; if(l.action === 'LEFT') color = "#ffaa00";
-                if(l.action === 'SERVED') color = "#00ff9d"; if(l.action === 'REMOVED') color = "#ff4757";
                 const div = document.createElement('div');
                 div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:#fff">${l.action}</b></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
-        }, (error) => { if(error.message.includes("index")) safeClass('index-error-msg', 'hidden', 'remove'); });
-        initCharts();
+        });
     }
-    
-    window.allocateTime = async (docId, mins) => { await updateDoc(doc(db, "queue", docId), { allocatedTime: mins }); };
 
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
-        await addDoc(collection(db, "logs"), {
-            locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED',
-            details: `User: ${name} | By: Admin`, timestamp: serverTimestamp()
-        });
+        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
         if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         await deleteDoc(docRef);
     };
 
-    window.toggleAnalytics = () => { document.getElementById('god-analytics-panel').classList.toggle('hidden'); };
-    function initCharts() {
-        if(trafficChart) trafficChart.destroy();
-        if(statusChart) statusChart.destroy();
-        const ctx1 = document.getElementById('trafficChart').getContext('2d');
-        trafficChart = new Chart(ctx1, { type: 'bar', data: { labels: ['9AM', '12PM', '3PM', '6PM'], datasets: [{ label: 'Traffic', data: [12, 45, 25, 60], backgroundColor: '#00d4ff' }] }, options: { plugins: { legend: { display: false } }, scales: { x: { display: true }, y: { display: false } } } });
-        const ctx2 = document.getElementById('statusChart').getContext('2d');
-        statusChart = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Served', 'Left', 'Wait'], datasets: [{ data: [65, 10, 25], backgroundColor: ['#00ff9d', '#ff4757', '#ffaa00'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 9 } } } } } });
-    }
-
-    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
-    
+    // --- MODAL & HELPERS ---
     window.createLocation = async () => {
         const id = document.getElementById('new-loc-id').value;
         const name = document.getElementById('new-loc-name').value;
         const img = document.getElementById('new-loc-img').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        const purge = document.getElementById('new-loc-purge').value;
         if(!name) return;
-        const locData = { name, imageURL: img, openTime: open, closeTime: close, purgeSetting: purge };
-        if(id) { await updateDoc(doc(db, "locations", id), locData); } else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
+        const locData = { name, imageURL: img, openTime: open, closeTime: close };
+        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
+        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
         window.closeModals();
     };
 
-    window.openAddLocModal = () => {
-        document.getElementById('new-loc-id').value = "";
-        safeText('modal-loc-title', "New Facility");
-        document.getElementById('new-loc-name').value = "";
-        document.getElementById('new-loc-img').value = "";
-        safeClass('modal-add-loc', 'hidden', 'remove');
-    };
-
+    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
+    window.openAddLocModal = () => { document.getElementById('new-loc-id').value = ""; document.getElementById('modal-loc-title').innerText = "New Facility"; document.getElementById('modal-add-loc').classList.remove('hidden'); };
     window.openEditModal = async (locId) => {
         const snap = await getDoc(doc(db, "locations", locId));
         const data = snap.data();
         document.getElementById('new-loc-id').value = locId;
-        safeText('modal-loc-title', "Edit Facility");
+        document.getElementById('modal-loc-title').innerText = "Edit Facility";
         document.getElementById('new-loc-name').value = data.name;
         document.getElementById('new-loc-img').value = data.imageURL || "";
         document.getElementById('new-loc-open').value = data.openTime;
         document.getElementById('new-loc-close').value = data.closeTime;
-        document.getElementById('new-loc-purge').value = data.purgeSetting || 'week';
-        safeClass('modal-add-loc', 'hidden', 'remove');
+        document.getElementById('modal-add-loc').classList.remove('hidden');
     };
 
-    window.showView = (id) => {
-        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('hidden'); });
-        document.getElementById(id).classList.remove('hidden');
-    };
+    window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
     window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
     window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
-    window.openProfileEdit = () => { 
-        document.getElementById('modal-profile').classList.remove('hidden'); 
-        document.getElementById('edit-profile-name').value = currentUser.displayName || ""; 
-        document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2);
-    };
-    window.updateProfile = async () => { 
-        const newName = document.getElementById('edit-profile-name').value; 
-        const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src;
-        await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); 
-        location.reload(); 
-    };
+    
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = document.getElementById('edit-profile-url').value; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL || "" }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
