@@ -330,53 +330,81 @@
     </div>
 </div>
         <script type="module">
-    // --- IMPORTS ---
-    import { db, auth, provider } from "./js/firebase.js"; // Pointing to local file
-    import { 
-        signInWithPopup, onAuthStateChanged, signOut 
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { 
-        doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp, deleteDoc, writeBatch, increment
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // --- 1. DIRECT FIREBASE IMPORTS (No separate file needed) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-    // --- ICONS ---
-    lucide.createIcons();
+    // --- 2. CONFIGURATION (Embedded) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
+      authDomain: "queuesmart-c3c28.firebaseapp.com",
+      projectId: "queuesmart-c3c28",
+      storageBucket: "queuesmart-c3c28.firebasestorage.app",
+      messagingSenderId: "709226546814",
+      appId: "1:709226546814:web:6eb9be2f916298fd34fa2f",
+      measurementId: "G-34TC8L9HJJ"
+    };
 
-    // --- STATE ---
+    // Initialize
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const storage = getStorage(app); // Just to prevent errors, we won't use it
+
+    // --- 3. ICONS ---
+    if(window.lucide) lucide.createIcons();
+
+    // --- 4. STATE & LOGIC ---
     let currentUser = null;
     let currentLocId = null;
     let isAdmin = false;
-    let locUnsub = null; // Listener for Location Data
-    let queueUnsub = null; // Listener for Queue Data
+    let locUnsub = null;
+    let queueUnsub = null;
 
     // --- AUTH LISTENER ---
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
+        // Hide loader or initial screen here if you had one
+        
         if (user) {
-            // Check User Profile in DB
+            console.log("User detected:", user.uid);
+            // Check User Profile
             const userRef = doc(db, "users", user.uid);
-            const snap = await getDoc(userRef);
-
-            if (!snap.exists()) {
-                showView('view-setup');
-                document.getElementById('setup-name').value = user.displayName;
-            } else {
-                const userData = snap.data();
-                isAdmin = (userData.role === 'admin');
+            try {
+                const snap = await getDoc(userRef);
                 
-                // Update Profile Bubble
-                document.getElementById('profile-bubble').style.backgroundImage = `url('${userData.photoURL}')`;
-                
-                // Show Admin Controls if God Mode
-                if (isAdmin) {
-                    document.body.classList.add('god-mode'); // Red Theme
-                    document.getElementById('admin-add-loc-btn').classList.remove('hidden');
+                if (!snap.exists()) {
+                    showView('view-setup');
+                    // Pre-fill name if available
+                    if(document.getElementById('setup-name')) {
+                        document.getElementById('setup-name').value = user.displayName || "";
+                    }
                 } else {
-                    document.body.classList.remove('god-mode');
+                    const userData = snap.data();
+                    isAdmin = (userData.role === 'admin');
+                    
+                    // Update Profile Bubble
+                    const bubble = document.getElementById('profile-bubble');
+                    if(bubble) bubble.style.backgroundImage = `url('${userData.photoURL}')`;
+                    
+                    // Show Admin Controls
+                    if (isAdmin) {
+                        document.body.classList.add('god-mode');
+                        const adminBtn = document.getElementById('admin-add-loc-btn');
+                        if(adminBtn) adminBtn.classList.remove('hidden');
+                    } else {
+                        document.body.classList.remove('god-mode');
+                    }
+                    
+                    showView('view-select');
+                    loadLocationsList();
                 }
-                
-                showView('view-select');
-                loadLocationsList();
+            } catch (err) {
+                console.error("Database Error:", err);
+                alert("Database Connection Failed. Check Console.");
             }
         } else {
             showView('view-login');
@@ -384,38 +412,55 @@
     });
 
     // --- LOGIN ---
-    document.getElementById('btn-login').onclick = async () => {
-        try { await signInWithPopup(auth, provider); } catch(e) { alert(e.message); }
-    };
+    const loginBtn = document.getElementById('btn-login');
+    if(loginBtn) {
+        loginBtn.onclick = async () => {
+            try { await signInWithPopup(auth, provider); } catch(e) { alert(e.message); }
+        };
+    }
 
-    // --- PROFILE SETUP (Zero Lag) ---
-    document.getElementById('btn-save-profile').onclick = async () => {
-        const name = document.getElementById('setup-name').value;
-        const age = document.getElementById('setup-age').value;
-        const gender = document.getElementById('setup-gender').value;
-        const btn = document.getElementById('btn-save-profile');
+    // --- PROFILE SETUP ---
+    const saveProfileBtn = document.getElementById('btn-save-profile');
+    if(saveProfileBtn) {
+        saveProfileBtn.onclick = async () => {
+            const name = document.getElementById('setup-name').value;
+            const age = document.getElementById('setup-age').value;
+            const gender = document.getElementById('setup-gender').value;
 
-        if(!name || !age) return alert("Fill all fields");
+            if(!name || !age) return alert("Fill all fields");
 
-        btn.innerText = "Encrypting...";
-        // Use UI Avatars for instant speed
-        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+            saveProfileBtn.innerText = "Encrypting...";
+            const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
 
-        await setDoc(doc(db, "users", currentUser.uid), {
-            uid: currentUser.uid, name, age, gender, photoURL, 
-            role: 'user', // Default
-            createdAt: serverTimestamp()
-        });
-        location.reload();
-    };
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), {
+                    uid: currentUser.uid, name, age, gender, photoURL, 
+                    role: 'user', 
+                    createdAt: serverTimestamp()
+                });
+                location.reload();
+            } catch(e) {
+                console.error(e);
+                alert("Save Failed: " + e.message);
+                saveProfileBtn.innerText = "TRY AGAIN";
+            }
+        };
+    }
 
-    // --- LOCATION LIST & SEARCH ---
+    // --- LOCATION LIST ---
     function loadLocationsList() {
         const listDiv = document.getElementById('location-list-container');
-        const q = query(collection(db, "locations"), orderBy("name")); // Requires Index?
+        if(!listDiv) return;
+        
+        const q = query(collection(db, "locations"), orderBy("name"));
 
         onSnapshot(q, (snap) => {
             listDiv.innerHTML = "";
+            if(snap.empty) {
+                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#666;'>No locations found.<br>Admin must add one.</div>";
+                return;
+            }
+
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
@@ -436,26 +481,28 @@
                 `;
                 listDiv.appendChild(el);
             });
+        }, (error) => {
+            console.error("Location Error:", error);
+            // This usually happens if index is missing
+            if(error.message.includes("index")) {
+                console.log("CLICK THE LINK IN CONSOLE TO CREATE INDEX");
+            }
         });
     }
 
-    // --- TIME LOGIC (The Brain) ---
+    // --- TIME LOGIC ---
     function checkTimeStatus(openStr, closeStr) {
         if(!openStr || !closeStr) return false;
         const now = new Date();
         const minsNow = now.getHours() * 60 + now.getMinutes();
-        
         const [oH, oM] = openStr.split(':').map(Number);
         const [cH, cM] = closeStr.split(':').map(Number);
-        
         return minsNow >= (oH*60 + oM) && minsNow < (cH*60 + cM);
     }
 
-    // --- SELECT LOCATION & DASHBOARD ---
+    // --- SELECT LOCATION ---
     window.selectLocation = async (locId) => {
         currentLocId = locId;
-        
-        // If Admin -> Go to God Mode
         if(isAdmin) {
             showView('view-god-mode');
             initGodMode(locId);
@@ -465,11 +512,11 @@
         }
     };
 
-    // --- USER DASHBOARD LOGIC ---
+    // --- USER DASHBOARD ---
     function initUserDashboard(locId) {
-        // 1. Listen to Location Data
         if(locUnsub) locUnsub();
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
+            if(!doc.exists()) return;
             const data = doc.data();
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             
@@ -480,7 +527,6 @@
             badge.className = `badge ${isOpen ? 'open' : 'closed'}`;
             badge.innerText = isOpen ? 'OPERATIONAL' : 'CLOSED';
             
-            // Disable Join if Closed
             const joinBtn = document.getElementById('btn-join-queue');
             if(!isOpen) {
                 joinBtn.disabled = true;
@@ -493,29 +539,24 @@
             }
         });
 
-        // 2. Listen to Queue Position
         if(queueUnsub) queueUnsub();
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
         
         queueUnsub = onSnapshot(q, (snap) => {
             let myPos = -1;
             let count = 0;
-            
             snap.docs.forEach((d, index) => {
                 if(d.data().uid === currentUser.uid) myPos = index;
                 count++;
             });
 
-            // UI Updates
             if (myPos !== -1) {
-                // I am in queue
-                document.getElementById('dash-main-counter').innerText = myPos; // People ahead = my index
+                document.getElementById('dash-main-counter').innerText = myPos;
                 document.getElementById('dash-est-time').innerText = (myPos * 5) + "m";
                 document.getElementById('btn-join-queue').classList.add('hidden');
                 document.getElementById('btn-leave-queue').classList.remove('hidden');
             } else {
-                // Not in queue
-                document.getElementById('dash-main-counter').innerText = count; // Total waiting
+                document.getElementById('dash-main-counter').innerText = count;
                 document.getElementById('dash-est-time').innerText = (count * 5) + "m";
                 document.getElementById('btn-join-queue').classList.remove('hidden');
                 document.getElementById('btn-leave-queue').classList.add('hidden');
@@ -524,77 +565,64 @@
     }
 
     // --- USER ACTIONS ---
-    document.getElementById('btn-join-queue').onclick = async () => {
-        // Double Check Time
-        const locSnap = await getDoc(doc(db, "locations", currentLocId));
-        if(!checkTimeStatus(locSnap.data().openTime, locSnap.data().closeTime)) {
-            return alert("Facility is currently closed.");
-        }
+    const joinQBtn = document.getElementById('btn-join-queue');
+    if(joinQBtn) {
+        joinQBtn.onclick = async () => {
+            const locSnap = await getDoc(doc(db, "locations", currentLocId));
+            if(!checkTimeStatus(locSnap.data().openTime, locSnap.data().closeTime)) {
+                return alert("Facility is currently closed.");
+            }
+            await addDoc(collection(db, "queue"), {
+                uid: currentUser.uid,
+                name: currentUser.displayName || "User", // Fallback name
+                locationId: currentLocId,
+                timestamp: serverTimestamp(),
+                status: 'waiting'
+            });
+        };
+    }
 
-        // Add to Queue
-        await addDoc(collection(db, "queue"), {
-            uid: currentUser.uid,
-            name: document.getElementById('setup-name').value || currentUser.displayName,
-            locationId: currentLocId,
-            timestamp: serverTimestamp(),
-            status: 'waiting'
-        });
-    };
+    const leaveQBtn = document.getElementById('btn-leave-queue');
+    if(leaveQBtn) {
+        leaveQBtn.onclick = async () => {
+            const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
+            const snap = await getDocs(q);
+            snap.forEach(async (d) => { await deleteDoc(d.ref); });
+        };
+    }
 
-    document.getElementById('btn-leave-queue').onclick = async () => {
-        // Find my doc and delete
-        const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
-        const snap = await getDocs(q); // Use getDocs here just for one-off
-        snap.forEach(async (d) => { await deleteDoc(d.ref); });
-    };
-
-    // --- GOD MODE LOGIC ---
+    // --- GOD MODE ---
     function initGodMode(locId) {
-        // Listen to Queue
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
-        
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
-            list.innerHTML = "";
-            document.getElementById('god-waiting').innerText = snap.size;
-
-            snap.docs.forEach((d, i) => {
-                const data = d.data();
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.style.padding = "10px";
-                div.innerHTML = `
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <div style="font-weight:800; color:var(--primary)">#${i+1}</div>
-                        <div>${data.name}</div>
-                    </div>
-                    <div style="display:flex; gap:5px;">
-                        <button onclick="godAction('${d.id}', 'done', '${data.name}')" style="background:var(--primary); border:none; border-radius:5px; padding:5px 10px; font-weight:700;">✓</button>
-                        <button onclick="godAction('${d.id}', 'remove', '${data.name}')" style="background:#333; color:#fff; border:none; border-radius:5px; padding:5px 10px;">✕</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-        });
-
-        // Listen to Logs
-        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
-        onSnapshot(logQ, (snap) => {
-            const logDiv = document.getElementById('god-log-list');
-            logDiv.innerHTML = "";
-            snap.forEach(d => {
-                const l = d.data();
-                const time = l.timestamp ? new Date(l.timestamp.toDate()).toLocaleTimeString() : '...';
-                logDiv.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px;">[${time}] ${l.action}: ${l.details}</div>`;
-            });
+            if(list) {
+                list.innerHTML = "";
+                document.getElementById('god-waiting').innerText = snap.size;
+                snap.docs.forEach((d, i) => {
+                    const data = d.data();
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    div.style.padding = "10px";
+                    div.innerHTML = `
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div style="font-weight:800; color:var(--primary)">#${i+1}</div>
+                            <div>${data.name}</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--primary); border:none; border-radius:5px; padding:5px 10px; font-weight:700;">✓</button>
+                            <button onclick="window.godAction('${d.id}', 'remove', '${data.name}')" style="background:#333; color:#fff; border:none; border-radius:5px; padding:5px 10px;">✕</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
         });
     }
 
-    // --- GOD ACTIONS (Global Scope for HTML access) ---
+    // --- GLOBAL HELPERS (Window Scope) ---
     window.godAction = async (docId, type, userName) => {
         const docRef = doc(db, "queue", docId);
-        
-        // Log it
         await addDoc(collection(db, "logs"), {
             locationId: currentLocId,
             action: type === 'done' ? 'SERVED' : 'REMOVED',
@@ -602,59 +630,41 @@
             admin: currentUser.email,
             timestamp: serverTimestamp()
         });
-
         if(type === 'done') {
             await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         }
-        
         await deleteDoc(docRef);
     };
 
     window.godForceClose = async () => {
         if(!confirm("WARNING: This will kick everyone out.")) return;
-        
-        // Batch Delete
         const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
-        const snap = await getDocs(q); // Need 'getDocs' import if not added, I added it in imports above
-        
+        const snap = await getDocs(q);
         const batch = writeBatch(db);
         snap.forEach(d => batch.delete(d.ref));
-        
-        // Log
-        const logRef = doc(collection(db, "logs"));
-        batch.set(logRef, {
-            locationId: currentLocId,
-            action: "FORCE_CLOSE",
-            details: `Kicked ${snap.size} users`,
-            timestamp: serverTimestamp()
-        });
-
         await batch.commit();
         alert("Queue cleared.");
     };
 
-    // --- ADMIN ADD LOCATION ---
     window.openAddLocModal = () => document.getElementById('modal-add-loc').classList.remove('hidden');
     window.createLocation = async () => {
         const name = document.getElementById('new-loc-name').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        
         if(!name || !open || !close) return alert("Fill all fields");
-        
         await addDoc(collection(db, "locations"), {
-            name, openTime: open, closeTime: close, 
-            status: 'open', totalServed: 0
+            name, openTime: open, closeTime: close, status: 'open', totalServed: 0
         });
         window.closeModals();
     };
 
-    // --- NAVIGATION HELPERS ---
     window.showView = (id) => {
-        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => 
-            document.getElementById(v).classList.add('hidden')
-        );
-        document.getElementById(id).classList.remove('hidden');
+        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => {
+            const el = document.getElementById(v);
+            if(el) el.classList.add('hidden');
+        });
+        const target = document.getElementById(id);
+        if(target) target.classList.remove('hidden');
     };
     
     window.closeModals = () => {
@@ -669,7 +679,7 @@
     
     window.openProfileEdit = () => {
         document.getElementById('modal-profile').classList.remove('hidden');
-        document.getElementById('edit-profile-name').value = document.getElementById('setup-name').value;
+        document.getElementById('edit-profile-name').value = currentUser.displayName || "";
     };
 
     window.updateProfile = async () => {
@@ -682,10 +692,6 @@
     };
 
     window.logout = () => signOut(auth).then(()=>location.reload());
-
-    // Import Helper for simple scripts inside module
-    import { getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 </script>
 </body>
 </html>
