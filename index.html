@@ -93,7 +93,7 @@
         .list-item {
             background: rgba(255,255,255,0.02); padding: 16px; border-radius: 16px;
             margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid transparent; cursor: pointer;
+            border: 1px solid transparent; 
         }
         .list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--glass-border); }
 
@@ -284,69 +284,81 @@
         location.reload();
     };
 
-   function loadLocationsList() {
-    const listDiv = document.getElementById('location-list-container');
-    const q = query(collection(db, "locations"), orderBy("name"));
+    // --- MAIN FIX IS HERE: LOAD LIST + DELETE BUTTON ---
+    function loadLocationsList() {
+        const listDiv = document.getElementById('location-list-container');
+        const q = query(collection(db, "locations"), orderBy("name"));
 
-    onSnapshot(q, (snap) => {
-        listDiv.innerHTML = "";
-        if(snap.empty) {
-            listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No Facilities Found.</div>";
-        }
-        snap.forEach(docSnap => {
-            const loc = docSnap.data();
-            const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
-            
-            const el = document.createElement('div');
-            el.className = 'list-item';
-            
-            // We split the layout: Left side clicks to join, Right side (Admin) deletes
-            el.innerHTML = `
-                <div onclick="selectLocation('${docSnap.id}')" style="flex:1; cursor:pointer;">
-                    <div style="font-weight:700;">${loc.name}</div>
-                    <div style="font-size:11px; color:#888; font-family:monospace;">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
-                </div>
+        onSnapshot(q, (snap) => {
+            listDiv.innerHTML = "";
+            if(snap.empty) {
+                listDiv.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No Facilities Found.<br>Admin, please add one.</div>";
+            }
+            snap.forEach(docSnap => {
+                const loc = docSnap.data();
+                const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
+                const el = document.createElement('div');
+                el.className = 'list-item';
                 
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
-                    ${isAdmin ? `<button onclick="deleteLocation('${docSnap.id}')" style="background:none; border:none; color:#ff4757; cursor:pointer; font-weight:bold; font-size:16px;">&times;</button>` : ''}
-                </div>
-            `;
-            listDiv.appendChild(el);
+                // IMPORTANT: We use window.selectLocation explicitly in onclick
+                el.innerHTML = `
+                    <div onclick="window.selectLocation('${docSnap.id}')" style="flex:1; cursor:pointer;">
+                        <div style="font-weight:700;">${loc.name}</div>
+                        <div style="font-size:11px; color:#888; font-family:monospace;">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
+                        ${isAdmin ? `<button onclick="window.deleteLocation('${docSnap.id}')" style="background:none; border:none; color:#ff4757; cursor:pointer; font-weight:bold; font-size:18px; padding:0 10px;">&times;</button>` : ''}
+                    </div>
+                `;
+                listDiv.appendChild(el);
+            });
         });
-    });
-}
-
-// ADD THIS NEW FUNCTION TO DELETE LOCATIONS:
-window.deleteLocation = async (id) => {
-    if(!confirm("DELETE this facility permanently?")) return;
-    await deleteDoc(doc(db, "locations", id));
-};
-
-    function checkTimeStatus(openStr, closeStr) {
-    if(!openStr || !closeStr) return false;
-    
-    const now = new Date();
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-    
-    const [openH, openM] = openStr.split(':').map(Number);
-    const [closeH, closeM] = closeStr.split(':').map(Number);
-    
-    const startMins = openH * 60 + openM;
-    const endMins = closeH * 60 + closeM;
-
-    if (endMins < startMins) {
-        // OVERNIGHT SHIFT (e.g. 21:00 to 04:00)
-        // Open if we are AFTER start time OR BEFORE end time
-        return currentMins >= startMins || currentMins < endMins;
-    } else {
-        // REGULAR SHIFT (e.g. 09:00 to 17:00)
-        return currentMins >= startMins && currentMins < endMins;
     }
-}
+
+    // --- FIX FOR OVERNIGHT LOGIC ---
+    function checkTimeStatus(openStr, closeStr) {
+        if(!openStr || !closeStr) return false;
+        
+        const now = new Date();
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        
+        const [openH, openM] = openStr.split(':').map(Number);
+        const [closeH, closeM] = closeStr.split(':').map(Number);
+        
+        const startMins = openH * 60 + openM;
+        const endMins = closeH * 60 + closeM;
+
+        if (endMins < startMins) {
+            // Overnight (e.g. 21:00 to 04:00)
+            return currentMins >= startMins || currentMins < endMins;
+        } else {
+            // Normal Day (e.g. 09:00 to 17:00)
+            return currentMins >= startMins && currentMins < endMins;
+        }
+    }
+
+    // --- ATTACHING TO WINDOW TO FIX CRASH ---
+    window.selectLocation = (locId) => {
+        currentLocId = locId;
+        if(isAdmin) {
+            showView('view-god-mode');
+            initGodMode(locId);
+        } else {
+            showView('view-dashboard');
+            initUserDashboard(locId);
+        }
+    };
+
+    window.deleteLocation = async (id) => {
+        if(!confirm("DELETE this facility permanently?")) return;
+        await deleteDoc(doc(db, "locations", id));
+    };
+
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
+            if(!doc.exists()) return;
             const data = doc.data();
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             document.getElementById('dash-loc-name').innerText = data.name;
