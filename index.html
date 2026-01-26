@@ -3,802 +3,691 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart v5.0 | Secure OS</title>
+    <title>QueueSmart Enterprise | Real-Time OS</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         :root {
-            /* Enhanced FinTech Dark Theme with Glassmorphism */
-            --primary: #00d4ff; /* Electric blue for premium feel */
-            --primary-glow: rgba(0, 212, 255, 0.5);
-            --bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            --panel: rgba(255, 255, 255, 0.08); /* Deeper glass effect */
-            --border: rgba(255, 255, 255, 0.12);
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --success: #00ff88;
-            --warning: #ffaa00;
-            --danger: #ff4757;
+            /* --- ENTERPRISE THEME VARIABLES --- */
+            --primary: #00d4ff;     /* Electric Blue */
+            --primary-dim: rgba(0, 212, 255, 0.1);
+            --secondary: #7000ff;   /* Deep Violet */
+            --bg-dark: #050507;
+            --glass-panel: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
-            --text-dim: #b0b0b0;
-            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smoother easing */
+            --text-muted: #888899;
+            
+            /* Status Colors */
+            --open-color: #00ff9d;  /* Neon Green */
+            --closed-color: #ff2a2a; /* Neon Red */
+            --busy-color: #ffaa00;  /* Neon Orange */
+            
+            /* Animation Speeds */
+            --anim-speed: 0.3s;
         }
 
-        /* God Mode Red Shift */
+        /* GOD MODE OVERRIDE (Red Theme) */
         body.god-mode {
-            --primary: #ff4757;
-            --primary-glow: rgba(255, 71, 87, 0.5);
-            background: linear-gradient(135deg, #2d1b1b 0%, #1a1a2e 100%) !important;
+            --primary: #ff2a2a; 
+            --primary-dim: rgba(255, 42, 42, 0.1);
+            --open-color: #ff2a2a; /* Everything feels dangerous in God Mode */
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             margin: 0;
             padding: 0;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
+            background: radial-gradient(circle at top right, #1a1a2e 0%, var(--bg-dark) 60%);
             color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-start; /* Better for scrolling lists */
+            padding-top: 40px;
             overflow-x: hidden;
-            transition: var(--transition);
         }
 
-        .app-container {
+        /* --- UI COMPONENTS --- */
+        .app-shell {
             width: 100%;
-            max-width: 440px;
-            padding: 20px;
-            box-sizing: border-box;
-            perspective: 1200px; /* Enhanced 3D depth */
+            max-width: 460px;
+            padding: 0 20px 40px 20px;
+            perspective: 1000px;
         }
 
-        /* Core Glassmorphism Components */
+        /* Glass Cards */
         .glass-card {
-            background: var(--panel);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
+            background: var(--glass-panel);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            text-align: center;
-            animation: cardEntrance 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
         }
 
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(40px) scale(0.95) rotateX(10deg); }
-            to { opacity: 1; transform: translateY(0) scale(1) rotateX(0deg); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .badge-live {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--primary);
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .dot {
-            width: 6px;
-            height: 6px;
-            background: var(--primary);
-            border-radius: 50%;
-            box-shadow: 0 0 15px var(--primary-glow);
-            animation: pulseGlow 2s infinite;
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.6; }
-        }
-
-        /* Form & Interactive Elements */
-        .input-field, .search-bar {
+        /* Inputs */
+        .input-group { margin-bottom: 16px; position: relative; }
+        .input-field, select.input-field {
             width: 100%;
-            padding: 16px 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 14px;
             color: #fff;
             font-size: 15px;
-            font-family: inherit;
+            transition: var(--anim-speed);
             outline: none;
-            box-sizing: border-box;
-            transition: var(--transition);
-            margin-bottom: 12px;
+            font-family: inherit;
         }
-
-        .input-field:focus, .search-bar:focus {
+        .input-field:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 20px var(--primary-glow);
-            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 15px var(--primary-dim);
+            background: rgba(0,0,0,0.5);
         }
 
+        /* Buttons */
         .btn {
             width: 100%;
             padding: 18px;
-            border-radius: 16px;
             border: none;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #0099cc); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.08); color: #fff; border: 1px solid var(--border); }
-        .btn-danger { background: var(--danger); color: #fff; }
-
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); }
-        .btn:active { transform: translateY(1px); }
-
-        /* Loading Animation for Join Queue Button */
-        .btn.loading {
-            pointer-events: none;
-        }
-        .btn.loading::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .hidden { display: none !important; }
-
-        /* Profile & Logs */
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--primary);
-            box-shadow: 0 0 25px var(--primary-glow);
-        }
-
-        .log-entry {
-            background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
-            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: var(--anim-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+        .btn-primary:active { transform: scale(0.98); }
+        
+        .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
+
+        /* Status Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
+        .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
+
+        /* Lists */
+        .list-item {
+            background: rgba(255,255,255,0.02);
+            padding: 16px;
+            border-radius: 16px;
             margin-bottom: 10px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            border-left: 4px solid var(--primary);
-            cursor: pointer;
-            transition: var(--transition);
+            border: 1px solid transparent;
+            transition: var(--anim-speed);
+        }
+        .list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--glass-border); }
+
+        /* Neon Text & Utilities */
+        .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
+        .hidden { display: none !important; }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            z-index: 100; display: flex; justify-content: center; align-items: center;
         }
 
-        .log-entry:hover { background: rgba(255, 255, 255, 0.08); transform: translateX(5px); }
+        /* Loading Spinner */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        <body>
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        /* Lucide Icons (for God Mode) */
-        .lucide-icon { width: 16px; height: 16px; fill: currentColor; }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <!-- Login View -->
-        <div id="view-login" class="glass-card">
-            <div class="badge-live"><div class="dot"></div> System Gateway</div>
-            <h1 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 800;">QueueSmart</h1>
-            <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 30px;">Next-Gen Capacity Management</p>
-
-            <div class="mode-pill-container" style="display: flex; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--border);">
-                <div id="pill-eco" class="mode-pill active" onclick="setModeUI('ECO')" style="flex: 1; padding: 12px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: var(--transition);">ECO FEED</div>
-                <div id="pill-god" class="mode-pill" onclick="setModeUI('GOD')" style="flex: 1; padding: 12px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: var(--transition);">GOD MODE</div>
+<div class="app-shell">
+    
+    <div id="view-login" class="glass-card">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px var(--primary-dim);">
+                <i data-lucide="layers" style="color: #fff;"></i>
             </div>
-
-            <button id="btn-login" class="btn btn-primary">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/500px-Google_%22G%22_logo.svg.png" width="20" height="20" style="filter: brightness(0.9);">
-                AUTHORIZE WITH GOOGLE
-            </button>
-            <p id="god-notice" style="font-size: 10px; color: var(--danger); margin-top: 15px; display: none;">UNAUTHORIZED ACCESS ATTEMPT WILL BE LOGGED</p>
+            <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
+            <p style="color: var(--text-muted); font-size: 13px;">Enterprise Capacity OS v5.0</p>
         </div>
-
-        <!-- Setup View -->
-        <div id="view-setup" class="glass-card hidden">
-            <div class="badge-live"><div class="dot"></div> Profile Setup</div>
-            <h2 style="margin: 0 0 10px 0;">New User Detected</h2>
-            <p style="color: var(--text-dim); font-size: 12px; margin-bottom: 25px;">Initialize your profile metadata</p>
-
-            <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
-            <input type="number" id="setup-age" class="input-field" placeholder="Age">
-            <select id="setup-gender" class="input-field" style="background: rgba(0,0,0,0.5);">
-                <option value="" disabled selected>Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-
-            <button id="btn-save-profile" class="btn btn-primary">CREATE ACCOUNT</button>
-        </div>
-
-        <!-- Location Selection View -->
-        <div id="view-select" class="glass-card hidden">
-            <div class="badge-live"><div class="dot"></div> Security Database</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin:0;">Locations</h2>
-                <img id="my-profile-btn" src="" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--primary); cursor: pointer;" onclick="openProfileModal('self')">
-            </div>
-            
-            <input type="text" id="search-bar" class="search-bar" placeholder="Search halls, labs..." onkeyup="filterLocations()">
-
-            <div id="location-list" style="max-height: 300px; overflow-y: auto;"></div>
-
-            <button onclick="triggerLogout()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; margin-top:20px; font-weight:700; font-size: 12px;">TERMINATE SESSION</button>
-        </div>
-
-        <!-- User Dashboard View (Regular Users) -->
-        <div id="view-user-dash" class="glass-card hidden">
-            <div class="badge-live" id="user-dash-badge"><div class="dot"></div> Live Connection</div>
-            <h3 id="user-loc-display-name" style="margin:0; color: var(--text-dim); font-size:12px; text-transform:uppercase; letter-spacing:2px;">---</h3>
-            
-            <div class="main-display" id="user-count-display" style="font-size: 110px; font-weight: 800; letter-spacing: -6px;">0</div>
-
-            <div class="heatmap-track" style="height: 14px; background: rgba(255,255,255,0.03); border-radius: 20px; margin: 25px 0; border: 1px solid var(--border); overflow: hidden;">
-                <div id="user-heatmap-fill" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--success), var(--warning), var(--danger)); transition: width 1s ease;"></div>
-            </div>
-
-            <div class="stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
-                    <small style="font-size: 9px; color: var(--text-dim); display: block;">WAIT TIME</small>
-                    <span id="user-wait-display" style="font-weight: 700;">0 <small>min</small></span>
-                </div>
-                <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
-                    <small style="font-size: 9px; color: var(--text-dim); display: block;">FLOW</small>
-                    <span id="user-flow-display" style="font-weight: 700; color: var(--primary);">Steady</span>
-                </div>
-            </div>
-
-            <button id="btn-checkin" class="btn btn-primary">JOIN QUEUE</button>
-            <button id="btn-checkout" class="btn btn-secondary">LEAVE QUEUE</button>
-
-                        <button onclick="backToSelection()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:11px; font-weight:700; margin-top: 15px;">BACK TO LOCATIONS</button>
-        </div>
-
-        <!-- God Mode Dashboard View (Admins Only) -->
-        <div id="view-god-dash" class="glass-card hidden">
-            <div class="badge-live"><div class="dot"></div> God Mode Control</div>
-            <h3 id="god-loc-display-name" style="margin:0; color: var(--text-dim); font-size:12px; text-transform:uppercase; letter-spacing:2px;">---</h3>
-            
-            <div class="stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
-                    <small style="font-size: 9px; color: var(--text-dim); display: block;">WAITING</small>
-                    <span id="god-waiting-count" style="font-weight: 700; color: var(--primary);">0</span>
-                </div>
-                <div style="background: var(--card-bg); padding: 15px; border-radius: 20px; border: 1px solid var(--border);">
-                    <small style="font-size: 9px; color: var(--text-dim); display: block;">SERVED</small>
-                    <span id="god-served-count" style="font-weight: 700; color: var(--success);">0</span>
-                </div>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <h4 style="font-size: 14px; margin-bottom: 10px;">Live Queue Management</h4>
-                <div id="god-queue-list" style="max-height: 250px; overflow-y: auto;">
-                    <!-- Dynamic queue entries will be inserted here -->
-                </div>
-            </div>
-
-            <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-                <h4 style="font-size: 12px; color: var(--primary); letter-spacing: 2px; margin-bottom: 10px;">ACTIVITY LOGS</h4>
-                <div id="god-activity-logs" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Logs will be populated here -->
-                </div>
-                <button id="god-config-btn" style="background:none; border:none; color:var(--primary); font-size:10px; cursor:pointer; margin-top: 10px;">[SYSTEM OVERRIDE]</button>
-            </div>
-
-            <button onclick="backToSelection()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:11px; font-weight:700; margin-top: 15px;">BACK TO LOCATIONS</button>
-        </div>
-
-        <!-- Profile Modal -->
-        <div id="modal-profile" class="glass-card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; width:85%; border: 2px solid var(--primary);">
-            <img id="prof-modal-img" src="" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg); margin-top: -60px;">
-            <h2 id="prof-modal-name" style="margin: 15px 0 5px 0;">Name</h2>
-            <p id="prof-modal-meta" style="color: var(--text-dim); margin-bottom: 20px;">Age • Gender</p>
-            <div id="prof-edit-fields" class="hidden">
-                <input type="text" id="edit-name" class="input-field" placeholder="Update Name">
-                <button id="btn-update-profile" class="btn btn-primary">UPDATE</button>
-            </div>
-            <button onclick="closeModals()" class="btn btn-secondary">CLOSE</button>
-        </div>
+        
+        <button id="btn-login" class="btn btn-primary">
+            <i data-lucide="shield"></i> Authenticate with Google
+        </button>
     </div>
 
-    <script type="module">
-        // Firebase Core Imports and Config (Embedded for Single File)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
-            authDomain: "queuesmart-c3c28.firebaseapp.com",
-            projectId: "queuesmart-c3c28",
-            storageBucket: "queuesmart-c3c28.firebasestorage.app",
-            messagingSenderId: "709226546814",
-            appId: "1:709226546814:web:6eb9be2f916298fd34fa2f",
-            measurementId: "G-34TC8L9HJJ"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        export const db = getFirestore(app);
-        export const auth = getAuth(app);
-        export const provider = new GoogleAuthProvider();
-
-        // Additional Imports for Firestore Operations
-        import { 
-            signInWithPopup, onAuthStateChanged, signOut 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { 
-            doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, deleteDoc, increment 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Admin Configuration (Preserved from Original)
-        const ADMIN_EMAILS = [
-            "frekz547@gmail.com", 
-            "ashutoshsinghpaihar2006@gmail.com",
-            "frekzy06@gmail.com" 
-        ];
-
-        // Global State
-        let currentLocId = null;
-        let unsubLogs = null;
-        let isGodModeActive = false;
-
-        // Theme & UI Controller
-        window.setModeUI = (mode) => {
-            const isGod = (mode === 'GOD');
-            document.getElementById('pill-eco').classList.toggle('active', !isGod);
-            document.getElementById('pill-god').classList.toggle('active', isGod);
-            document.getElementById('god-notice').style.display = isGod ? 'block' : 'none';
-            
-            if (isGod) {
-                document.body.classList.add('god-mode');
-            } else {
-                document.body.classList.remove('god-mode');
-            }
-        };
-
-        // Auth State Watcher
-        onAuthStateChanged(auth, async (user) => {
-            const views = ['view-login', 'view-setup', 'view-select', 'view-user-dash', 'view-god-dash'];
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-
-            if (user) {
-                const userIsAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-                const selectedMode = document.getElementById('pill-god').classList.contains('active') ? 'GOD' : 'ECO';
-                
-                if (selectedMode === 'GOD' && !userIsAdmin) {
-                    alert("ACCESS DENIED: Your email is not whitelisted for GOD MODE.");
-                    signOut(auth);
-                    return;
-                }
-
-                isGodModeActive = (selectedMode === 'GOD');
-                setModeUI(selectedMode);
-
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists()) {
-                    showView('view-setup');
-                } else {
-                    document.getElementById('my-profile-btn').src = userSnap.data().photoURL;
-                    showView('view-select');
-                    loadLocations();
-                }
-            } else {
-                showView('view-login');
-            }
-        });
-
-        // Login Trigger
-        document.getElementById('btn-login').onclick = async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (e) {
-                console.error(e);
-                alert("Login Failed: Ensure popups are allowed.");
-            }
-        };
-
-        // View Navigator
-        function showView(viewId) {
-            const views = ['view-login', 'view-setup', 'view-select', 'view-user-dash', 'view-god-dash'];
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(viewId).classList.remove('hidden');
-        }
-
-        // Logout Handler
-        window.triggerLogout = () => {
-            signOut(auth).then(() => location.reload());
-        };
-
-        // Save Profile
-        document.getElementById('btn-save-profile').onclick = async () => {
-            const name = document.getElementById('setup-name').value;
-            const age = document.getElementById('setup-age').value;
-            const gender = document.getElementById('setup-gender').value;
-
-            if (!name || !age || !gender) {
-                alert("Please fill all fields");
-                return;
-            }
-
-            const btn = document.getElementById('btn-save-profile');
-            btn.innerText = "SAVING...";
-            btn.disabled = true;
-
-            try {
-                const user = auth.currentUser;
-                const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
-
-                await setDoc(doc(db, "users", user.uid), {
-                    name: name,
-                    age: age,
-                    gender: gender,
-                    photoURL: photoURL,
-                    uid: user.uid,
-                    createdAt: new Date()
-                });
-
-                location.reload();
-            } catch (error) {
-                console.error("Error:", error);
-                alert("System Error: " + error.message);
-                btn.innerText = "RETRY";
-                btn.disabled = false;
-            }
-        };
-
-        // Load Locations
-        async function loadLocations() {
-            const listContainer = document.getElementById('location-list');
-            listContainer.innerHTML = '<p style="font-size:12px; color:var(--text-dim)">Scanning Database...</p>';
-
-            try {
-                const q = query(collection(db, "locations"));
-                onSnapshot(q, (snapshot) => {
-                    listContainer.innerHTML = "";
-                    snapshot.forEach((docLoc) => {
-                        const data = docLoc.data();
-                        const locId = docLoc.id;
-                        
-                        const card = document.createElement('div');
-                        card.className = 'location-card';
-                        card.style.cssText = `
-                            background: var(--card-bg); 
-                            border: 1px solid var(--border); 
-                            border-radius: 20px; 
-                            padding: 18px; 
-                            margin-bottom: 12px; 
-                            display: flex; 
-                            justify-content: space-between; 
-                            align-items: center; 
-                            cursor: pointer;
-                            transition: var(--transition);
-                        `;
-                        
-                        card.innerHTML = `
-                            <div style="text-align: left;">
-                                <h4 style="margin: 0; font-size: 16px;">${data.name}</h4>
-                                <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-dim);">${data.description || 'Secure Facility'}</p>
-                            </div>
-                            <div style="color: var(--primary); font-weight: 800;">→</div>
-                        `;
-                        
-                        card.onclick = () => selectLocation(locId);
-                        listContainer.appendChild(card);
-                    });
-                });
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        // Filter Locations
-        window.filterLocations = () => {
-            const q = document.getElementById('search-bar').value.toLowerCase();
-            const cards = document.querySelectorAll('.location-card');
-            cards.forEach(c => {
-                const title = c.querySelector('h4').innerText.toLowerCase();
-                c.style.display = title.includes(q) ? 'flex' : 'none';
-            });
-        };
-
-        // Select Location
-        window.selectLocation = (id) => {
-            currentLocId = id;
-            const targetView = isGodModeActive ? 'view-god-dash' : 'view-user-dash';
-            showView(targetView);
-            initDashboardSync(id);
-        };
-
-        // Dashboard Sync
-        function initDashboardSync(locId) {
-            const locRef = doc(db, "locations", locId);
-
-            onSnapshot(locRef, (docSnap) => {
-                if (!docSnap.exists()) return;
-                
-                const data = docSnap.data();
-                const count = data.currentCount || 0;
-                const max = data.maxCapacity || 50;
-                const avgTime = data.avgTimePerPerson || 5;
-
-                if (isGodModeActive) {
-                    // God Mode Updates
-                    document.getElementById('god-loc-display-name').innerText = data.name;
-                    document.getElementById('god-waiting-count').innerText = count;
-                    document.getElementById('god-served-count').innerText = data.totalServed || 0;
-                    initGodQueue(locId);
-                    initGodLogs(locId);
-                } else {
-                    // User Mode Updates
-                    document.getElementById('user-loc-display-name').innerText = data.name;
-                    document.getElementById('user-count-display').innerText = count;
-                    document.getElementById('user-wait-display').innerHTML = `${count * avgTime} <small>min</small>`;
-                    
-                    const percentage = (count / max) * 100;
-                    document.getElementById('user-heatmap-fill').style.width = Math.min(percentage, 100) + "%";
-                    
-                    const flow = document.getElementById('user-flow-display');
-                    if (percentage < 30) { flow.innerText = "Steady"; flow.style.color = "var(--success)"; }
-                    else if (percentage < 75) { flow.innerText = "Active"; flow.style.color = "var(--warning)"; }
-                    else { flow.innerText = "Saturated"; flow.style.color = "var(--danger)"; }
-                }
-            });
-        }
-
-        // Check-In (Join Queue) with Loading Animation
-        document.getElementById('btn-checkin').onclick = async () => {
-            const btn = document.getElementById('btn-checkin');
-            btn.classList.add('loading');
-            btn.innerHTML = '<span>JOINING...</span>';
-
-            const user = auth.currentUser;
-            const locRef = doc(db, "locations", currentLocId);
-            const checkinRef = doc(db, "checkins", user.uid);
-
-            try {
-                const existing = await getDoc(checkinRef);
-                if (existing.exists()) {
-                    alert("You are already in a queue elsewhere. Leave first.");
-                    return;
-                }
-
-                await setDoc(checkinRef, {
-                    uid: user.uid,
-                    locationId: currentLocId,
-                    checkinTime: new Date(),
-                    status: 'active'
-                });
-
-                await updateDoc(locRef, { currentCount: increment(1) });
-                alert("Joined the queue successfully.");
-            } catch (err) {
-                console.error(err);
-                alert("Failed to join queue.");
-            } finally {
-                btn.classList.remove('loading');
-                btn.innerHTML = 'JOIN QUEUE';
-            }
-        };
-
-        // Check-Out (Leave Queue)
-        document.getElementById('btn-checkout').onclick = async () => {
-            const user = auth.currentUser;
-            const locRef = doc(db, "locations", currentLocId);
-            const checkinRef = doc(db, "checkins", user.uid);
-
-            try {
-                const existing = await getDoc(checkinRef);
-                if (!existing.exists()) {
-                    alert("No active queue session.");
-                    return;
-                }
-
-                const checkinData = existing.data();
-                await setDoc(doc(db, "history", `${user.uid}_${Date.now()}`), {
-                    ...checkinData,
-                    checkoutTime: new Date()
-                });
-
-                await deleteDoc(checkinRef);
-                await updateDoc(locRef, { currentCount: increment(-1) });
-                alert("Left the queue.");
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
-        // Back to Selection
-        window.backToSelection = () => {
-            showView('view-select');
-        };
-
-        // God Mode Queue Management
-        function initGodQueue(locId) {
-            const queueList = document.getElementById('god-queue-list');
-            const q = query(collection(db, "checkins"), where("locationId", "==", locId), orderBy("checkinTime", "asc"));
-
-            onSnapshot(q, (snapshot) => {
-                queueList.innerHTML = "";
-                snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry';
-                    entry.innerHTML = `
-                        <img src="${data.photoURL || ''}" style="width:30px; height:30px; border-radius:50%; border:1px solid var(--primary);">
-                        <div style="flex:1">
-                            <div style="font-weight:700; font-size:12px;">${data.name}</div>
-                            <div style="font-size:9px; color:var(--text-dim)">Position: ${snapshot.docs.indexOf(docSnap) + 1}</div>
-                        </div>
-                        <button onclick="godAction('${docSnap.id}', 'done')" style="background:var(--success); border:none; color:#fff; padding:4px 8px; border-radius:8px; font-size:10px;">Done</button>
-                        <button onclick="godAction('${docSnap.id}', 'remove')" style="background:var(--danger); border:none; color:#fff; padding:4px 8px; border-radius:8px; font-size:10px;">Remove</button>
-                    `;
-                    queueList.appendChild(entry);
-                });
-            });
-        }
-
-                // God Mode Logs
-        function initGodLogs(locId) {
-            const logsContainer = document.getElementById('god-activity-logs');
-            const q = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
-
-            onSnapshot(q, (snapshot) => {
-                logsContainer.innerHTML = "";
-                snapshot.forEach((docSnap) => {
-                    const logData = docSnap.data();
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry';
-                    entry.innerHTML = `
-                        <div style="flex:1">
-                            <div style="font-weight:700; font-size:12px;">${logData.action} by ${logData.adminName}</div>
-                            <div style="font-size:9px; color:var(--text-dim)">${logData.timestamp?.toDate().toLocaleString()}</div>
-                        </div>
-                    `;
-                    logsContainer.appendChild(entry);
-                });
-            });
-        }
-
-                    // God Mode Actions (Done/Remove)
-    window.godAction = async (checkinId, action) => {
-        const locRef = doc(db, "locations", currentLocId);
-        const checkinRef = doc(db, "checkins", checkinId);
-
-        try {
-            const checkinSnap = await getDoc(checkinRef);
-            if (!checkinSnap.exists()) return;
-
-            const checkinData = checkinSnap.data();
-            const admin = auth.currentUser;
-
-            if (action === 'done') {
-                // Mark as served
-                await setDoc(doc(db, "history", `${checkinData.uid}_${Date.now()}`), {
-                    ...checkinData,
-                    servedBy: admin.uid,
-                    servedTime: new Date()
-                });
-                await deleteDoc(checkinRef);
-                await updateDoc(locRef, { currentCount: increment(-1), totalServed: increment(1) });
-
-                // Log action
-                await setDoc(doc(db, "logs", `${Date.now()}_${admin.uid}`), {
-                    action: `Served ${checkinData.name}`,
-                    adminName: admin.displayName || admin.email,
-                    locationId: currentLocId,
-                    timestamp: new Date()
-                });
-            } else if (action === 'remove') {
-                // Remove from queue
-                await deleteDoc(checkinRef);
-                await updateDoc(locRef, { currentCount: increment(-1) });
-
-                // Log action
-                await setDoc(doc(db, "logs", `${Date.now()}_${admin.uid}`), {
-                    action: `Removed ${checkinData.name}`,
-                    adminName: admin.displayName || admin.email,
-                    locationId: currentLocId,
-                    timestamp: new Date()
-                });
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Action failed.");
-        }
-    };
-
-    // Profile Modal
-    window.openProfileModal = async (uid) => {
-        const targetUid = (uid === 'self') ? auth.currentUser.uid : uid;
-        const modal = document.getElementById('modal-profile');
+    <div id="view-setup" class="glass-card hidden">
+        <h2 style="margin-top: 0;">Identity Setup</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Create your digital pass.</p>
         
-        try {
-            const userSnap = await getDoc(doc(db, "users", targetUid));
-            if (!userSnap.exists()) return;
+        <div class="input-group">
+            <input type="text" id="setup-name" class="input-field" placeholder="Full Legal Name">
+        </div>
+        <div class="input-group" style="display: flex; gap: 10px;">
+            <input type="number" id="setup-age" class="input-field" placeholder="Age">
+            <select id="setup-gender" class="input-field">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </div>
+        
+        <button id="btn-save-profile" class="btn btn-primary">Generate ID</button>
+    </div>
 
-            const data = userSnap.data();
-            
-            document.getElementById('prof-modal-img').src = data.photoURL;
-            document.getElementById('prof-modal-name').innerText = data.name;
-            document.getElementById('prof-modal-meta').innerText = `${data.age} YRS • ${data.gender.toUpperCase()}`;
+    <div id="view-select" class="glass-card hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">Facilities</h3>
+            <div id="profile-bubble" onclick="openProfileEdit()" style="width: 35px; height: 35px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
+        </div>
 
-            const isSelf = (targetUid === auth.currentUser.uid);
-            document.getElementById('prof-edit-fields').classList.toggle('hidden', !isSelf);
-            if (isSelf) {
-                document.getElementById('edit-name').value = data.name;
+        <input type="text" id="loc-search" class="input-field" placeholder="Search locations..." style="margin-bottom: 20px; padding: 12px;">
+
+        <div id="location-list-container">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                <div class="spinner" style="margin: 0 auto 10px;"></div>
+                Scanning Network...
+            </div>
+        </div>
+        
+        <button id="admin-add-loc-btn" class="btn btn-outline hidden" style="margin-top: 20px; font-size: 12px;" onclick="openAddLocModal()">
+            <i data-lucide="plus"></i> Add Facility
+        </button>
+    </div>
+
+    <div id="view-dashboard" class="glass-card hidden">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <button onclick="goBack()" style="background: none; border: none; color: var(--text-muted); cursor: pointer;">← Back</button>
+            <div id="dash-status-badge" class="badge closed">OFFLINE</div>
+        </div>
+
+        <h1 id="dash-loc-name" style="font-size: 22px; margin: 0 0 5px 0;">Location Name</h1>
+        <p id="dash-hours" style="color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">00:00 - 00:00</p>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
+            <p style="color: var(--text-muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">People Ahead</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 30px;">
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; color: var(--text-muted);">EST. WAIT</div>
+                <div id="dash-est-time" style="font-size: 18px; font-weight: 700; color: var(--primary);">0m</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; color: var(--text-muted);">STATUS</div>
+                <div id="dash-flow-status" style="font-size: 18px; font-weight: 700; color: #fff;">Flowing</div>
+            </div>
+        </div>
+
+        <button id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
+        <button id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
+    </div>
+
+    <div id="view-god-mode" class="glass-card hidden" style="border-color: rgba(255, 42, 42, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--primary);">GOD MODE</h3>
+            <button onclick="goBack()" style="background: none; border: none; color: var(--text-muted);">EXIT</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px;">
+            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
+                <div style="font-size: 18px; font-weight: 700;" id="god-waiting">0</div>
+                <div style="font-size: 9px; color: #888;">WAIT</div>
+            </div>
+            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
+                <div style="font-size: 18px; font-weight: 700;" id="god-served">0</div>
+                <div style="font-size: 9px; color: #888;">DONE</div>
+            </div>
+            <div class="stat-box" style="text-align: center; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 10px;">
+                <div style="font-size: 18px; font-weight: 700;" id="god-open">ON</div>
+                <div style="font-size: 9px; color: #888;">STATUS</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="godForceClose()" class="btn btn-danger" style="padding: 10px; font-size: 11px;">
+                <i data-lucide="lock"></i> FORCE CLOSE
+            </button>
+            <button onclick="godEditHours()" class="btn btn-outline" style="padding: 10px; font-size: 11px;">
+                <i data-lucide="clock"></i> HRS
+            </button>
+        </div>
+
+        <h4 style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted);">ACTIVE QUEUE</h4>
+        <div id="god-queue-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;"></div>
+
+        <h4 style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted);">LIVE LOGS</h4>
+        <div id="god-log-list" style="max-height: 150px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #888;"></div>
+    </div>
+
+</div>
+
+<div id="modal-add-loc" class="modal-overlay hidden">
+    <div class="glass-card" style="width: 90%; max-width: 350px;">
+        <h3>New Facility</h3>
+        <input id="new-loc-name" type="text" class="input-field" placeholder="Facility Name (e.g. Lab 1)" style="margin-bottom: 10px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <div>
+                <label style="font-size: 10px;">OPEN</label>
+                <input id="new-loc-open" type="time" class="input-field">
+            </div>
+            <div>
+                <label style="font-size: 10px;">CLOSE</label>
+                <input id="new-loc-close" type="time" class="input-field">
+            </div>
+        </div>
+        <button onclick="createLocation()" class="btn btn-primary">DEPLOY</button>
+        <button onclick="closeModals()" class="btn btn-outline" style="margin-top: 10px;">CANCEL</button>
+    </div>
+</div>
+
+<div id="modal-profile" class="modal-overlay hidden">
+    <div class="glass-card" style="width: 90%; max-width: 350px;">
+        <h3>Edit Profile</h3>
+        <input id="edit-profile-name" type="text" class="input-field" style="margin-bottom: 20px;">
+        <button onclick="updateProfile()" class="btn btn-primary">SAVE CHANGES</button>
+        <button onclick="closeModals()" class="btn btn-outline" style="margin-top: 10px;">CANCEL</button>
+        <button onclick="logout()" style="margin-top: 20px; width: 100%; border: none; background: none; color: #ff2a2a; font-weight: 700;">LOGOUT</button>
+    </div>
+</div>
+        <script type="module">
+    // --- IMPORTS ---
+    import { db, auth, provider } from "./js/firebase.js"; // Pointing to local file
+    import { 
+        signInWithPopup, onAuthStateChanged, signOut 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { 
+        doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, addDoc, serverTimestamp, deleteDoc, writeBatch, increment
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // --- ICONS ---
+    lucide.createIcons();
+
+    // --- STATE ---
+    let currentUser = null;
+    let currentLocId = null;
+    let isAdmin = false;
+    let locUnsub = null; // Listener for Location Data
+    let queueUnsub = null; // Listener for Queue Data
+
+    // --- AUTH LISTENER ---
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if (user) {
+            // Check User Profile in DB
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+
+            if (!snap.exists()) {
+                showView('view-setup');
+                document.getElementById('setup-name').value = user.displayName;
+            } else {
+                const userData = snap.data();
+                isAdmin = (userData.role === 'admin');
+                
+                // Update Profile Bubble
+                document.getElementById('profile-bubble').style.backgroundImage = `url('${userData.photoURL}')`;
+                
+                // Show Admin Controls if God Mode
+                if (isAdmin) {
+                    document.body.classList.add('god-mode'); // Red Theme
+                    document.getElementById('admin-add-loc-btn').classList.remove('hidden');
+                } else {
+                    document.body.classList.remove('god-mode');
+                }
+                
+                showView('view-select');
+                loadLocationsList();
             }
-
-            modal.classList.remove('hidden');
-        } catch (err) {
-            console.error(err);
+        } else {
+            showView('view-login');
         }
+    });
+
+    // --- LOGIN ---
+    document.getElementById('btn-login').onclick = async () => {
+        try { await signInWithPopup(auth, provider); } catch(e) { alert(e.message); }
     };
 
-    // Update Profile
-    document.getElementById('btn-update-profile').onclick = async () => {
-        const newName = document.getElementById('edit-name').value.trim();
-        if (!newName) return;
+    // --- PROFILE SETUP (Zero Lag) ---
+    document.getElementById('btn-save-profile').onclick = async () => {
+        const name = document.getElementById('setup-name').value;
+        const age = document.getElementById('setup-age').value;
+        const gender = document.getElementById('setup-gender').value;
+        const btn = document.getElementById('btn-save-profile');
 
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { name: newName });
-        alert("Profile Updated.");
-        closeModals();
+        if(!name || !age) return alert("Fill all fields");
+
+        btn.innerText = "Encrypting...";
+        // Use UI Avatars for instant speed
+        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+
+        await setDoc(doc(db, "users", currentUser.uid), {
+            uid: currentUser.uid, name, age, gender, photoURL, 
+            role: 'user', // Default
+            createdAt: serverTimestamp()
+        });
         location.reload();
     };
 
-    // Close Modals
-    window.closeModals = () => {
-        document.querySelectorAll('.glass-card[id*="modal"]').forEach(m => m.classList.add('hidden'));
-    };
+    // --- LOCATION LIST & SEARCH ---
+    function loadLocationsList() {
+        const listDiv = document.getElementById('location-list-container');
+        const q = query(collection(db, "locations"), orderBy("name")); // Requires Index?
 
-    // God Mode Config Override
-    document.getElementById('god-config-btn').onclick = async () => {
-        const locRef = doc(db, "locations", currentLocId);
-        const snap = await getDoc(locRef);
-        const data = snap.data();
-
-        const newMax = prompt("SET MAX CAPACITY:", data.maxCapacity);
-        const newTime = prompt("SET AVG TIME PER PERSON (MINS):", data.avgTimePerPerson);
-
-        if (newMax && newTime) {
-            await updateDoc(locRef, {
-                maxCapacity: parseInt(newMax),
-                avgTimePerPerson: parseInt(newTime)
+        onSnapshot(q, (snap) => {
+            listDiv.innerHTML = "";
+            snap.forEach(docSnap => {
+                const loc = docSnap.data();
+                const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
+                
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                el.onclick = () => selectLocation(docSnap.id);
+                el.innerHTML = `
+                    <div>
+                        <div style="font-weight: 700; font-size: 16px;">${loc.name}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">
+                            ${loc.openTime} - ${loc.closeTime}
+                        </div>
+                    </div>
+                    <div class="badge ${isOpen ? 'open' : 'closed'}">
+                        ${isOpen ? 'OPEN' : 'CLOSED'}
+                    </div>
+                `;
+                listDiv.appendChild(el);
             });
-            alert("SYSTEM PARAMETERS UPDATED.");
+        });
+    }
+
+    // --- TIME LOGIC (The Brain) ---
+    function checkTimeStatus(openStr, closeStr) {
+        if(!openStr || !closeStr) return false;
+        const now = new Date();
+        const minsNow = now.getHours() * 60 + now.getMinutes();
+        
+        const [oH, oM] = openStr.split(':').map(Number);
+        const [cH, cM] = closeStr.split(':').map(Number);
+        
+        return minsNow >= (oH*60 + oM) && minsNow < (cH*60 + cM);
+    }
+
+    // --- SELECT LOCATION & DASHBOARD ---
+    window.selectLocation = async (locId) => {
+        currentLocId = locId;
+        
+        // If Admin -> Go to God Mode
+        if(isAdmin) {
+            showView('view-god-mode');
+            initGodMode(locId);
+        } else {
+            showView('view-dashboard');
+            initUserDashboard(locId);
         }
     };
+
+    // --- USER DASHBOARD LOGIC ---
+    function initUserDashboard(locId) {
+        // 1. Listen to Location Data
+        if(locUnsub) locUnsub();
+        locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
+            const data = doc.data();
+            const isOpen = checkTimeStatus(data.openTime, data.closeTime);
+            
+            document.getElementById('dash-loc-name').innerText = data.name;
+            document.getElementById('dash-hours').innerText = `${data.openTime} - ${data.closeTime}`;
+            
+            const badge = document.getElementById('dash-status-badge');
+            badge.className = `badge ${isOpen ? 'open' : 'closed'}`;
+            badge.innerText = isOpen ? 'OPERATIONAL' : 'CLOSED';
+            
+            // Disable Join if Closed
+            const joinBtn = document.getElementById('btn-join-queue');
+            if(!isOpen) {
+                joinBtn.disabled = true;
+                joinBtn.style.opacity = "0.5";
+                joinBtn.innerText = "FACILITY CLOSED";
+            } else {
+                joinBtn.disabled = false;
+                joinBtn.style.opacity = "1";
+                joinBtn.innerText = "JOIN QUEUE";
+            }
+        });
+
+        // 2. Listen to Queue Position
+        if(queueUnsub) queueUnsub();
+        const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        
+        queueUnsub = onSnapshot(q, (snap) => {
+            let myPos = -1;
+            let count = 0;
+            
+            snap.docs.forEach((d, index) => {
+                if(d.data().uid === currentUser.uid) myPos = index;
+                count++;
+            });
+
+            // UI Updates
+            if (myPos !== -1) {
+                // I am in queue
+                document.getElementById('dash-main-counter').innerText = myPos; // People ahead = my index
+                document.getElementById('dash-est-time').innerText = (myPos * 5) + "m";
+                document.getElementById('btn-join-queue').classList.add('hidden');
+                document.getElementById('btn-leave-queue').classList.remove('hidden');
+            } else {
+                // Not in queue
+                document.getElementById('dash-main-counter').innerText = count; // Total waiting
+                document.getElementById('dash-est-time').innerText = (count * 5) + "m";
+                document.getElementById('btn-join-queue').classList.remove('hidden');
+                document.getElementById('btn-leave-queue').classList.add('hidden');
+            }
+        });
+    }
+
+    // --- USER ACTIONS ---
+    document.getElementById('btn-join-queue').onclick = async () => {
+        // Double Check Time
+        const locSnap = await getDoc(doc(db, "locations", currentLocId));
+        if(!checkTimeStatus(locSnap.data().openTime, locSnap.data().closeTime)) {
+            return alert("Facility is currently closed.");
+        }
+
+        // Add to Queue
+        await addDoc(collection(db, "queue"), {
+            uid: currentUser.uid,
+            name: document.getElementById('setup-name').value || currentUser.displayName,
+            locationId: currentLocId,
+            timestamp: serverTimestamp(),
+            status: 'waiting'
+        });
+    };
+
+    document.getElementById('btn-leave-queue').onclick = async () => {
+        // Find my doc and delete
+        const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
+        const snap = await getDocs(q); // Use getDocs here just for one-off
+        snap.forEach(async (d) => { await deleteDoc(d.ref); });
+    };
+
+    // --- GOD MODE LOGIC ---
+    function initGodMode(locId) {
+        // Listen to Queue
+        const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById('god-queue-list');
+            list.innerHTML = "";
+            document.getElementById('god-waiting').innerText = snap.size;
+
+            snap.docs.forEach((d, i) => {
+                const data = d.data();
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.padding = "10px";
+                div.innerHTML = `
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="font-weight:800; color:var(--primary)">#${i+1}</div>
+                        <div>${data.name}</div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="godAction('${d.id}', 'done', '${data.name}')" style="background:var(--primary); border:none; border-radius:5px; padding:5px 10px; font-weight:700;">✓</button>
+                        <button onclick="godAction('${d.id}', 'remove', '${data.name}')" style="background:#333; color:#fff; border:none; border-radius:5px; padding:5px 10px;">✕</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        });
+
+        // Listen to Logs
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
+        onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list');
+            logDiv.innerHTML = "";
+            snap.forEach(d => {
+                const l = d.data();
+                const time = l.timestamp ? new Date(l.timestamp.toDate()).toLocaleTimeString() : '...';
+                logDiv.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px;">[${time}] ${l.action}: ${l.details}</div>`;
+            });
+        });
+    }
+
+    // --- GOD ACTIONS (Global Scope for HTML access) ---
+    window.godAction = async (docId, type, userName) => {
+        const docRef = doc(db, "queue", docId);
+        
+        // Log it
+        await addDoc(collection(db, "logs"), {
+            locationId: currentLocId,
+            action: type === 'done' ? 'SERVED' : 'REMOVED',
+            details: userName,
+            admin: currentUser.email,
+            timestamp: serverTimestamp()
+        });
+
+        if(type === 'done') {
+            await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        }
+        
+        await deleteDoc(docRef);
+    };
+
+    window.godForceClose = async () => {
+        if(!confirm("WARNING: This will kick everyone out.")) return;
+        
+        // Batch Delete
+        const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
+        const snap = await getDocs(q); // Need 'getDocs' import if not added, I added it in imports above
+        
+        const batch = writeBatch(db);
+        snap.forEach(d => batch.delete(d.ref));
+        
+        // Log
+        const logRef = doc(collection(db, "logs"));
+        batch.set(logRef, {
+            locationId: currentLocId,
+            action: "FORCE_CLOSE",
+            details: `Kicked ${snap.size} users`,
+            timestamp: serverTimestamp()
+        });
+
+        await batch.commit();
+        alert("Queue cleared.");
+    };
+
+    // --- ADMIN ADD LOCATION ---
+    window.openAddLocModal = () => document.getElementById('modal-add-loc').classList.remove('hidden');
+    window.createLocation = async () => {
+        const name = document.getElementById('new-loc-name').value;
+        const open = document.getElementById('new-loc-open').value;
+        const close = document.getElementById('new-loc-close').value;
+        
+        if(!name || !open || !close) return alert("Fill all fields");
+        
+        await addDoc(collection(db, "locations"), {
+            name, openTime: open, closeTime: close, 
+            status: 'open', totalServed: 0
+        });
+        window.closeModals();
+    };
+
+    // --- NAVIGATION HELPERS ---
+    window.showView = (id) => {
+        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => 
+            document.getElementById(v).classList.add('hidden')
+        );
+        document.getElementById(id).classList.remove('hidden');
+    };
+    
+    window.closeModals = () => {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    };
+    
+    window.goBack = () => {
+        if(locUnsub) locUnsub();
+        if(queueUnsub) queueUnsub();
+        showView('view-select');
+    };
+    
+    window.openProfileEdit = () => {
+        document.getElementById('modal-profile').classList.remove('hidden');
+        document.getElementById('edit-profile-name').value = document.getElementById('setup-name').value;
+    };
+
+    window.updateProfile = async () => {
+        const newName = document.getElementById('edit-profile-name').value;
+        await updateDoc(doc(db, "users", currentUser.uid), {
+            name: newName,
+            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128`
+        });
+        location.reload();
+    };
+
+    window.logout = () => signOut(auth).then(()=>location.reload());
+
+    // Import Helper for simple scripts inside module
+    import { getDocs, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 </script>
+</body>
+</html>
+    </style>
+</head>
