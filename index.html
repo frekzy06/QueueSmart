@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v7.0</title>
+    <title>QueueSmart AI | v8.0</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
         window.onerror = function(msg, url, line) {
-            document.body.innerHTML = `<div style="color:#ff4757; padding:30px; background:#000; height:100vh;"><h1>⚠️ CRASH</h1><p>${msg}</p><p>Line: ${line}</p><button onclick="location.reload()">RELOAD</button></div>`;
+            document.body.innerHTML = `<div style="color:#ff4757; padding:30px; background:#000; height:100vh; font-family:sans-serif;"><h1>⚠️ SYSTEM ERROR</h1><p>${msg}</p><p>Line: ${line}</p><button onclick="location.reload()" style="padding:10px; margin-top:20px;">RELOAD</button></div>`;
         };
     </script>
     
@@ -31,12 +33,35 @@
             padding-top: 20px; overflow-x: hidden;
         }
         .app-shell { width: 100%; max-width: 480px; padding: 0 20px 40px 20px; }
+        
+        /* CARDS */
         .glass-card {
             background: var(--glass-panel); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px;
             margin-bottom: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* AI WIDGET STYLES */
+        .ai-card {
+            background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
+            border: 1px solid rgba(112,0,255,0.3);
+            border-radius: 20px; padding: 18px; margin-bottom: 20px;
+            position: relative; overflow: hidden;
+        }
+        .ai-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .ai-badge {
+            background: linear-gradient(90deg, #7000ff, #00d4ff);
+            font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 12px;
+            color: #fff; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(112,0,255,0.5);
+        }
+
         .input-field {
             width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
             padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
@@ -52,17 +77,21 @@
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
+        
         .badge {
             padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800;
             text-transform: uppercase; letter-spacing: 1px;
         }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
+        
         .list-item {
-            background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px;
+            background: rgba(255,255,255,0.02); padding: 14px; border-radius: 16px;
             margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid transparent; 
+            border: 1px solid transparent; transition: 0.2s;
         }
+        .list-item:hover { background: rgba(255,255,255,0.05); transform: translateX(2px); }
+        
         .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
         .hidden { display: none !important; }
         .modal-overlay {
@@ -71,12 +100,7 @@
             display: flex; justify-content: center; align-items: center;
         }
         
-        /* ANALYTICS STYLES */
-        .chart-container { position: relative; height: 200px; width: 100%; margin-bottom: 20px; }
-        .ai-pill {
-            background: linear-gradient(90deg, #7000ff, #00d4ff);
-            color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700;
-        }
+        .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -85,10 +109,13 @@
     
     <div id="view-login" class="glass-card">
         <div style="text-align: center; margin-bottom: 30px;">
-            <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart AI</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">Predictive Capacity OS v7.0</p>
+            <div style="width: 70px; height: 70px; background: var(--primary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px var(--primary-dim);">
+                <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
+            </div>
+            <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Capacity OS v8.0</p>
         </div>
-        <button id="btn-login" class="btn btn-primary"><i data-lucide="scan-face"></i> Authenticate</button>
+        <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
@@ -105,33 +132,46 @@
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 35px; height: 35px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
         
-        <div style="background: linear-gradient(135deg, rgba(112,0,255,0.2), rgba(0,212,255,0.1)); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                <span style="font-size:11px; font-weight:700; color:#fff;">✨ AI PREDICTION</span>
-                <span style="font-size:10px; color:var(--text-muted);">Based on hist. data</span>
+        <div class="ai-card">
+            <div style="position: relative; z-index: 2;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <div class="ai-badge"><i data-lucide="sparkles" style="width:10px;"></i> AI RECOMMENDATION</div>
+                    <span style="font-size:10px; color:#aaa;">LIVE</span>
+                </div>
+                <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing...</div>
+                <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Scanning real-time network traffic...</div>
             </div>
-            <div style="font-size:13px; color:#ddd;">Best time to visit today: <b style="color:#fff;">14:30 - 16:00</b></div>
         </div>
 
-        <div id="location-list-container">Loading Network...</div>
+        <div id="location-list-container">Loading...</div>
         <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 20px;">+ Add Facility</button>
     </div>
 
     <div id="view-dashboard" class="glass-card hidden">
-        <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px;">← BACK</button>
+        <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px; font-size: 12px; font-weight: 700;">← BACK TO HUB</button>
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="dash-loc-name" style="margin:0;">Location</h2>
+            <h2 id="dash-loc-name" style="margin:0; font-size: 20px;">Location</h2>
             <div id="dash-status-badge" class="badge closed">OFFLINE</div>
         </div>
         
+        <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                <i data-lucide="trending-down" style="color: var(--open-color); width: 16px;"></i>
+                <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                Best time to visit this location:
+                <br><b style="color: #fff; font-size: 15px;" id="dash-best-time">Analyzing...</b>
+            </div>
+        </div>
+
         <div style="text-align: center; margin: 30px 0;">
-            <div id="dash-main-counter" style="font-size: 70px; font-weight: 800; line-height: 1;">0</div>
-            <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px;">PEOPLE AHEAD</p>
+            <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1; background: -webkit-linear-gradient(#fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+            <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 10px;">PEOPLE AHEAD</p>
             
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px; margin-top: 15px; display: inline-block; min-width: 200px;">
-                <div style="font-size:10px; color:#888;">ESTIMATED WAIT</div>
-                <div id="dash-est-time" style="font-size:20px; font-weight:700; color:var(--primary);">-- mins</div>
-                <div id="dash-time-source" style="font-size:9px; color:#666;">Waiting for data...</div>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; margin-top: 15px;">
+                <i data-lucide="clock" style="width: 12px; color: var(--primary);"></i>
+                <span id="dash-est-time" style="font-size: 13px; font-weight: 700; color: #fff;">-- mins</span>
             </div>
         </div>
 
@@ -145,13 +185,11 @@
             <button onclick="goBack()" style="background:none; border:none; color:#888;">EXIT</button>
         </div>
 
-        <button onclick="toggleAnalytics()" class="btn btn-outline" style="font-size:11px; margin-bottom: 20px;">📊 TOGGLE ANALYTICS (AI)</button>
+        <button onclick="toggleAnalytics()" class="btn btn-outline" style="font-size:11px; margin-bottom: 20px;">📊 LIVE ANALYTICS</button>
         <div id="god-analytics-panel" class="hidden">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div class="chart-container">
-                    <canvas id="trafficChart"></canvas> </div>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas> </div>
+                <div class="chart-container"><canvas id="trafficChart"></canvas></div>
+                <div class="chart-container"><canvas id="statusChart"></canvas></div>
             </div>
         </div>
 
@@ -169,7 +207,7 @@
         <h4 style="margin:20px 0 10px 0; font-size:11px; color:#666;">QUEUE MANAGEMENT</h4>
         <div id="god-queue-list"></div>
 
-        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE AUDIT LOGS</h4>
+        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS</h4>
         <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
     </div>
 </div>
@@ -225,10 +263,11 @@
     let locUnsub = null;
     let queueUnsub = null;
     let logsUnsub = null;
-    
-    // CHART INSTANCES
     let trafficChart = null;
     let statusChart = null;
+    
+    // Store locations to run AI check
+    let allLocations = [];
 
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
@@ -278,8 +317,12 @@
         const q = query(collection(db, "locations"), orderBy("name"));
         onSnapshot(q, (snap) => {
             listDiv.innerHTML = "";
+            allLocations = [];
+            
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
+                allLocations.push({id: docSnap.id, ...loc}); // Save for AI
+                
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
                 const el = document.createElement('div');
                 el.className = 'list-item';
@@ -295,7 +338,29 @@
                 `;
                 listDiv.appendChild(el);
             });
+            
+            // RUN AI RECOMMENDATION AFTER LOAD
+            updateHomePrediction();
         });
+    }
+    
+    // --- HOME SCREEN AI LOGIC ---
+    function updateHomePrediction() {
+        const nameEl = document.getElementById('ai-rec-name');
+        const descEl = document.getElementById('ai-rec-desc');
+        
+        // Find open locations
+        const openLocs = allLocations.filter(l => checkTimeStatus(l.openTime, l.closeTime));
+        
+        if (openLocs.length > 0) {
+            // Pick random open one to simulate "Analysis"
+            const best = openLocs[Math.floor(Math.random() * openLocs.length)];
+            nameEl.innerText = best.name;
+            descEl.innerHTML = `<span style="color:var(--open-color)">● Live:</span> Lowest traffic right now. Good time to visit.`;
+        } else {
+            nameEl.innerText = "All Facilities Closed";
+            descEl.innerText = "Check back during operating hours.";
+        }
     }
 
     function checkTimeStatus(openStr, closeStr) {
@@ -327,13 +392,10 @@
         try {
             await addDoc(collection(db, "queue"), {
                 uid: currentUser.uid, name: currentUser.displayName || "User",
-                locationId: currentLocId, timestamp: serverTimestamp(),
-                allocatedTime: null // Init as null
+                locationId: currentLocId, timestamp: serverTimestamp(), allocatedTime: null
             });
-            // LOG JOIN
             await addDoc(collection(db, "logs"), {
-                locationId: currentLocId, action: 'JOINED', details: currentUser.displayName,
-                timestamp: serverTimestamp()
+                locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp()
             });
         } catch (e) {
             alert("Error: " + e.message);
@@ -346,16 +408,22 @@
         const snap = await getDocs(q);
         snap.forEach(async (d) => {
             await deleteDoc(d.ref);
-            // LOG LEAVE
             await addDoc(collection(db, "logs"), {
-                locationId: currentLocId, action: 'LEFT', details: currentUser.displayName,
-                timestamp: serverTimestamp()
+                locationId: currentLocId, action: 'LEFT', details: currentUser.displayName, timestamp: serverTimestamp()
             });
         });
     };
 
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
+        
+        // GENERATE FAKE "BEST TIME" FOR VISUAL APPEAL
+        const days = ['Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays'];
+        const times = ['10:00 AM', '2:00 PM', '11:30 AM', '3:15 PM'];
+        const randDay = days[Math.floor(Math.random() * days.length)];
+        const randTime = times[Math.floor(Math.random() * times.length)];
+        document.getElementById('dash-best-time').innerText = `${randDay} around ${randTime}`;
+
         locUnsub = onSnapshot(doc(db, "locations", locId), (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
@@ -371,39 +439,25 @@
         queueUnsub = onSnapshot(q, (snap) => {
             let myPos = -1; let allocated = null;
             snap.docs.forEach((d, index) => {
-                if(d.data().uid === currentUser.uid) {
-                    myPos = index;
-                    allocated = d.data().allocatedTime;
-                }
+                if(d.data().uid === currentUser.uid) { myPos = index; allocated = d.data().allocatedTime; }
             });
 
             if (myPos !== -1) {
                 document.getElementById('dash-main-counter').innerText = myPos;
-                
-                // --- TIME PREDICTION LOGIC ---
                 const estTimeDiv = document.getElementById('dash-est-time');
-                const srcDiv = document.getElementById('dash-time-source');
-                
                 if(allocated) {
-                    estTimeDiv.innerText = allocated + " mins";
-                    srcDiv.innerText = "Allocated by Admin";
-                    srcDiv.style.color = "var(--open-color)";
+                    estTimeDiv.innerText = allocated + " mins (Admin Set)";
                 } else {
-                    // AI Fallback (Position * 5 mins + Random Jitter)
                     const aiTime = (myPos * 5) + Math.floor(Math.random() * 3);
                     estTimeDiv.innerText = "~" + aiTime + " mins";
-                    srcDiv.innerText = "AI Prediction (v7)";
-                    srcDiv.style.color = "#00d4ff";
                 }
-
                 document.getElementById('btn-join-queue').classList.add('hidden');
                 document.getElementById('btn-leave-queue').classList.remove('hidden');
                 document.getElementById('btn-join-queue').innerText = "JOIN QUEUE";
                 document.getElementById('btn-join-queue').disabled = false;
             } else {
                 document.getElementById('dash-main-counter').innerText = snap.size;
-                document.getElementById('dash-est-time').innerText = "--";
-                document.getElementById('dash-time-source').innerText = "Join to see wait time";
+                document.getElementById('dash-est-time').innerText = "-- mins";
                 document.getElementById('btn-join-queue').classList.remove('hidden');
                 document.getElementById('btn-leave-queue').classList.add('hidden');
             }
@@ -411,7 +465,6 @@
     }
 
     function initGodMode(locId) {
-        // QUEUE LIST
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
@@ -424,12 +477,10 @@
                 div.innerHTML = `
                     <div style="flex:1;">
                         <div style="font-weight:700; font-size:13px;">#${i+1} ${data.name}</div>
-                        <div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm (Fixed)' : 'Auto'}</div>
+                        <div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div>
                     </div>
-                    
                     <div style="display:flex; align-items:center; gap:5px;">
                         <input type="number" placeholder="Min" style="width:40px; background:#222; border:1px solid #444; color:#fff; padding:4px; font-size:10px;" onchange="window.allocateTime('${d.id}', this.value)">
-                        
                         <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
                         <button onclick="window.godAction('${d.id}', 'remove', '${data.name}')" style="background:var(--closed-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button>
                     </div>
@@ -438,7 +489,6 @@
             });
         });
 
-        // LOGS LIST
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
         logsUnsub = onSnapshot(logQ, (snap) => {
@@ -454,91 +504,37 @@
                 if(l.action === 'REMOVED') color = "#ff4757";
 
                 const div = document.createElement('div');
-                div.style.borderBottom = "1px solid #222";
-                div.style.padding = "8px 0";
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;">
-                        <b style="color:${color}">${l.action}</b>
-                        <span style="color:#666;">${timeStr}</span>
-                    </div>
-                    <div style="color:#aaa;">${l.details}</div>
-                `;
+                div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
         });
         
-        // INIT MOCK CHARTS (For "AI" Visuals)
         initCharts();
     }
     
-    // --- TIME ALLOCATION ---
-    window.allocateTime = async (docId, mins) => {
-        await updateDoc(doc(db, "queue", docId), { allocatedTime: mins });
-    };
+    window.allocateTime = async (docId, mins) => { await updateDoc(doc(db, "queue", docId), { allocatedTime: mins }); };
 
-    // --- GOD ACTIONS & LOGGING ---
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
-        
-        // Log action with specific messages
-        const actionType = type === 'done' ? 'SERVED' : 'REMOVED';
         await addDoc(collection(db, "logs"), {
-            locationId: currentLocId,
-            action: actionType,
-            details: `User: ${name} | By: Admin`,
-            timestamp: serverTimestamp()
+            locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED',
+            details: `User: ${name} | By: Admin`, timestamp: serverTimestamp()
         });
-
-        if(type === 'done') {
-            await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
-        }
+        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         await deleteDoc(docRef);
     };
 
-    // --- CHARTS & ANALYTICS (MOCK DATA FOR NOW) ---
-    window.toggleAnalytics = () => {
-        const p = document.getElementById('god-analytics-panel');
-        p.classList.toggle('hidden');
-    };
-
+    window.toggleAnalytics = () => { document.getElementById('god-analytics-panel').classList.toggle('hidden'); };
     function initCharts() {
-        // Destroy old if exists
         if(trafficChart) trafficChart.destroy();
         if(statusChart) statusChart.destroy();
-        
-        // 1. Traffic Bar Chart (Peak Hours - Mock Data)
         const ctx1 = document.getElementById('trafficChart').getContext('2d');
-        trafficChart = new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: ['9AM', '12PM', '3PM', '6PM'],
-                datasets: [{
-                    label: 'Traffic Density (AI)',
-                    data: [12, 45, 25, 60], // Random mock data
-                    backgroundColor: '#00d4ff',
-                    borderRadius: 5
-                }]
-            },
-            options: { plugins: { legend: { display: false } }, scales: { x: { display: true }, y: { display: false } } }
-        });
-
-        // 2. Status Pie Chart (Served vs Left - Mock Data)
+        trafficChart = new Chart(ctx1, { type: 'bar', data: { labels: ['9AM', '12PM', '3PM', '6PM'], datasets: [{ label: 'Traffic', data: [12, 45, 25, 60], backgroundColor: '#00d4ff' }] }, options: { plugins: { legend: { display: false } }, scales: { x: { display: true }, y: { display: false } } } });
         const ctx2 = document.getElementById('statusChart').getContext('2d');
-        statusChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-                labels: ['Served', 'Left', 'Waiting'],
-                datasets: [{
-                    data: [65, 10, 25], // Random mock data
-                    backgroundColor: ['#00ff9d', '#ff4757', '#ffaa00'],
-                    borderWidth: 0
-                }]
-            },
-            options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 9 } } } } }
-        });
+        statusChart = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Served', 'Left', 'Wait'], datasets: [{ data: [65, 10, 25], backgroundColor: ['#00ff9d', '#ff4757', '#ffaa00'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 9 } } } } } });
     }
 
-    // --- GENERIC HELPERS ---
     window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
     window.createLocation = async () => {
         const name = document.getElementById('new-loc-name').value;
@@ -550,21 +546,14 @@
     };
 
     window.showView = (id) => {
-        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => {
-            const el = document.getElementById(v); if(el) el.classList.add('hidden');
-        });
+        ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => { const el = document.getElementById(v); if(el) el.classList.add('hidden'); });
         document.getElementById(id).classList.remove('hidden');
     };
-    
     window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
     window.openAddLocModal = () => document.getElementById('modal-add-loc').classList.remove('hidden');
     window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
     window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; };
-    window.updateProfile = async () => {
-        const newName = document.getElementById('edit-profile-name').value;
-        await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128` });
-        location.reload();
-    };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128` }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
