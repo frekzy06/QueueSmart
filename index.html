@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v12.0 Experience</title>
+    <title>QueueSmart AI | v11.0 Vision</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
@@ -45,24 +45,19 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CAMERA & QR */
-        .cam-container { position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
+        /* AI CAMERA CONTAINER */
+        .cam-container {
+            position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333;
+        }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #qr-code { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin: 15px 0; }
         
-        /* ANNOUNCEMENT BANNER */
-        .announcement-bar {
-            background: rgba(255, 170, 0, 0.15); border: 1px solid #ffaa00; color: #ffaa00;
-            padding: 10px; border-radius: 12px; font-size: 11px; margin-bottom: 20px;
-            display: flex; align-items: center; gap: 8px; animation: pulse 3s infinite;
-        }
-
         .alert-box {
             background: rgba(255, 71, 87, 0.2); border: 1px solid #ff4757; color: #ff4757;
             padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 10px; animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         .ai-card {
             background: linear-gradient(135deg, rgba(112,0,255,0.15), rgba(0,212,255,0.05));
@@ -91,7 +86,10 @@
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .badge {
+            padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
         
@@ -110,11 +108,6 @@
             display: flex; justify-content: center; align-items: center;
         }
         .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 20px; }
-        
-        /* RATING STARS */
-        .star-rating { display: flex; gap: 5px; justify-content: center; margin: 10px 0; }
-        .star { font-size: 30px; cursor: pointer; color: #444; transition: 0.2s; }
-        .star.active { color: #ffaa00; }
     </style>
 </head>
 <body>
@@ -127,7 +120,7 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">Experience OS v12.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Vision OS v11.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -151,8 +144,8 @@
                 <div class="ai-badge"><i data-lucide="sparkles" style="width:10px;"></i> AI RECOMMENDATION</div>
                 <span style="font-size:10px; color:#aaa;">LIVE</span>
             </div>
-            <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing...</div>
-            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Optimal visit calculation...</div>
+            <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom: 5px;" id="ai-rec-name">Analyzing Network...</div>
+            <div style="font-size:12px; color:var(--text-muted);" id="ai-rec-desc">Calculating optimal visit times...</div>
         </div>
 
         <div id="location-list-container">Loading...</div>
@@ -165,39 +158,30 @@
             <h2 id="dash-loc-name" style="margin:0; font-size: 20px;">Location</h2>
             <div id="dash-status-badge" class="badge closed">OFFLINE</div>
         </div>
-
-        <div id="user-announcement" class="announcement-bar hidden">
-            <i data-lucide="megaphone" style="width:16px;"></i>
-            <span id="user-announcement-text"></span>
-        </div>
         
-        <div id="state-waiting" class="hidden">
-            <div style="text-align: center; margin: 30px 0;">
-                <div id="qr-code"></div>
-                <div style="font-size:10px; color:#aaa; margin-bottom:20px;">DIGITAL TICKET</div>
-
-                <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
-                <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 10px;">PEOPLE AHEAD</p>
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; margin-top: 15px;">
-                    <i data-lucide="clock" style="width: 12px; color: var(--primary);"></i>
-                    <span id="dash-est-time" style="font-size: 13px; font-weight: 700; color: #fff;">-- mins</span>
-                </div>
+        <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                <i data-lucide="trending-up" style="color: var(--open-color); width: 16px;"></i>
+                <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
             </div>
-            <button onclick="window.leaveQueue()" class="btn btn-danger">LEAVE QUEUE</button>
+            <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+                Best time to visit (Daily Trend):
+                <br><b style="color: #fff; font-size: 15px;" id="dash-best-time">Analyzing...</b>
+            </div>
         </div>
 
-        <div id="state-idle">
-             <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
-                    <i data-lucide="trending-up" style="color: var(--open-color); width: 16px;"></i>
-                    <span style="font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 1px;">SMART FORECAST</span>
-                </div>
-                <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
-                    Best time to visit: <b style="color: #fff;" id="dash-best-time">Analyzing...</b>
-                </div>
+        <div style="text-align: center; margin: 30px 0;">
+            <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1; background: -webkit-linear-gradient(#fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+            <p style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 10px;">PEOPLE AHEAD</p>
+            
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; margin-top: 15px;">
+                <i data-lucide="clock" style="width: 12px; color: var(--primary);"></i>
+                <span id="dash-est-time" style="font-size: 13px; font-weight: 700; color: #fff;">-- mins</span>
             </div>
-            <button onclick="window.joinQueue()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
         </div>
+
+        <button onclick="window.joinQueue()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
+        <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
     </div>
 
     <div id="view-god-mode" class="glass-card hidden" style="border-color: rgba(255, 42, 42, 0.3);">
@@ -208,16 +192,15 @@
 
         <div id="god-alert-box" class="alert-box hidden">
             <i data-lucide="siren" style="width:20px;"></i>
-            <div style="flex:1;"><strong id="alert-title">OVERCROWDED</strong><br><span id="alert-msg">Density high!</span></div>
-            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK</button>
-        </div>
-
-        <div style="margin-bottom:15px; display:flex; gap:5px;">
-            <input type="text" id="admin-announce-input" class="input-field" placeholder="Broadcast Msg (e.g. Lunch Break)" style="margin:0; font-size:11px;">
-            <button onclick="window.setAnnouncement()" class="btn btn-outline" style="width:auto; margin:0; padding:12px;">📣</button>
+            <div style="flex:1;">
+                <strong id="alert-title">OVERCROWDED</strong><br>
+                <span id="alert-msg">Density too high!</span>
+            </div>
+            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK CHECK-INS</button>
         </div>
 
         <div style="margin-bottom:20px;">
+            <h4 style="font-size:11px; color:#666; margin-bottom:10px;">CROWD DENSITY DETECTOR (AI)</h4>
             <div id="cam-wrapper" class="cam-container hidden">
                 <video id="webcam" autoplay playsinline muted></video>
                 <canvas id="cam-overlay"></canvas>
@@ -226,7 +209,20 @@
                 <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:10px; font-size:11px;">
                     <i data-lucide="camera"></i> ACTIVATE CAMERA
                 </button>
-                <div style="font-size:11px; color:#888;">Count: <b id="cam-count" style="color:var(--primary);">0</b></div>
+                <div style="font-size:11px; color:#888;">
+                    People Count: <b id="cam-count" style="color:var(--primary); font-size:14px;">0</b>
+                </div>
+            </div>
+            <div style="font-size:10px; color:#555; margin-top:5px;">
+                <i>Fallback: If camera off, system tracks Check-in Rate (>3/min triggers alert)</i>
+            </div>
+        </div>
+
+        <button onclick="toggleAnalytics()" class="btn btn-outline" style="font-size:11px; margin-bottom: 20px;">📊 LIVE ANALYTICS</button>
+        <div id="god-analytics-panel" class="hidden">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="chart-container"><canvas id="trafficChart"></canvas></div>
+                <div class="chart-container"><canvas id="statusChart"></canvas></div>
             </div>
         </div>
 
@@ -240,21 +236,15 @@
                 <div style="font-size:10px; color:#666;">SERVED</div>
             </div>
         </div>
-        
-        <div id="god-queue-list"></div>
-        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">⚠️ Click to Fix Logs</div>
-        <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
-    </div>
-</div>
 
-<div id="modal-rating" class="modal-overlay hidden">
-    <div class="glass-card" style="width: 90%; max-width: 300px; text-align:center;">
-        <h3>How was it?</h3>
-        <div class="star-rating">
-            <span class="star" onclick="rate(1)">★</span><span class="star" onclick="rate(2)">★</span>
-            <span class="star" onclick="rate(3)">★</span><span class="star" onclick="rate(4)">★</span><span class="star" onclick="rate(5)">★</span>
+        <h4 style="margin:20px 0 10px 0; font-size:11px; color:#666;">QUEUE MANAGEMENT</h4>
+        <div id="god-queue-list"></div>
+
+        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS (REAL-TIME)</h4>
+        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">
+            ⚠️ LOGS HIDDEN: Click here to create required index in Firebase Console.
         </div>
-        <button onclick="submitRating()" class="btn btn-primary">SUBMIT</button>
+        <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
     </div>
 </div>
 
@@ -309,24 +299,23 @@
     let locUnsub = null;
     let queueUnsub = null;
     let logsUnsub = null;
+    let trafficChart = null;
+    let statusChart = null;
     let allLocations = [];
     
-    // AI VARS
+    // AI CAMERA VARS
     let aiModel = null;
     let camInterval = null;
     let isCamActive = false;
-    
-    // EXPERIENCE VARS
-    let currentRating = 0;
-    let previousPosition = -1; // For audio trigger
 
-    // AUDIO
-    const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-
+    // --- STABLE HASH ---
     function getStableRandom(seed, max) {
         const dailySeed = seed + new Date().getDate(); 
         let hash = 0;
-        for (let i = 0; i < dailySeed.length; i++) { hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i); hash |= 0; }
+        for (let i = 0; i < dailySeed.length; i++) {
+            hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i);
+            hash |= 0; 
+        }
         return Math.abs(hash) % max;
     }
 
@@ -465,8 +454,6 @@
                 locationId: currentLocId, action: 'LEFT', details: currentUser.displayName, timestamp: serverTimestamp()
             });
         });
-        document.getElementById('state-waiting').classList.add('hidden');
-        document.getElementById('state-idle').classList.remove('hidden');
     };
 
     function initUserDashboard(locId) {
@@ -488,15 +475,6 @@
             const btn = document.getElementById('btn-join-queue');
             if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
             else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
-            
-            // SHOW ANNOUNCEMENT
-            const annBar = document.getElementById('user-announcement');
-            if(data.announcement) {
-                annBar.classList.remove('hidden');
-                document.getElementById('user-announcement-text').innerText = data.announcement;
-            } else {
-                annBar.classList.add('hidden');
-            }
         });
 
         if(queueUnsub) queueUnsub();
@@ -506,67 +484,67 @@
             snap.docs.forEach((d, index) => {
                 if(d.data().uid === currentUser.uid) { myPos = index; allocated = d.data().allocatedTime; }
             });
-
-            // HANDLE AUDIO ALERT
-            if(myPos !== -1 && myPos < previousPosition && myPos === 0) {
-                 alertSound.play();
-            }
-            previousPosition = myPos;
-
             if (myPos !== -1) {
-                // IN QUEUE
-                document.getElementById('state-idle').classList.add('hidden');
-                document.getElementById('state-waiting').classList.remove('hidden');
                 document.getElementById('dash-main-counter').innerText = myPos;
-                
-                // GENERATE QR
-                document.getElementById('qr-code').innerHTML = "";
-                new QRCode(document.getElementById('qr-code'), {
-                    text: currentUser.uid, width: 80, height: 80
-                });
-
                 const estTimeDiv = document.getElementById('dash-est-time');
-                if(allocated) { estTimeDiv.innerText = allocated + " mins (Set)"; } 
+                if(allocated) { estTimeDiv.innerText = allocated + " mins (Admin Set)"; } 
                 else { estTimeDiv.innerText = "~" + ((myPos * 5) + 2) + " mins"; }
+                document.getElementById('btn-join-queue').classList.add('hidden');
+                document.getElementById('btn-leave-queue').classList.remove('hidden');
+                document.getElementById('btn-join-queue').innerText = "JOIN QUEUE";
+                document.getElementById('btn-join-queue').disabled = false;
             } else {
-                // IDLE
-                document.getElementById('state-waiting').classList.add('hidden');
-                document.getElementById('state-idle').classList.remove('hidden');
-                
-                // If I was previously in queue and now I'm not, maybe I was served?
-                // (Simplified: We won't trigger rating modal here to avoid complexity on reload)
+                document.getElementById('dash-main-counter').innerText = snap.size;
+                document.getElementById('dash-est-time').innerText = "-- mins";
+                document.getElementById('btn-join-queue').classList.remove('hidden');
+                document.getElementById('btn-leave-queue').classList.add('hidden');
             }
         });
     }
 
-    // --- GOD MODE STUFF ---
-    window.setAnnouncement = async () => {
-        const msg = document.getElementById('admin-announce-input').value;
-        await updateDoc(doc(db, "locations", currentLocId), { announcement: msg });
-        alert("Broadcast sent.");
-    };
-
+    // --- AI CAMERA FUNCTIONS ---
     window.toggleCamera = async () => {
         const video = document.getElementById('webcam');
         const wrapper = document.getElementById('cam-wrapper');
         const btn = document.getElementById('btn-toggle-cam');
+        
         if(!isCamActive) {
+            // START
             wrapper.classList.remove('hidden');
             btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP CAMERA`;
             if(!aiModel) aiModel = await cocoSsd.load();
+            
             const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
             video.srcObject = stream;
             isCamActive = true;
+            
             camInterval = setInterval(async () => {
                 const predictions = await aiModel.detect(video);
                 const people = predictions.filter(p => p.class === 'person');
                 document.getElementById('cam-count').innerText = people.length;
+                
+                // Alert Trigger
                 if(people.length > 5) {
-                    document.getElementById('god-alert-box').classList.remove('hidden');
+                    const alertBox = document.getElementById('god-alert-box');
+                    alertBox.classList.remove('hidden');
                     document.getElementById('alert-msg').innerText = `Camera detected ${people.length} people!`;
-                } else { document.getElementById('god-alert-box').classList.add('hidden'); }
-            }, 1000);
+                } else {
+                    document.getElementById('god-alert-box').classList.add('hidden');
+                }
+                
+                // Draw Boxes
+                const canvas = document.getElementById('cam-overlay');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 4;
+                people.forEach(p => {
+                   ctx.strokeRect(p.bbox[0], p.bbox[1], p.bbox[2], p.bbox[3]); 
+                });
+            }, 1000); // Check every second
+            
         } else {
+            // STOP
             wrapper.classList.add('hidden');
             btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE CAMERA`;
             clearInterval(camInterval);
@@ -576,22 +554,39 @@
     };
 
     window.emergencyLock = async () => {
+        // Close the current location
         await updateDoc(doc(db, "locations", currentLocId), { status: "closed" });
-        alert("LOCKED.");
+        alert("EMERGENCY PROTOCOL: Location has been locked.");
     };
 
     function initGodMode(locId) {
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
+        
+        // --- VELOCITY CHECK (FALLBACK IF NO CAMERA) ---
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
             list.innerHTML = "";
             document.getElementById('god-waiting').innerText = snap.size;
+            
+            // Check Check-in Velocity
+            const now = new Date();
+            let recentJoins = 0;
             snap.forEach(d => {
                 const data = d.data();
+                if(data.timestamp) {
+                    const joinTime = data.timestamp.toDate();
+                    const diffMins = (now - joinTime) / 60000;
+                    if(diffMins < 1) recentJoins++;
+                }
+                
+                // Render List
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <div style="flex:1;"><div style="font-weight:700; font-size:13px;">#${data.name}</div><div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div></div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:13px;">#${data.name}</div>
+                        <div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div>
+                    </div>
                     <div style="display:flex; align-items:center; gap:5px;">
                         <input type="number" placeholder="Min" style="width:40px; background:#222; border:1px solid #444; color:#fff; padding:4px; font-size:10px;" onchange="window.allocateTime('${d.id}', this.value)">
                         <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
@@ -600,6 +595,13 @@
                 `;
                 list.appendChild(div);
             });
+            
+            // Trigger alert if velocity is high (fallback)
+            if(!isCamActive && recentJoins > 3) {
+                 const alertBox = document.getElementById('god-alert-box');
+                 alertBox.classList.remove('hidden');
+                 document.getElementById('alert-msg').innerText = `High Velocity: ${recentJoins} joins in last min!`;
+            }
         });
 
         const locRef = doc(db, "locations", locId);
@@ -607,7 +609,6 @@
              if(docSnap.exists()) {
                  const data = docSnap.data();
                  document.getElementById('god-served').innerText = data.totalServed || 0;
-                 if(data.announcement) document.getElementById('admin-announce-input').value = data.announcement;
              }
         });
 
@@ -630,7 +631,10 @@
                 div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
-        }, (error) => { if(error.message.includes("index")) document.getElementById('index-error-msg').classList.remove('hidden'); });
+        }, (error) => {
+            if(error.message.includes("index")) document.getElementById('index-error-msg').classList.remove('hidden');
+        });
+        initCharts();
     }
     
     window.allocateTime = async (docId, mins) => { await updateDoc(doc(db, "queue", docId), { allocatedTime: mins }); };
@@ -644,17 +648,16 @@
         if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
         await deleteDoc(docRef);
     };
-    
-    // --- RATING LOGIC ---
-    // (Triggered manually via console or expanded logic later. For now, we assume implicit satisfaction)
-    window.rate = (n) => {
-        currentRating = n;
-        document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('active', i < n));
-    };
-    window.submitRating = () => {
-        alert("Thank you!");
-        document.getElementById('modal-rating').classList.add('hidden');
-    };
+
+    window.toggleAnalytics = () => { document.getElementById('god-analytics-panel').classList.toggle('hidden'); };
+    function initCharts() {
+        if(trafficChart) trafficChart.destroy();
+        if(statusChart) statusChart.destroy();
+        const ctx1 = document.getElementById('trafficChart').getContext('2d');
+        trafficChart = new Chart(ctx1, { type: 'bar', data: { labels: ['9AM', '12PM', '3PM', '6PM'], datasets: [{ label: 'Traffic', data: [12, 45, 25, 60], backgroundColor: '#00d4ff' }] }, options: { plugins: { legend: { display: false } }, scales: { x: { display: true }, y: { display: false } } } });
+        const ctx2 = document.getElementById('statusChart').getContext('2d');
+        statusChart = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Served', 'Left', 'Wait'], datasets: [{ data: [65, 10, 25], backgroundColor: ['#00ff9d', '#ff4757', '#ffaa00'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 9 } } } } } });
+    }
 
     window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
     window.createLocation = async () => {
