@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v11.0 Vision</title>
+    <title>QueueSmart AI | v13.0 Identity</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
@@ -45,10 +44,28 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* AI CAMERA CONTAINER */
-        .cam-container {
-            position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333;
+        /* IMAGE STYLES */
+        .profile-uploader {
+            width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 15px;
+            border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative; cursor: pointer;
         }
+        .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .loc-card {
+            border-radius: 20px; overflow: hidden; margin-bottom: 15px; position: relative;
+            border: 1px solid var(--glass-border); background: var(--glass-panel); transition: transform 0.2s;
+        }
+        .loc-card:active { transform: scale(0.98); }
+        .loc-img { height: 120px; width: 100%; background-size: cover; background-position: center; position: relative; }
+        .loc-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, #000 0%, transparent 100%);
+            padding: 40px 15px 10px 15px;
+        }
+        .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        .cam-container { position: relative; width: 100%; height: 250px; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
@@ -86,19 +103,9 @@
         .btn-danger { background: rgba(255, 42, 42, 0.15); color: #ff2a2a; border: 1px solid rgba(255, 42, 42, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         
-        .badge {
-            padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--open-color); border: 1px solid rgba(0, 255, 157, 0.2); }
         .badge.closed { background: rgba(255, 42, 42, 0.1); color: var(--closed-color); border: 1px solid rgba(255, 42, 42, 0.2); }
-        
-        .list-item {
-            background: rgba(255,255,255,0.02); padding: 14px; border-radius: 16px;
-            margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid transparent; transition: 0.2s;
-        }
-        .list-item:hover { background: rgba(255,255,255,0.05); transform: translateX(2px); }
         
         .neon-text { color: var(--primary); text-shadow: 0 0 20px var(--primary-dim); }
         .hidden { display: none !important; }
@@ -120,13 +127,20 @@
                 <i data-lucide="zap" style="color: #fff; width: 30px; height: 30px;"></i>
             </div>
             <h1 class="neon-text" style="font-size: 28px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 13px;">AI Vision OS v11.0</p>
+            <p style="color: var(--text-muted); font-size: 13px;">AI Identity OS v13.0</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
         <h2>Identity Setup</h2>
+        
+        <label class="profile-uploader">
+            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=333&color=fff">
+            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
+        </label>
+        <p style="text-align:center; font-size:10px; color:#666; margin-top:-10px; margin-bottom:15px;">Tap to upload photo</p>
+
         <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
         <input type="number" id="setup-age" class="input-field" placeholder="Age">
         <select id="setup-gender" class="input-field"><option>Male</option><option>Female</option></select>
@@ -136,7 +150,7 @@
     <div id="view-select" class="glass-card hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Facilities</h3>
-            <div id="profile-bubble" onclick="openProfileEdit()" style="width: 35px; height: 35px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
+            <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
         
         <div class="ai-card">
@@ -154,9 +168,12 @@
 
     <div id="view-dashboard" class="glass-card hidden">
         <button onclick="goBack()" style="background:none; border:none; color:#888; margin-bottom:10px; font-size: 12px; font-weight: 700;">← BACK TO HUB</button>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="dash-loc-name" style="margin:0; font-size: 20px;">Location</h2>
-            <div id="dash-status-badge" class="badge closed">OFFLINE</div>
+        
+        <div id="dash-banner" style="height: 120px; border-radius: 16px; background: #222; background-size: cover; background-position: center; margin-bottom: 20px; position: relative;">
+            <div style="position: absolute; bottom:0; left:0; width:100%; padding:15px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                <h2 id="dash-loc-name" style="margin:0; font-size: 24px;">Location</h2>
+                <div id="dash-status-badge" class="badge closed" style="margin-top:5px; display:inline-block;">OFFLINE</div>
+            </div>
         </div>
         
         <div style="margin: 20px 0; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; border: 1px solid var(--glass-border);">
@@ -192,15 +209,12 @@
 
         <div id="god-alert-box" class="alert-box hidden">
             <i data-lucide="siren" style="width:20px;"></i>
-            <div style="flex:1;">
-                <strong id="alert-title">OVERCROWDED</strong><br>
-                <span id="alert-msg">Density too high!</span>
-            </div>
-            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK CHECK-INS</button>
+            <div style="flex:1;"><strong id="alert-title">OVERCROWDED</strong><br><span id="alert-msg">Density too high!</span></div>
+            <button onclick="window.emergencyLock()" style="background:#fff; color:#ff4757; border:none; padding:5px 10px; border-radius:8px; font-weight:800; font-size:10px;">LOCK</button>
         </div>
 
         <div style="margin-bottom:20px;">
-            <h4 style="font-size:11px; color:#666; margin-bottom:10px;">CROWD DENSITY DETECTOR (AI)</h4>
+            <h4 style="font-size:11px; color:#666; margin-bottom:10px;">AI CROWD SCANNER</h4>
             <div id="cam-wrapper" class="cam-container hidden">
                 <video id="webcam" autoplay playsinline muted></video>
                 <canvas id="cam-overlay"></canvas>
@@ -209,12 +223,7 @@
                 <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:10px; font-size:11px;">
                     <i data-lucide="camera"></i> ACTIVATE CAMERA
                 </button>
-                <div style="font-size:11px; color:#888;">
-                    People Count: <b id="cam-count" style="color:var(--primary); font-size:14px;">0</b>
-                </div>
-            </div>
-            <div style="font-size:10px; color:#555; margin-top:5px;">
-                <i>Fallback: If camera off, system tracks Check-in Rate (>3/min triggers alert)</i>
+                <div style="font-size:11px; color:#888;">Count: <b id="cam-count" style="color:var(--primary); font-size:14px;">0</b></div>
             </div>
         </div>
 
@@ -240,10 +249,8 @@
         <h4 style="margin:20px 0 10px 0; font-size:11px; color:#666;">QUEUE MANAGEMENT</h4>
         <div id="god-queue-list"></div>
 
-        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS (REAL-TIME)</h4>
-        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">
-            ⚠️ LOGS HIDDEN: Click here to create required index in Firebase Console.
-        </div>
+        <h4 style="margin:30px 0 10px 0; font-size:11px; color:#666;">LIVE LOGS</h4>
+        <div id="index-error-msg" class="hidden" style="color:#ffaa00; font-size:11px; margin-bottom:10px; cursor:pointer;" onclick="window.open('https://console.firebase.google.com/u/0/project/queuesmart-c3c28/firestore/indexes', '_blank')">⚠️ Click to Fix Logs</div>
         <div id="god-log-list" style="max-height: 200px; overflow-y: auto; font-size:11px;"></div>
     </div>
 </div>
@@ -252,10 +259,11 @@
     <div class="glass-card" style="width: 90%; max-width: 350px;">
         <h3>New Facility</h3>
         <input id="new-loc-name" type="text" class="input-field" placeholder="Name">
-        <label style="font-size:12px; color:#888;">Opens At:</label>
-        <input id="new-loc-open" type="time" class="input-field">
-        <label style="font-size:12px; color:#888;">Closes At:</label>
-        <input id="new-loc-close" type="time" class="input-field">
+        <input id="new-loc-img" type="text" class="input-field" placeholder="Cover Image URL (Optional)">
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1"><label style="font-size:10px;">Open</label><input id="new-loc-open" type="time" class="input-field"></div>
+            <div style="flex:1"><label style="font-size:10px;">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
+        </div>
         <button onclick="createLocation()" class="btn btn-primary">DEPLOY</button>
         <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
     </div>
@@ -264,6 +272,10 @@
 <div id="modal-profile" class="modal-overlay hidden">
     <div class="glass-card" style="width: 90%; max-width: 350px;">
         <h3>Edit Profile</h3>
+        <label class="profile-uploader">
+            <img id="edit-preview" src="">
+            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'edit-preview')">
+        </label>
         <input id="edit-profile-name" type="text" class="input-field">
         <button onclick="updateProfile()" class="btn btn-primary">SAVE</button>
         <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
@@ -296,26 +308,18 @@
     let currentUser = null;
     let currentLocId = null;
     let isAdmin = false;
-    let locUnsub = null;
-    let queueUnsub = null;
-    let logsUnsub = null;
-    let trafficChart = null;
-    let statusChart = null;
+    let locUnsub = null, queueUnsub = null, logsUnsub = null;
+    let trafficChart = null, statusChart = null;
     let allLocations = [];
+    let aiModel = null, camInterval = null, isCamActive = false;
     
-    // AI CAMERA VARS
-    let aiModel = null;
-    let camInterval = null;
-    let isCamActive = false;
+    // STATE FOR UPLOADED IMAGE (Base64)
+    let tempProfileBase64 = null;
 
-    // --- STABLE HASH ---
     function getStableRandom(seed, max) {
         const dailySeed = seed + new Date().getDate(); 
         let hash = 0;
-        for (let i = 0; i < dailySeed.length; i++) {
-            hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i);
-            hash |= 0; 
-        }
+        for (let i = 0; i < dailySeed.length; i++) { hash = ((hash << 5) - hash) + dailySeed.charCodeAt(i); hash |= 0; }
         return Math.abs(hash) % max;
     }
 
@@ -329,8 +333,7 @@
             } else {
                 const userData = snap.data();
                 isAdmin = (userData.role === 'admin');
-                const bubble = document.getElementById('profile-bubble');
-                if(bubble) bubble.style.backgroundImage = `url('${userData.photoURL}')`;
+                document.getElementById('profile-bubble').style.backgroundImage = `url('${userData.photoURL}')`;
                 
                 if (isAdmin) {
                     document.body.classList.add('god-mode');
@@ -346,6 +349,28 @@
         }
     });
 
+    // --- IMAGE UPLOAD HANDLER (No Storage Bucket - Resizes Client Side) ---
+    window.handleImageUpload = (input, previewId) => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                // Resize to thumbnail 150x150
+                canvas.width = 150; canvas.height = 150;
+                ctx.drawImage(img, 0, 0, 150, 150);
+                // Save as Base64 JPEG (Compressed)
+                tempProfileBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById(previewId).src = tempProfileBase64;
+            }
+        }
+        reader.readAsDataURL(file);
+    };
+
     document.getElementById('btn-login').onclick = async () => { try { await signInWithPopup(auth, provider); } catch(e) { console.error(e); } };
 
     document.getElementById('btn-save-profile').onclick = async () => {
@@ -353,8 +378,11 @@
         const age = document.getElementById('setup-age').value;
         const gender = document.getElementById('setup-gender').value;
         if(!name || !age) return alert("Required");
-        document.getElementById('btn-save-profile').innerText = "Working...";
-        const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+        
+        document.getElementById('btn-save-profile').innerText = "Processing...";
+        // Use uploaded image OR generate avatar
+        const photoURL = tempProfileBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+        
         await setDoc(doc(db, "users", currentUser.uid), {
             uid: currentUser.uid, name, age, gender, photoURL, 
             role: 'user', createdAt: serverTimestamp()
@@ -372,14 +400,20 @@
                 const loc = docSnap.data();
                 allLocations.push({id: docSnap.id, ...loc}); 
                 const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
+                
+                // Fallback image if not provided
+                const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x200/?abstract,${docSnap.id}`;
+                
                 const el = document.createElement('div');
-                el.className = 'list-item';
+                el.className = 'loc-card';
                 el.innerHTML = `
-                    <div onclick="window.selectLocation('${docSnap.id}')" style="flex:1; cursor:pointer;">
-                        <div style="font-weight:700;">${loc.name}</div>
-                        <div style="font-size:11px; color:#888;">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
+                    <div class="loc-img" style="background-image: url('${bgImage}');" onclick="window.selectLocation('${docSnap.id}')">
+                        <div class="loc-overlay">
+                            <div style="font-weight:800; font-size:18px;">${loc.name}</div>
+                            <div style="font-size:11px; color:#ddd;">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
+                        </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="loc-body">
                         <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
                         ${isAdmin ? `<button onclick="window.deleteLocation('${docSnap.id}')" style="background:none; border:none; color:#ff4757;">&times;</button>` : ''}
                     </div>
@@ -469,9 +503,13 @@
             const data = doc.data();
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             document.getElementById('dash-loc-name').innerText = data.name;
+            const banner = document.getElementById('dash-banner');
+            if(data.imageURL) banner.style.backgroundImage = `url('${data.imageURL}')`;
+            
             const badge = document.getElementById('dash-status-badge');
             if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
             else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
+            
             const btn = document.getElementById('btn-join-queue');
             if(!isOpen) { btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; } 
             else { btn.disabled = false; btn.style.opacity = "1"; btn.innerText = "JOIN QUEUE"; }
@@ -507,44 +545,23 @@
         const video = document.getElementById('webcam');
         const wrapper = document.getElementById('cam-wrapper');
         const btn = document.getElementById('btn-toggle-cam');
-        
         if(!isCamActive) {
-            // START
             wrapper.classList.remove('hidden');
             btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP CAMERA`;
             if(!aiModel) aiModel = await cocoSsd.load();
-            
             const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
             video.srcObject = stream;
             isCamActive = true;
-            
             camInterval = setInterval(async () => {
                 const predictions = await aiModel.detect(video);
                 const people = predictions.filter(p => p.class === 'person');
                 document.getElementById('cam-count').innerText = people.length;
-                
-                // Alert Trigger
                 if(people.length > 5) {
-                    const alertBox = document.getElementById('god-alert-box');
-                    alertBox.classList.remove('hidden');
+                    document.getElementById('god-alert-box').classList.remove('hidden');
                     document.getElementById('alert-msg').innerText = `Camera detected ${people.length} people!`;
-                } else {
-                    document.getElementById('god-alert-box').classList.add('hidden');
-                }
-                
-                // Draw Boxes
-                const canvas = document.getElementById('cam-overlay');
-                const ctx = canvas.getContext('2d');
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                ctx.clearRect(0,0, canvas.width, canvas.height);
-                ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 4;
-                people.forEach(p => {
-                   ctx.strokeRect(p.bbox[0], p.bbox[1], p.bbox[2], p.bbox[3]); 
-                });
-            }, 1000); // Check every second
-            
+                } else { document.getElementById('god-alert-box').classList.add('hidden'); }
+            }, 1000);
         } else {
-            // STOP
             wrapper.classList.add('hidden');
             btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE CAMERA`;
             clearInterval(camInterval);
@@ -553,40 +570,20 @@
         }
     };
 
-    window.emergencyLock = async () => {
-        // Close the current location
-        await updateDoc(doc(db, "locations", currentLocId), { status: "closed" });
-        alert("EMERGENCY PROTOCOL: Location has been locked.");
-    };
+    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
 
     function initGodMode(locId) {
         const q = query(collection(db, "queue"), where("locationId", "==", locId), orderBy("timestamp"));
-        
-        // --- VELOCITY CHECK (FALLBACK IF NO CAMERA) ---
         onSnapshot(q, (snap) => {
             const list = document.getElementById('god-queue-list');
             list.innerHTML = "";
             document.getElementById('god-waiting').innerText = snap.size;
-            
-            // Check Check-in Velocity
-            const now = new Date();
-            let recentJoins = 0;
             snap.forEach(d => {
                 const data = d.data();
-                if(data.timestamp) {
-                    const joinTime = data.timestamp.toDate();
-                    const diffMins = (now - joinTime) / 60000;
-                    if(diffMins < 1) recentJoins++;
-                }
-                
-                // Render List
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <div style="flex:1;">
-                        <div style="font-weight:700; font-size:13px;">#${data.name}</div>
-                        <div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div>
-                    </div>
+                    <div style="flex:1;"><div style="font-weight:700; font-size:13px;">#${data.name}</div><div style="font-size:10px; color:#888;">Wait: ${data.allocatedTime ? data.allocatedTime + 'm' : 'Auto'}</div></div>
                     <div style="display:flex; align-items:center; gap:5px;">
                         <input type="number" placeholder="Min" style="width:40px; background:#222; border:1px solid #444; color:#fff; padding:4px; font-size:10px;" onchange="window.allocateTime('${d.id}', this.value)">
                         <button onclick="window.godAction('${d.id}', 'done', '${data.name}')" style="background:var(--open-color); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button>
@@ -595,22 +592,10 @@
                 `;
                 list.appendChild(div);
             });
-            
-            // Trigger alert if velocity is high (fallback)
-            if(!isCamActive && recentJoins > 3) {
-                 const alertBox = document.getElementById('god-alert-box');
-                 alertBox.classList.remove('hidden');
-                 document.getElementById('alert-msg').innerText = `High Velocity: ${recentJoins} joins in last min!`;
-            }
         });
 
         const locRef = doc(db, "locations", locId);
-        onSnapshot(locRef, (docSnap) => {
-             if(docSnap.exists()) {
-                 const data = docSnap.data();
-                 document.getElementById('god-served').innerText = data.totalServed || 0;
-             }
-        });
+        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) document.getElementById('god-served').innerText = docSnap.data().totalServed || 0; });
 
         if(logsUnsub) logsUnsub();
         const logQ = query(collection(db, "logs"), where("locationId", "==", locId), orderBy("timestamp", "desc"), limit(20));
@@ -622,18 +607,14 @@
                 const l = d.data();
                 const timeStr = l.timestamp ? l.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--';
                 let color = "#fff";
-                if(l.action === 'JOINED') color = "#00d4ff";
-                if(l.action === 'LEFT') color = "#ffaa00";
-                if(l.action === 'SERVED') color = "#00ff9d";
-                if(l.action === 'REMOVED') color = "#ff4757";
+                if(l.action === 'JOINED') color = "#00d4ff"; if(l.action === 'LEFT') color = "#ffaa00";
+                if(l.action === 'SERVED') color = "#00ff9d"; if(l.action === 'REMOVED') color = "#ff4757";
                 const div = document.createElement('div');
                 div.style.borderBottom = "1px solid #222"; div.style.padding = "8px 0";
                 div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${color}">${l.action}</b><span style="color:#666;">${timeStr}</span></div><div style="color:#aaa;">${l.details}</div>`;
                 logDiv.appendChild(div);
             });
-        }, (error) => {
-            if(error.message.includes("index")) document.getElementById('index-error-msg').classList.remove('hidden');
-        });
+        }, (error) => { if(error.message.includes("index")) document.getElementById('index-error-msg').classList.remove('hidden'); });
         initCharts();
     }
     
@@ -660,12 +641,18 @@
     }
 
     window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
+    
+    // UPDATED CREATE LOCATION (WITH IMAGE URL)
     window.createLocation = async () => {
         const name = document.getElementById('new-loc-name').value;
+        const img = document.getElementById('new-loc-img').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
         if(!name) return;
-        await addDoc(collection(db, "locations"), { name, openTime: open, closeTime: close, status: 'open', totalServed: 0 });
+        await addDoc(collection(db, "locations"), { 
+            name, imageURL: img, openTime: open, closeTime: close, 
+            status: 'open', totalServed: 0 
+        });
         window.closeModals();
     };
 
@@ -676,8 +663,21 @@
     window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
     window.openAddLocModal = () => document.getElementById('modal-add-loc').classList.remove('hidden');
     window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
-    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; };
-    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random&size=128` }); location.reload(); };
+    
+    // UPDATED PROFILE EDIT (WITH IMAGE)
+    window.openProfileEdit = () => { 
+        document.getElementById('modal-profile').classList.remove('hidden'); 
+        document.getElementById('edit-profile-name').value = currentUser.displayName || ""; 
+        document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2);
+    };
+    
+    window.updateProfile = async () => { 
+        const newName = document.getElementById('edit-profile-name').value; 
+        const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src;
+        await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); 
+        location.reload(); 
+    };
+    
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
