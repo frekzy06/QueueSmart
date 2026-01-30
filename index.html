@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v23.0 Precision</title>
+    <title>QueueSmart AI | v24.0 Polished</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -37,8 +37,9 @@
             display: flex; flex-direction: column; align-items: center; padding-top: 20px;
         }
         .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        
-        /* GLASS COMPONENTS */
+        @media (max-width: 768px) { .app-shell { padding: 15px; } }
+
+        /* GLASS CARD */
         .glass-card {
             background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px;
@@ -52,35 +53,34 @@
         .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
         @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
 
-        /* LOC CARD */
-        .loc-card {
-            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px;
-            overflow: hidden; transition: transform 0.3s ease; cursor: pointer; position: relative;
-        }
+        /* COMPONENTS */
+        .loc-card { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; transition: transform 0.3s ease; cursor: pointer; position: relative; }
         .loc-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .loc-img { height: 150px; width: 100%; background-size: cover; background-position: center; position: relative; }
         .loc-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, #000 10%, transparent 100%); padding: 60px 20px 15px 20px; }
         .loc-body { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
 
-        /* CHAT */
-        .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .chat-msg { display: flex; gap: 10px; animation: fadeIn 0.3s; }
-        .chat-pfp { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--glass-border); }
-        .chat-bubble { background: rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 4px 12px 12px 12px; max-width: 85%; }
-        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; font-weight: 700; }
-        .chat-text { font-size: 13px; color: #fff; line-height: 1.4; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* BUTTONS */
         .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.2s; }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 4px 20px var(--primary-glow); }
         .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
+
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 16px; border-radius: 14px; color: #fff; font-size: 15px; }
-        
+        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+
+        /* CHAT */
+        .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { display: flex; gap: 10px; animation: fadeIn 0.3s; }
+        .chat-pfp { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border); object-fit: cover; }
+        .chat-bubble { background: rgba(255,255,255,0.08); padding: 10px 14px; border-radius: 4px 16px 16px 16px; max-width: 85%; }
+        .chat-header { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+        .chat-text { font-size: 14px; line-height: 1.4; }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         .badge { padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--success); }
         .badge.closed { background: rgba(255, 66, 66, 0.1); color: var(--danger); }
@@ -99,6 +99,11 @@
         
         #view-login, #view-setup { max-width: 400px; margin: auto; margin-top: 5vh; }
         .neon-text { color: #fff; text-shadow: 0 0 30px var(--primary-glow); font-weight: 800; }
+        
+        /* Edit/Delete Buttons */
+        .edit-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; }
+        .edit-btn:hover { color: var(--primary); }
+        .delete-btn { background: none; border: none; color: var(--danger); cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
@@ -108,7 +113,7 @@
     <div id="view-login" class="glass-card">
         <div style="text-align: center; margin-bottom: 40px;">
             <h1 class="neon-text" style="font-size: 32px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); margin-top: 10px;">Enterprise OS v23.0</p>
+            <p style="color: var(--text-muted); margin-top: 10px;">v24.0 Mobile-First</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -133,12 +138,12 @@
             <i data-lucide="brain-circuit" style="color: var(--primary);"></i>
             <div>
                 <div style="font-size:11px; color:var(--primary); font-weight:800; letter-spacing:1px;">NEURAL NETWORK</div>
-                <div style="color: #fff; font-size: 14px;" id="ai-hub-insight">System operational. Analyzing traffic...</div>
+                <div style="color: #fff; font-size: 14px;" id="ai-hub-insight">System operational.</div>
             </div>
         </div>
 
         <div id="location-list-container">
-            <div style="text-align:center; padding:40px; color:var(--text-muted);">Loading Network...</div>
+            <div style="text-align:center; padding:40px; color:var(--text-muted);">Loading...</div>
         </div>
         
         <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 30px; max-width: 200px;">+ Add Facility</button>
@@ -156,7 +161,10 @@
                     </div>
                 </div>
 
-                <div class="neural-wrapper">
+                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:12px; padding:10px;">
+                    <i data-lucide="bar-chart-2"></i> View Traffic Forecast
+                </button>
+                <div id="neural-container" class="neural-wrapper hidden">
                     <canvas id="predictionChart"></canvas>
                 </div>
                 
@@ -193,7 +201,7 @@
 
         <div class="god-grid">
             <div class="glass-card" style="display:flex; flex-direction:column;">
-                <h4 style="margin:0 0 20px 0; color:var(--text-muted);">ACTIVE QUEUE</h4>
+                <h4 style="margin:0 0 20px 0; color:var(--text-muted);">QUEUE</h4>
                 <div id="god-queue-list" style="flex:1; overflow-y:auto;"></div>
             </div>
 
@@ -212,7 +220,7 @@
                     </div>
                     <div style="padding:20px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3);">
                         <div style="font-size:12px;">Count: <b id="cam-count" style="color:var(--primary); font-size:16px;">0</b></div>
-                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">ACTIVATE CAMERA</button>
+                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">ACTIVATE</button>
                     </div>
                 </div>
 
@@ -242,10 +250,10 @@
             <input id="new-loc-close" type="time" class="input-field">
         </div>
         
-        <label style="font-size:12px; color:var(--text-muted);">Display Mode</label>
+        <label style="font-size:12px; color:var(--text-muted);">Counting Mode</label>
         <select id="new-loc-mode" class="input-field">
-            <option value="ahead">People Ahead (Personal)</option>
-            <option value="total">Total Queue Size (General)</option>
+            <option value="ahead">My Position (People Ahead)</option>
+            <option value="total">Total Crowd Size</option>
         </select>
 
         <label style="font-size:12px; color:var(--text-muted);">Chat Purge Policy</label>
@@ -254,11 +262,8 @@
             <option value="week" selected>Every Week</option>
             <option value="month">Every Month</option>
         </select>
-        
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button onclick="closeModals()" class="btn btn-outline">Cancel</button>
-            <button onclick="createLocation()" class="btn btn-primary" id="btn-save-loc">SAVE</button>
-        </div>
+        <button onclick="createLocation()" class="btn btn-primary" id="btn-save-loc">SAVE</button>
+        <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
     </div>
 </div>
 
@@ -306,14 +311,13 @@
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
     let previousPosition = -1;
-    let currentCountMode = 'ahead'; // Default
+    let currentCountMode = 'ahead'; 
 
     // --- UTILS ---
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
 
-    // --- GLOBAL HANDLERS ---
     window.handleImageUpload = (input, previewId) => {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -335,10 +339,15 @@
         else { showView('view-dashboard'); initUserDashboard(locId); }
     };
 
+    window.toggleGraphDisplay = () => {
+        const el = document.getElementById('neural-container');
+        el.classList.toggle('hidden');
+    };
+
     window.joinQueue = async () => {
         const btn = document.getElementById('btn-join-queue');
         btn.innerText = "Processing..."; btn.disabled = true;
-        // Optimistic UI update
+        // Optimistic
         document.getElementById('btn-join-queue').classList.add('hidden');
         document.getElementById('btn-leave-queue').classList.remove('hidden');
         try {
@@ -346,7 +355,6 @@
             await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp() });
         } catch (e) { 
             alert("Error: " + e.message); 
-            // Revert
             document.getElementById('btn-join-queue').classList.remove('hidden');
             document.getElementById('btn-leave-queue').classList.add('hidden');
             btn.innerText = "JOIN QUEUE"; btn.disabled = false;
@@ -354,7 +362,6 @@
     };
 
     window.leaveQueue = async () => {
-        // Optimistic revert
         document.getElementById('btn-join-queue').classList.remove('hidden');
         document.getElementById('btn-leave-queue').classList.add('hidden');
         const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
@@ -375,7 +382,6 @@
         input.value = "";
     };
 
-    // --- AUTH ---
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
@@ -387,6 +393,7 @@
                 isAdmin = (userData.role === 'admin');
                 safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
                 if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
+                else { document.body.classList.remove('god-mode'); }
                 showView('view-select');
                 loadLocationsList();
             }
@@ -401,7 +408,6 @@
         location.reload();
     };
 
-    // --- LOCATIONS ---
     function loadLocationsList() {
         const listDiv = document.getElementById('location-list-container');
         const q = collection(db, "locations"); 
@@ -444,39 +450,17 @@
         return currentMins >= startMins && currentMins < endMins;
     }
 
-    // --- PROPER AI (STATISTICAL + PHYSICS) ---
     async function analyzeTrends(locId) {
-        // Statistical Analysis instead of Heavy Neural Net
         const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
         const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) { safeText('dash-best-time', "Learning patterns..."); renderChart([], []); return; }
-
+        if (snapshot.empty) { safeText('dash-best-time', "Learning patterns..."); return; }
         const hourCounts = Array(24).fill(0);
-        snapshot.forEach(doc => {
-            if(doc.data().timestamp) {
-                const h = doc.data().timestamp.toDate().getHours();
-                hourCounts[h]++;
-            }
-        });
-
-        // Generate Labels & Data for Chart
-        const nowHour = new Date().getHours();
-        const labels = []; const data = [];
-        
-        for(let i=0; i<6; i++) {
-            const h = (nowHour + i) % 24;
-            labels.push(h + ":00");
-            data.push(hourCounts[h]);
-        }
-
+        snapshot.forEach(doc => { if(doc.data().timestamp) { const h = doc.data().timestamp.toDate().getHours(); hourCounts[h]++; } });
+        const nowHour = new Date().getHours(); const labels = []; const data = [];
+        for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
-        
-        // Find Best Time
         let minVal = 999; let bestH = -1;
-        for(let i=9; i<=17; i++) {
-            if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; }
-        }
+        for(let i=9; i<=17; i++) { if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; } }
         safeText('dash-best-time', bestH > -1 ? `Usually quiet around ${bestH}:00` : "Data insufficient");
     }
 
@@ -499,15 +483,13 @@
         return velocity > 0 ? velocity : 5;
     }
 
-    // --- DASHBOARD LOGIC ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
-        analyzeTrends(locId); // Populate Graph
-        
+        analyzeTrends(locId); 
         locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
-            currentCountMode = data.countingMode || 'ahead'; // Set Mode
+            currentCountMode = data.countingMode || 'ahead'; 
             loadChat(locId, data.purgeSetting);
             const isOpen = checkTimeStatus(data.openTime, data.closeTime);
             safeText('dash-loc-name', data.name);
@@ -527,13 +509,12 @@
         if(queueUnsub) queueUnsub();
         const q = query(collection(db, "queue"), where("locationId", "==", locId));
         queueUnsub = onSnapshot(q, async (snap) => {
-            // Sort by time
             const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
             
             let myPos = -1; let allocated = null;
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            // DING LOGIC (Only if in "Ahead" mode and user drops to position 0)
+            // DING only if 'ahead' mode and dropped to 0
             if(myPos !== -1 && myPos < previousPosition && myPos === 0 && currentCountMode === 'ahead') {
                  const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                  alertSound.play().catch(e=>{});
@@ -541,26 +522,30 @@
             }
             previousPosition = myPos;
 
-            // DISPLAY LOGIC
-            const velocity = await calculateVelocity(locId);
-            const estTime = myPos !== -1 ? Math.ceil((myPos * velocity) + velocity) : "--";
-
-            // If user is in queue
             if (myPos !== -1) {
                 safeClass('btn-join-queue', 'hidden', 'add');
                 safeClass('btn-leave-queue', 'hidden', 'remove');
                 
-                if (currentCountMode === 'total') {
-                    safeText('dash-main-counter', docs.length);
-                    safeText('dash-counter-label', "TOTAL IN QUEUE");
+                // YOUR TURN LOGIC
+                if (myPos === 0) {
+                    safeText('dash-main-counter', "YOU");
+                    safeText('dash-counter-label', "IT'S YOUR TURN");
+                    safeText('dash-est-time', "NOW");
                 } else {
-                    safeText('dash-main-counter', myPos);
-                    safeText('dash-counter-label', "PEOPLE AHEAD");
+                    const velocity = await calculateVelocity(locId);
+                    const estTime = Math.ceil((myPos * velocity) + velocity);
+                    
+                    if (currentCountMode === 'total') {
+                        safeText('dash-main-counter', docs.length);
+                        safeText('dash-counter-label', "TOTAL IN QUEUE");
+                    } else {
+                        safeText('dash-main-counter', myPos);
+                        safeText('dash-counter-label', "PEOPLE AHEAD");
+                    }
+                    safeText('dash-est-time', allocated ? allocated + " mins (Set)" : estTime + " mins");
                 }
-                safeText('dash-est-time', allocated ? allocated + " mins (Set)" : estTime + " mins");
                 
             } else {
-                // Not in queue
                 safeText('dash-main-counter', docs.length);
                 safeText('dash-counter-label', "CURRENT QUEUE SIZE");
                 safeText('dash-est-time', "-- mins");
@@ -594,7 +579,6 @@
         });
     }
 
-    // --- GOD MODE ---
     function initGodMode(locId) {
         const q = query(collection(db, "queue"), where("locationId", "==", locId));
         onSnapshot(q, (snap) => {
@@ -635,30 +619,23 @@
         await deleteDoc(docRef);
     };
 
-    // --- SMOOTH CAMERA (FIXED LAG) ---
     window.toggleCamera = async () => {
         const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
-        let countBuffer = []; // To smooth out "1 2 21" jumps
-        
+        let buffer = []; 
         if(!isCamActive) {
             wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP`;
             if(!aiModel) aiModel = await cocoSsd.load();
             const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
             video.srcObject = stream; isCamActive = true;
-            
             camInterval = setInterval(async () => {
                 const predictions = await aiModel.detect(video);
                 const people = predictions.filter(p => p.class === 'person');
-                
-                // SMOOTHING LOGIC
-                countBuffer.push(people.length);
-                if(countBuffer.length > 5) countBuffer.shift(); // Keep last 5 frames
-                const avgCount = Math.round(countBuffer.reduce((a,b)=>a+b,0) / countBuffer.length);
-                
-                safeText('cam-count', avgCount);
-                if(avgCount > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avgCount} people!`); } 
+                buffer.push(people.length); if(buffer.length>5) buffer.shift();
+                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
+                safeText('cam-count', avg);
+                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avg} people!`); } 
                 else { safeClass('god-alert-box', 'hidden', 'add'); }
-            }, 500); // 500ms is smoother than 1000ms
+            }, 500);
         } else {
             wrapper.classList.add('hidden'); btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE CAMERA`;
             clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
@@ -667,7 +644,6 @@
 
     window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
 
-    // --- CRUD ---
     window.createLocation = async () => {
         const id = document.getElementById('new-loc-id').value;
         const name = document.getElementById('new-loc-name').value;
