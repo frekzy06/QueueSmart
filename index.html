@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart AI | v25.0</title>
+    <title>QueueSmart AI | v26.0 Prediction</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
@@ -15,7 +15,6 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            // Suppress benign rendering loop errors
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
             return false;
         };
@@ -198,7 +197,7 @@
     <div id="view-login" class="glass-card">
         <div style="text-align: center; margin-bottom: 40px;">
             <h1 class="neon-text" style="font-size: 32px; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); margin-top: 10px;">v25.0</p>
+            <p style="color: var(--text-muted); margin-top: 10px;">v26.0 AI Prediction</p>
         </div>
         <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Authenticate</button>
     </div>
@@ -259,7 +258,12 @@
                 <div style="text-align: center; margin: auto 0; padding: 20px 0;">
                     <div id="dash-main-counter" style="font-size: 100px; font-weight: 800; line-height: 1;">0</div>
                     <p id="dash-counter-label" style="color: var(--text-muted); font-size: 12px; letter-spacing: 3px; margin-top: 10px; font-weight:600;">LOADING...</p>
-                    <div id="dash-est-time" style="color:var(--primary); font-weight:700; margin-top:10px; font-size: 18px;">-- mins</div>
+                    
+                    <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-top:20px;">
+                        <i data-lucide="clock" style="width:16px; color:var(--primary);"></i>
+                        <div id="dash-est-time" style="color:var(--primary); font-weight:700; font-size: 18px;">-- mins</div>
+                    </div>
+                    <div id="dash-ai-badge" style="font-size:10px; color:var(--success); margin-top:5px;">Using AI Prediction</div>
                 </div>
 
                 <div style="margin-top:auto;">
@@ -438,7 +442,6 @@
     window.joinQueue = async () => {
         const btn = document.getElementById('btn-join-queue');
         btn.innerText = "Processing..."; btn.disabled = true;
-        // Optimistic UI
         document.getElementById('btn-join-queue').classList.add('hidden');
         document.getElementById('btn-leave-queue').classList.remove('hidden');
         try {
@@ -565,13 +568,41 @@
         });
     }
 
-    async function calculateVelocity(locId) {
-        const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(10));
+    // --- AI WAIT TIME CALCULATION (Linear Regression) ---
+    async function calculateAIWaitTime(locId, peopleAhead) {
+        // 1. Fetch data for regression: Served logs
+        const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), orderBy("timestamp", "desc"), limit(20));
         const snap = await getDocs(q);
-        if(snap.empty) return 5; 
-        const times = snap.docs.map(d => d.data().timestamp.toDate().getTime());
-        const velocity = ((Math.max(...times) - Math.min(...times)) / 60000) / snap.size;
-        return velocity > 0 ? velocity : 5;
+        
+        if(snap.size < 3) return 5 * peopleAhead; // Fallback if insufficient data
+
+        // 2. Prepare Data: X = Index (reverse order), Y = Timestamp
+        // We want to find the slope (ms per person)
+        const yData = snap.docs.map(d => d.data().timestamp.toDate().getTime()).reverse();
+        const xData = Array.from({length: yData.length}, (_, i) => i);
+
+        // 3. Train Model (TensorFlow.js)
+        const xs = tf.tensor2d(xData, [xData.length, 1]);
+        const ys = tf.tensor2d(yData, [yData.length, 1]);
+
+        const model = tf.sequential();
+        model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+        model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+        await model.fit(xs, ys, {epochs: 50});
+        
+        // 4. Extract Slope (Rate)
+        const weights = model.layers[0].getWeights();
+        const slope = weights[0].dataSync()[0]; // ms per person
+        
+        // Cleanup
+        xs.dispose(); ys.dispose(); model.dispose();
+
+        // 5. Calculate Result
+        const rateInMins = Math.abs(slope / 60000); 
+        const predictedTime = Math.ceil(rateInMins * peopleAhead);
+        
+        return predictedTime > 0 ? predictedTime : 5;
     }
 
     function initUserDashboard(locId) {
@@ -611,18 +642,17 @@
         if(queueUnsub) queueUnsub();
         const q = query(collection(db, "queue"), where("locationId", "==", locId));
         queueUnsub = onSnapshot(q, async (snap) => {
-            // Robust Sort: Pending writes have null timestamp, treat as NOW to put at end of list
+            // Robust Sort
             const docs = snap.docs.map(d => {
                 const data = d.data();
                 return { id: d.id, ...data, timeVal: data.timestamp ? data.timestamp.seconds : Math.floor(Date.now()/1000) };
             }).sort((a,b) => a.timeVal - b.timeVal);
             
             let myPos = -1; let allocated = null;
-            // Find user index in sorted list
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            // DING logic: Only if user was at Pos 1 and is now at Pos 0
-            if(myPos === 0 && previousPosition === 1) {
+            // DING logic
+            if(myPos === 0 && previousPosition > 0) {
                  const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                  alertSound.play().catch(e=>{});
                  if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
@@ -640,8 +670,7 @@
                     safeText('dash-counter-label', "IT'S YOUR TURN");
                     safeText('dash-est-time', "NOW");
                 } else {
-                    const velocity = await calculateVelocity(locId);
-                    const estTime = Math.ceil((myPos * velocity) + velocity);
+                    const estTime = await calculateAIWaitTime(locId, myPos);
                     
                     if (currentCountMode === 'total') {
                         safeText('dash-main-counter', docs.length);
