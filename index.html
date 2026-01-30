@@ -7,6 +7,7 @@
     <title>QueueSmart AI | v25.0</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -14,6 +15,7 @@
 
     <script>
         window.onerror = function(msg, url, line) {
+            // Suppress benign rendering loop errors
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
             return false;
         };
@@ -21,29 +23,57 @@
     
     <style>
         :root {
-            --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.4);
-            --secondary: #7000ff; --bg-dark: #0a0a0f;
-            --surface: rgba(20, 20, 30, 0.6); --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff; --text-muted: #94a3b8;
-            --success: #00ff9d; --danger: #ff4757; --warning: #ffaa00;
+            --primary: #00d4ff; 
+            --primary-glow: rgba(0, 212, 255, 0.4);
+            --secondary: #7000ff; 
+            --bg-dark: #0a0a0f;
+            --surface: rgba(20, 20, 30, 0.6); 
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff; 
+            --text-muted: #94a3b8;
+            --success: #00ff9d; 
+            --danger: #ff4757; 
+            --warning: #ffaa00;
         }
-        body.god-mode { --primary: #ff4757; --primary-glow: rgba(255, 71, 87, 0.4); --success: #ff4757; }
+
+        body.god-mode { 
+            --primary: #ff4757; 
+            --primary-glow: rgba(255, 71, 87, 0.4); 
+            --success: #ff4757; 
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+
         body {
-            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 40%);
-            background-attachment: fixed; color: var(--text-main); min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; padding-top: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: 20px; overflow-x: hidden;
         }
-        .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
+
+        .app-shell { 
+            width: 100%; max-width: 1200px; padding: 20px; 
+            flex: 1; display: flex; flex-direction: column; 
+        }
+        
         @media (max-width: 768px) { .app-shell { padding: 15px; } }
 
-        /* GLASS & LAYOUT */
+        /* GLASS CARD BASE */
         .glass-card {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4); animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%; margin-bottom: 20px;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -56,31 +86,60 @@
         .loc-description { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
 
         /* GRIDS */
-        #location-list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
-        .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
+        #location-list-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px; margin-top: 20px;
+        }
+        .dashboard-grid {
+            display: grid; grid-template-columns: 1fr 350px; gap: 20px;
+        }
+        .god-grid {
+            display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px;
+        }
         @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
 
-        /* COMPONENTS */
-        .loc-card { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; transition: transform 0.3s ease; cursor: pointer; position: relative; }
+        /* LOCATION CARDS */
+        .loc-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            overflow: hidden; transition: transform 0.3s ease; cursor: pointer; position: relative;
+        }
         .loc-card:hover { transform: translateY(-5px); border-color: var(--primary); }
         .loc-img { height: 150px; width: 100%; background-size: cover; background-position: center; position: relative; }
-        .loc-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, #000 10%, transparent 100%); padding: 60px 20px 15px 20px; }
+        .loc-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, #000 10%, transparent 100%);
+            padding: 60px 20px 15px 20px;
+        }
         .loc-body { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
 
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.2s; }
+        /* BUTTONS & INPUTS */
+        .btn {
+            width: 100%; padding: 16px; border: none; border-radius: 14px;
+            font-weight: 700; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-transform: uppercase; transition: all 0.2s;
+        }
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .btn:active { transform: scale(0.98); }
+        
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 4px 20px var(--primary-glow); }
         .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
 
-        .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 16px; border-radius: 14px; color: #fff; font-size: 15px; margin-bottom: 10px; }
+        .input-field {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            padding: 16px; border-radius: 14px; color: #fff; font-size: 15px; margin-bottom: 10px;
+        }
         .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
         textarea.input-field { resize: vertical; min-height: 80px; }
 
-        .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
+        /* CHAT UI */
+        .chat-container {
+            background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; height: 500px; max-height: 60vh;
+        }
         .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .chat-msg { display: flex; gap: 10px; animation: fadeIn 0.3s; }
         .chat-pfp { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border); object-fit: cover; }
@@ -90,14 +149,24 @@
         .chat-input-area { padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* BADGES & UTILS */
         .badge { padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--success); }
         .badge.closed { background: rgba(255, 66, 66, 0.1); color: var(--danger); }
 
         .hidden { display: none !important; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+            padding: 20px; backdrop-filter: blur(5px);
+        }
         
-        .profile-uploader { width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 20px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        .profile-uploader {
+            width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto 20px;
+            border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center;
+            overflow: hidden; cursor: pointer;
+        }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
         #view-login, #view-setup { max-width: 400px; margin: auto; margin-top: 5vh; }
@@ -107,8 +176,16 @@
         .edit-btn:hover { color: var(--primary); }
         .delete-btn { background: none; border: none; color: var(--danger); cursor: pointer; padding: 5px; }
         
-        .neural-wrapper { position: relative; height: 200px; width: 100%; background: linear-gradient(180deg, rgba(0, 212, 255, 0.05) 0%, transparent 100%); border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 20px; padding: 10px; }
-        .cam-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid var(--glass-border); }
+        /* AI & CAMERA CONTAINERS */
+        .neural-wrapper {
+            position: relative; height: 200px; width: 100%;
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.05) 0%, transparent 100%);
+            border-radius: 16px; border: 1px solid var(--glass-border); margin-bottom: 20px; padding: 10px;
+        }
+        .cam-container {
+            width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px;
+            overflow: hidden; position: relative; border: 1px solid var(--glass-border);
+        }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
@@ -129,7 +206,7 @@
     <div id="view-setup" class="glass-card hidden">
         <h2 style="text-align:center; margin-bottom: 30px;">Profile</h2>
         <label class="profile-uploader">
-            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=111&color=fff">
+            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=333&color=fff">
             <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
         </label>
         <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
@@ -212,7 +289,7 @@
 
         <div class="god-grid">
             <div class="glass-card" style="display:flex; flex-direction:column;">
-                <h4 style="margin:0 0 20px 0; color:var(--text-muted);">QUEUE</h4>
+                <h4 style="margin:0 0 20px 0; color:var(--text-muted);">ACTIVE QUEUE</h4>
                 <div id="god-queue-list" style="flex:1; overflow-y:auto;"></div>
             </div>
 
@@ -231,7 +308,7 @@
                     </div>
                     <div style="padding:20px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3);">
                         <div style="font-size:12px;">Count: <b id="cam-count" style="color:var(--primary); font-size:16px;">0</b></div>
-                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">ACTIVATE</button>
+                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">ACTIVATE CAMERA</button>
                     </div>
                 </div>
 
@@ -255,13 +332,13 @@
         <h3 id="modal-loc-title">Manage Facility</h3>
         <input id="new-loc-id" type="hidden">
         <input id="new-loc-name" type="text" class="input-field" placeholder="Name">
-        <input id="new-loc-img" type="text" class="input-field" placeholder="Image URL">
-        <textarea id="new-loc-desc" class="input-field" placeholder="Description"></textarea>
+        <input id="new-loc-img" type="text" class="input-field" placeholder="Cover Image URL">
+        <textarea id="new-loc-desc" class="input-field" placeholder="Description (e.g. Building A, Counter 2)"></textarea>
         <input id="new-loc-notice" type="text" class="input-field" placeholder="Live Notice / Announcement">
         
         <div style="display:flex; gap:10px;">
-            <input id="new-loc-open" type="time" class="input-field">
-            <input id="new-loc-close" type="time" class="input-field">
+            <div style="flex:1"><label style="font-size:10px;color:var(--text-muted)">Open</label><input id="new-loc-open" type="time" class="input-field"></div>
+            <div style="flex:1"><label style="font-size:10px;color:var(--text-muted)">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
         </div>
         
         <label style="font-size:12px; color:var(--text-muted);">Counting Mode</label>
@@ -270,7 +347,7 @@
             <option value="total">Total Crowd Size</option>
         </select>
 
-        <label style="font-size:12px; color:var(--text-muted);">Chat Purge</label>
+        <label style="font-size:12px; color:var(--text-muted);">Chat Purge Policy</label>
         <select id="new-loc-purge" class="input-field">
             <option value="day">Every 24 Hours</option>
             <option value="week" selected>Every Week</option>
@@ -361,6 +438,7 @@
     window.joinQueue = async () => {
         const btn = document.getElementById('btn-join-queue');
         btn.innerText = "Processing..."; btn.disabled = true;
+        // Optimistic UI
         document.getElementById('btn-join-queue').classList.add('hidden');
         document.getElementById('btn-leave-queue').classList.remove('hidden');
         try {
@@ -543,8 +621,8 @@
             // Find user index in sorted list
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            // DING: If I was >0 and now I am 0.
-            if(myPos === 0 && previousPosition > 0) {
+            // DING logic: Only if user was at Pos 1 and is now at Pos 0
+            if(myPos === 0 && previousPosition === 1) {
                  const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                  alertSound.play().catch(e=>{});
                  if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
