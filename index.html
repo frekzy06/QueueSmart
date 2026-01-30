@@ -474,12 +474,56 @@
         if(isAdmin) { showView('view-god-mode'); initGodMode(locId); } 
         else { showView('view-dashboard'); initUserDashboard(locId); }
     };
+window.joinQueue = async () => {
+        const btn = document.getElementById('btn-join-queue');
+        // 1. Visual Feedback immediately
+        btn.innerText = "Checking...";
+        btn.disabled = true;
 
-    window.joinQueue = async () => {
         try {
-            await addDoc(collection(db, "queue"), { uid: currentUser.uid, name: currentUser.displayName || "User", locationId: currentLocId, timestamp: serverTimestamp(), allocatedTime: null });
-            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp() });
-        } catch (e) { alert(e.message); }
+            if (!currentUser) throw new Error("Please login first.");
+
+            // 2. ANTI-DUPLICATE CHECK
+            // Ask DB: "Is this user ID already in this Location ID?"
+            const q = query(
+                collection(db, "queue"), 
+                where("uid", "==", currentUser.uid), 
+                where("locationId", "==", currentLocId)
+            );
+            
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                // User is already there! Stop.
+                alert("You are already in the queue!");
+                // The real-time listener will handle the UI update
+                return; 
+            }
+
+            // 3. Add to Queue (Only if check passed)
+            btn.innerText = "Joining...";
+            
+            await addDoc(collection(db, "queue"), {
+                uid: currentUser.uid, 
+                name: currentUser.displayName || "User",
+                locationId: currentLocId, 
+                timestamp: serverTimestamp(), 
+                allocatedTime: null
+            });
+            
+            await addDoc(collection(db, "logs"), {
+                locationId: currentLocId, 
+                action: 'JOINED', 
+                details: currentUser.displayName, 
+                timestamp: serverTimestamp()
+            });
+
+        } catch (e) {
+            console.error(e);
+            alert("Error: " + e.message);
+            btn.innerText = "JOIN QUEUE";
+            btn.disabled = false;
+        }
     };
 
     window.leaveQueue = async () => {
