@@ -22,9 +22,8 @@
     
     <style>
         :root {
-            --primary: #FF9933; /* Saffron */
+            --primary: #FF9933; 
             --primary-glow: rgba(255, 153, 51, 0.4);
-            --secondary: #138808; 
             --bg-dark: #0a0a0f; 
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff; 
@@ -48,7 +47,6 @@
         .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .app-shell { padding: 15px; } }
 
-        /* GLASS UI */
         .glass-card {
             background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
             border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); width: 100%; margin-bottom: 20px;
@@ -73,10 +71,10 @@
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
-        .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
+        .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
+        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
 
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; }
         .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
@@ -112,11 +110,13 @@
         }
 
         .chart-container { position: relative; height: 200px; width: 100%; margin-top: 10px; }
-        
         .profile-uploader { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
-        #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
+        /* QR & Payment Fixes */
+        #qr-display, #pay-qr-display { background: #fff; padding: 10px; border-radius: 12px; margin: 10px auto; width: fit-content; }
+        /* Fix Mobile Button Sizing */
+        .btn img { width: 24px; height: 24px; margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -130,15 +130,11 @@
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Digital Public Infrastructure for Queues</p>
         </div>
         <button id="btn-login" class="btn btn-primary" style="margin-bottom:15px;"><i data-lucide="shield"></i> Secure Login</button>
-        
         <div style="display:flex; gap:10px; justify-content:center;">
             <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size:11px; width:auto;">👤 Demo User</button>
             <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size:11px; width:auto; border-color:var(--danger); color:var(--danger);">🔑 Demo Admin</button>
         </div>
-
-        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">
-            POWERED BY GOOGLE CLOUD & EDGE AI
-        </div>
+        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">POWERED BY GOOGLE CLOUD & EDGE AI</div>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
@@ -159,17 +155,14 @@
             </div>
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
-        
         <div id="location-list-container">
             <div style="text-align:center; padding:40px; color:var(--text-muted);">Syncing Network...</div>
         </div>
-        
         <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 30px; width: 100%;">+ Register New Facility</button>
     </div>
 
     <div id="view-dashboard" class="hidden">
         <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; margin-bottom:15px; font-size: 11px;">← BACK</button>
-        
         <div class="dashboard-grid">
             <div class="glass-card" style="display:flex; flex-direction:column;">
                 <div id="dash-banner" style="height: 140px; border-radius: 12px; background: #222; background-size: cover; background-position: center; margin-bottom: 20px; position: relative;">
@@ -178,37 +171,28 @@
                         <div id="dash-status-badge" class="badge closed" style="margin-top:6px; display:inline-block;">OFFLINE</div>
                     </div>
                 </div>
-
                 <div id="dash-notice" class="notice-bar hidden"></div>
                 <div id="dash-desc" class="loc-description"></div>
-
-                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;">
-                    <i data-lucide="bar-chart-2"></i> View Wait Forecast
-                </button>
+                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;"><i data-lucide="bar-chart-2"></i> View Wait Forecast</button>
                 <div id="neural-container" class="glass-card hidden" style="padding:10px; margin-bottom:15px;">
                     <div class="chart-container"><canvas id="predictionChart"></canvas></div>
                 </div>
-                
                 <div style="text-align: center; margin: auto 0; padding: 20px 0;">
                     <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
                     <p id="dash-counter-label" style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 5px; font-weight:700;">LIVE COUNT</p>
-                    
                     <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:15px; color:var(--primary);">
                         <i data-lucide="clock" style="width:14px;"></i>
                         <div id="dash-est-time" style="font-weight:700; font-size: 16px;">-- mins</div>
                     </div>
                 </div>
-
                 <div style="margin-top:auto;">
                     <button onclick="window.handleJoinClick()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
                     <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
                 </div>
             </div>
-
             <div class="chat-container">
                 <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:14px;">Community</h3>
-                    <span style="font-size:10px; color:var(--text-muted);">LIVE</span>
+                    <h3 style="margin:0; font-size:14px;">Community</h3><span style="font-size:10px; color:var(--text-muted);">LIVE</span>
                 </div>
                 <div id="location-chat-box" class="chat-box"></div>
                 <div class="chat-input-area">
@@ -224,7 +208,6 @@
             <h2 style="color: var(--primary); margin:0; font-size:22px;">COMMAND CENTER</h2>
             <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">EXIT</button>
         </div>
-
         <div class="god-grid">
             <div class="glass-card" style="display:flex; flex-direction:column; max-height:500px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -233,13 +216,11 @@
                 </div>
                 <div id="god-queue-list" style="flex:1; overflow-y:auto;"></div>
             </div>
-
             <div style="display:flex; flex-direction:column; gap:15px;">
                 <div class="glass-card" style="padding:15px;">
                     <h5 style="margin:0 0 10px 0; color:var(--text-muted); font-size:11px;">CROWD PULSE (AI INSIGHTS)</h5>
                     <div style="height:120px; width:100%;"><canvas id="adminTrendChart"></canvas></div>
                 </div>
-
                 <div id="god-alert-box" class="glass-card hidden" style="border-color: var(--danger); background: rgba(255, 71, 87, 0.1); padding:15px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <i data-lucide="alert-triangle" style="color:var(--danger)"></i>
@@ -247,12 +228,9 @@
                         <button onclick="window.emergencyLock()" class="btn btn-danger" style="width:auto; padding:5px 10px; font-size:10px;">LOCK</button>
                     </div>
                 </div>
-
                 <div class="glass-card" style="padding:0; overflow:hidden; border:1px solid var(--glass-border);">
                     <div id="cam-wrapper" class="cam-wrapper hidden">
-                        <div class="privacy-badge">
-                            <i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure
-                        </div>
+                        <div class="privacy-badge"><i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure</div>
                         <video id="webcam" autoplay playsinline muted></video>
                         <canvas id="cam-overlay"></canvas>
                     </div>
@@ -262,7 +240,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="glass-card" style="display:flex; flex-direction:column;">
                 <h4 style="margin:0 0 15px 0; color:var(--text-muted); font-size:12px;">AUDIT LOGS</h4>
                 <div id="god-log-list" style="flex:1; overflow-y:auto; font-family:'JetBrains Mono'; font-size:10px;"></div>
@@ -280,31 +257,26 @@
         <input id="new-loc-img" type="text" class="input-field" placeholder="Image URL (Optional)">
         <textarea id="new-loc-desc" class="input-field" placeholder="Description / Address"></textarea>
         <input id="new-loc-notice" type="text" class="input-field" placeholder="Public Notice">
-        
         <div style="display:flex; gap:10px;">
             <div style="flex:1"><label style="font-size:10px; color:var(--text-muted)">Open</label><input id="new-loc-open" type="time" class="input-field"></div>
             <div style="flex:1"><label style="font-size:10px; color:var(--text-muted)">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
         </div>
-
+        
         <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
             <label style="font-size:11px; color:var(--primary); font-weight:bold; display:block; margin-bottom:5px;">QUEUE SETTINGS</label>
-            
             <select id="new-loc-mode" class="input-field">
                 <option value="ahead">Counting: People Ahead</option>
                 <option value="total">Counting: Total Headcount</option>
             </select>
-
             <select id="new-loc-type" class="input-field" onchange="window.togglePaymentFields()">
                 <option value="free">Entry: Free (Standard)</option>
                 <option value="paid">Entry: Paid (UPI Reservation)</option>
             </select>
-
             <div id="payment-fields" class="hidden" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
                 <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)" style="margin-bottom:5px;">
                 <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)">
             </div>
         </div>
-
         <button onclick="createLocation()" class="btn btn-primary" style="margin-top:10px;">SAVE CONFIG</button>
         <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">CANCEL</button>
     </div>
@@ -315,12 +287,12 @@
         <h3 style="color:var(--primary);">Confirm Reservation</h3>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Booking Fee: <b style="color:#fff; font-size:16px;" id="pay-amount">₹0</b></p>
         
-        <button id="btn-pay-app" class="btn btn-upi" style="width:100%; margin-bottom:15px; display:flex; justify-content:center; align-items:center; gap:10px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px;"> OPEN UPI APP
+        <button id="btn-pay-app" class="btn btn-upi" style="width:100%;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px; vertical-align:middle; margin-right:8px;"> PAY WITH UPI APP
         </button>
 
         <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">OR SCAN QR CODE</div>
-        <div id="pay-qr-display"></div>
+        <div id="pay-qr-display" style="transform: scale(0.9);"></div>
         
         <div style="margin-top:20px; text-align:left;">
             <label style="font-size:10px; color:var(--text-muted);">Verify Payment</label>
@@ -513,13 +485,10 @@
 
     function renderChart(labels, data) {
         if(predChart) predChart.destroy();
-        
-        // Use dummy data for User View if empty
         let displayData = data;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
             displayData = [5, 12, 18, 10, 4, 2];
         }
-
         const ctx = document.getElementById('predictionChart').getContext('2d');
         predChart = new Chart(ctx, {
             type: 'line',
@@ -537,8 +506,8 @@
         const notice = document.getElementById('new-loc-notice').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        const mode = document.getElementById('new-loc-mode').value; // Saved from previous version logic
-        const type = document.getElementById('new-loc-type').value; // New Booking Type
+        const mode = document.getElementById('new-loc-mode').value; 
+        const type = document.getElementById('new-loc-type').value; 
         const upi = document.getElementById('new-loc-upi').value;
         const price = document.getElementById('new-loc-price').value;
 
@@ -550,36 +519,33 @@
         };
 
         try {
-            if(id) {
-                await updateDoc(doc(db, "locations", id), data);
-                alert("Updated!");
-            } else {
-                data.status = 'open'; data.totalServed = 0;
-                await addDoc(collection(db, "locations"), data);
-                alert("Created!");
-            }
+            if(id) { await updateDoc(doc(db, "locations", id), data); alert("Updated!"); } 
+            else { data.status = 'open'; data.totalServed = 0; await addDoc(collection(db, "locations"), data); alert("Created!"); }
             window.closeModals();
-        } catch(e) { alert("Error saving location: " + e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     };
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
+        // SECURITY CHECK: Is facility closed?
+        if(!checkTimeStatus(currentLocData)) {
+            return alert("Facility is currently CLOSED.");
+        }
+
         if (currentLocData && currentLocData.bookingType === 'paid') {
-            // Setup Payment Modal
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
-            safeText('pay-upi-id', currentLocData.upiId);
             
-            // Generate UPI Link (Deep Link)
+            // Generate UPI Deep Link
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${currentLocData.ticketPrice}&cu=INR`;
             
             // 1. Setup Direct App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
 
-            // 2. Setup QR Code (for fallback)
+            // 2. Setup QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
+            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
             
             modal.classList.remove('hidden');
         } else {
@@ -590,12 +556,9 @@
     window.confirmPayment = async () => {
         const txnId = document.getElementById('user-txn-id').value;
         if (!txnId || txnId.length < 4) return alert("Please enter valid Transaction ID digits.");
-        
         const btn = document.querySelector('#modal-payment .btn-primary');
         const originalText = btn.innerText;
         btn.innerText = "Verifying..."; btn.disabled = true;
-        
-        // Simulate Verification
         setTimeout(async () => {
             await window.joinQueue(txnId);
             window.closeModals();
@@ -670,7 +633,6 @@
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         if (user) {
-            if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
             const userRef = doc(db, "users", user.uid);
             const snap = await getDoc(userRef);
             if (!snap.exists()) { showView('view-setup'); } else {
@@ -679,7 +641,6 @@
                 safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
                 if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
                 else { document.body.classList.remove('god-mode'); }
-                
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('join')) handleDeepLink(user);
                 else { showView('view-select'); loadLocationsList(); }
@@ -728,17 +689,25 @@
         });
     }
 
+    // --- ROBUST TIME CHECKER ---
     function checkTimeStatus(locData) {
-        if (locData.status === 'closed') return false;
-        if (!locData.openTime || !locData.closeTime) return true; 
+        if (locData.status === 'closed') return false; // Manual Admin Override
+        if (!locData.openTime || !locData.closeTime) return true; // No time set = Always Open
+        
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = locData.openTime.split(':').map(Number);
         const [closeH, closeM] = locData.closeTime.split(':').map(Number);
-        if (isNaN(openH) || isNaN(closeH)) return true; 
+        
+        if (isNaN(openH) || isNaN(closeH)) return true; // Invalid time = Always Open
+        
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
-        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
+        
+        // Handle overnight (e.g., 10 PM to 2 AM)
+        if (endMins < startMins) {
+            return currentMins >= startMins || currentMins < endMins;
+        }
         return currentMins >= startMins && currentMins < endMins;
     }
 
@@ -750,40 +719,24 @@
         const nowHour = new Date().getHours(); const labels = []; const data = [];
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
-        
-        // Trigger Admin Chart Refresh (Even if empty)
         if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
-    // --- FIXED VELOCITY CALCULATION (Prevents 3777 min bug) ---
     async function calculateVelocity(locId) {
         try {
             const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
             const snap = await getDocs(q);
-            
             if(snap.size < 2) return 5; 
-
-            const times = snap.docs
-                .map(d => d.data().timestamp ? d.data().timestamp.toDate().getTime() : 0)
-                .sort((a,b) => b - a);
-
-            let totalDiff = 0;
-            let count = 0;
-
+            const times = snap.docs.map(d => d.data().timestamp ? d.data().timestamp.toDate().getTime() : 0).sort((a,b) => b - a);
+            let totalDiff = 0; let count = 0;
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
-                    // IGNORE gaps larger than 20 mins (Counter was closed/break)
-                    if (diff < 1200000) { 
-                        totalDiff += diff;
-                        count++;
-                    }
+                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
                 }
             }
             if(count === 0) return 5;
-
-            const avgMs = totalDiff / count;
-            const velocityMins = Math.ceil(avgMs / 60000);
+            const avgMs = totalDiff / count; const velocityMins = Math.ceil(avgMs / 60000);
             return velocityMins > 0 ? velocityMins : 5;
         } catch (e) { return 5; }
     }
@@ -794,31 +747,31 @@
         locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
-            currentCountMode = data.countingMode || 'ahead'; // Respects the "Count Mode"
-            currentLocData = data; // For payment
+            currentCountMode = data.countingMode || 'ahead';
+            currentLocData = data; 
             
             loadChat(locId, data.purgeSetting);
             safeText('dash-loc-name', data.name);
             safeText('dash-desc', data.description || "");
-            
             if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
             else { safeClass('dash-notice', 'hidden', 'add'); }
-            
             if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
             
             const isOpen = checkTimeStatus(data); 
             const badge = document.getElementById('dash-status-badge');
+            const btn = document.getElementById('btn-join-queue');
+            
             if(badge) {
                 if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
                 else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
             }
-            const btn = document.getElementById('btn-join-queue');
+            
             if(btn) {
                 if(!isOpen) { 
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
-                    btn.innerText = data.bookingType === 'paid' ? "JOIN QUEUE" : "JOIN QUEUE"; 
+                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE"; 
                 }
             }
         });
@@ -868,7 +821,10 @@
                 safeText('dash-est-time', "-- mins");
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
-                const btn = document.getElementById('btn-join-queue'); if(btn) { btn.innerText = "JOIN QUEUE"; btn.disabled = false; }
+                const btn = document.getElementById('btn-join-queue'); if(btn) { 
+                    btn.disabled = !checkTimeStatus(currentLocData);
+                    if (!btn.disabled) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
+                }
             }
         });
     }
@@ -931,7 +887,6 @@
                 logDiv.appendChild(div);
             });
         });
-        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
         analyzeTrends(locId); 
     }
 
@@ -975,7 +930,6 @@
         const notice = document.getElementById('new-loc-notice').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        // --- FIXED: ADDED NEW FIELDS ---
         const mode = document.getElementById('new-loc-mode').value;
         const type = document.getElementById('new-loc-type').value;
         const upi = document.getElementById('new-loc-upi').value;
@@ -1007,7 +961,6 @@
         document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
         document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
         document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
-        // --- FIXED: LOAD NEW FIELDS ---
         document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
         document.getElementById('new-loc-type').value = data.bookingType || 'free';
         document.getElementById('new-loc-upi').value = data.upiId || '';
