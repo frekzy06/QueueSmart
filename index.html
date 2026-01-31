@@ -364,6 +364,15 @@
 
     // --- DEMO LOGIN ---
     window.demoLogin = async (role) => {
+        // Password Check for Admin
+        if (role === 'admin') {
+            const password = prompt("Enter Admin Password:");
+            if (password !== "queuesmart90") {
+                alert("❌ Access Denied: Incorrect Password");
+                return;
+            }
+        }
+
         try {
             const userCred = await signInAnonymously(auth);
             await setDoc(doc(db, "users", userCred.user.uid), {
