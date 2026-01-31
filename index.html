@@ -22,20 +22,20 @@
     
     <style>
         :root {
-            --primary: #FF9933; /* Saffron (India) */
+            --primary: #FF9933; /* Saffron */
             --primary-glow: rgba(255, 153, 51, 0.4);
-            --secondary: #138808; /* Green (India) */
-            --chakra: #000088; /* Blue (Ashoka Chakra) */
+            --secondary: #138808; 
             --bg-dark: #0a0a0f; 
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff; 
             --text-muted: #94a3b8;
             --success: #00ff9d; 
             --danger: #ff4757; 
+            --warning: #ffaa00;
         }
 
         body.god-mode { 
-            --primary: #00d4ff; /* Tech Blue for Admin */
+            --primary: #00d4ff; 
             --primary-glow: rgba(0, 212, 255, 0.4); 
         }
 
@@ -45,9 +45,7 @@
             margin: 0; padding: 0;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.1) 0%, transparent 40%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.1) 0%, transparent 40%);
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
@@ -55,13 +53,9 @@
             padding-top: 20px; overflow-x: hidden;
         }
 
-        .app-shell { 
-            width: 100%; max-width: 1200px; padding: 20px; 
-            flex: 1; display: flex; flex-direction: column; 
-        }
+        .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .app-shell { padding: 15px; } }
 
-        /* GLASS CARD */
         .glass-card {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -79,7 +73,7 @@
         .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
         @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
 
-        /* COMPONENTS */
+        /* UI ELEMENTS */
         .loc-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; position: relative; }
         .loc-card:hover { transform: translateY(-3px); border-color: var(--primary); }
         .loc-img { height: 140px; width: 100%; background-size: cover; background-position: center; position: relative; }
@@ -89,9 +83,7 @@
         .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.2s; letter-spacing: 0.5px; }
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .btn:active { transform: scale(0.98); }
-        
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
-        .btn-god { background: linear-gradient(135deg, #00d4ff, #0055ff); color: #fff; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); }
         .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
@@ -102,21 +94,20 @@
         .badge { padding: 5px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .badge.open { background: rgba(0, 255, 157, 0.15); color: var(--success); }
         .badge.closed { background: rgba(255, 66, 66, 0.15); color: var(--danger); }
-        .badge.ai { background: rgba(0, 212, 255, 0.15); color: #00d4ff; border: 1px solid rgba(0, 212, 255, 0.3); }
 
         .notice-bar { background: rgba(255, 170, 0, 0.1); border-left: 3px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
         .hidden { display: none !important; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
         
-        /* CHAT & TABS */
+        /* CHAT */
         .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
         .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { display: flex; gap: 10px; animation: fadeIn 0.3s; }
+        .chat-msg { display: flex; gap: 10px; }
         .chat-pfp { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border); object-fit: cover; }
         .chat-bubble { background: rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 4px 14px 14px 14px; max-width: 85%; font-size: 13px; line-height: 1.4; }
         .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; font-weight: 700; opacity: 0.7; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; }
 
         /* CAMERA & CHARTS */
         .cam-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); }
@@ -124,10 +115,10 @@
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
         .privacy-badge {
-            position: absolute; top: 10px; left: 10px; z-index: 10;
-            background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 6px;
-            font-size: 10px; color: var(--success); display: flex; align-items: center; gap: 5px;
-            border: 1px solid var(--success);
+            position: absolute; top: 15px; left: 15px; z-index: 999;
+            background: rgba(0, 0, 0, 0.8); padding: 6px 12px; border-radius: 8px;
+            font-size: 11px; font-weight: 700; color: #00ff9d; display: flex; align-items: center; gap: 6px;
+            border: 1px solid #00ff9d; box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
         }
 
         .chart-container { position: relative; height: 200px; width: 100%; margin-top: 10px; }
@@ -146,7 +137,13 @@
             <h1 style="color:#fff; font-weight:800; font-size:32px; margin:0; text-shadow:0 0 30px var(--primary-glow);">QueueSmart</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Digital Public Infrastructure for Queues</p>
         </div>
-        <button id="btn-login" class="btn btn-primary"><i data-lucide="shield"></i> Secure Login</button>
+        <button id="btn-login" class="btn btn-primary" style="margin-bottom:15px;"><i data-lucide="shield"></i> Secure Login</button>
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size:11px;">👤 Demo User</button>
+            <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size:11px; border-color:var(--danger); color:var(--danger);">🔑 Demo Admin</button>
+        </div>
+
         <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">
             POWERED BY GOOGLE CLOUD & EDGE AI
         </div>
@@ -261,7 +258,9 @@
 
                 <div class="glass-card" style="padding:0; overflow:hidden; border:1px solid var(--glass-border);">
                     <div id="cam-wrapper" class="cam-wrapper hidden">
-                        <div class="privacy-badge"><i data-lucide="shield-check" style="width:10px;"></i> Edge Processing</div>
+                        <div class="privacy-badge">
+                            <i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure
+                        </div>
                         <video id="webcam" autoplay playsinline muted></video>
                         <canvas id="cam-overlay"></canvas>
                     </div>
@@ -329,7 +328,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
@@ -362,6 +361,22 @@
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
+
+    // --- DEMO LOGIN ---
+    window.demoLogin = async (role) => {
+        try {
+            const userCred = await signInAnonymously(auth);
+            await setDoc(doc(db, "users", userCred.user.uid), {
+                uid: userCred.user.uid,
+                name: role === 'admin' ? "Demo Admin" : "Demo User",
+                photoURL: `https://ui-avatars.com/api/?name=${role}&background=random`,
+                role: role,
+                isDemo: true,
+                createdAt: serverTimestamp()
+            });
+            location.reload();
+        } catch(e) { alert("Enable 'Anonymous' in Firebase Auth Console first!\n\n" + e.message); }
+    };
 
     window.handleImageUpload = (input, previewId) => {
         const file = input.files[0]; if(!file) return;
@@ -413,14 +428,24 @@
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
+        
+        // ** FIX 2: FORCE DUMMY DATA IF EMPTY **
+        // If data is empty or sum is 0, use a cool looking curve
+        let displayData = data;
+        let isSimulated = false;
+        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
+            displayData = [5, 12, 18, 10, 4, 2]; // Hardcoded "Busy Day" curve
+            isSimulated = true;
+        }
+
         adminChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'],
                 datasets: [
                     { 
-                        label: 'Actual', 
-                        data: data, 
+                        label: isSimulated ? 'Simulated Actual' : 'Actual', 
+                        data: displayData, 
                         borderColor: '#00d4ff', 
                         backgroundColor: 'rgba(0, 212, 255, 0.1)', 
                         tension: 0.4,
@@ -428,7 +453,7 @@
                     },
                     { 
                         label: 'Predicted (Vertex AI)', 
-                        data: data.map(v => v * 1.1 + 2), // Simulate prediction
+                        data: displayData.map(v => v * 1.1 + 2), // Simulate prediction
                         borderColor: '#7000ff', 
                         borderDash: [5, 5],
                         tension: 0.4,
@@ -591,7 +616,9 @@
         const nowHour = new Date().getHours(); const labels = []; const data = [];
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
-        if(adminChart) renderAdminChart(data.length > 0 ? data : [5, 12, 18, 10, 4, 2]); // Simulate data if empty for demo
+        
+        // Trigger Admin Chart Refresh (Even if empty)
+        if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
     function renderChart(labels, data) {
@@ -747,6 +774,7 @@
                 logDiv.appendChild(div);
             });
         });
+        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
         analyzeTrends(locId); 
     }
 
