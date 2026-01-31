@@ -296,9 +296,11 @@
       measurementId: "G-34TC8L9HJJ"
     };
 
+    // --- GEMINI CONFIG ---
     const GEMINI_API_KEY = "AlzaSyCDCeoqJKIA_bBWIAeZEls4eB7biVb7xXI"; 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+    // Switched to Flash for speed and lower error rate
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -324,12 +326,10 @@
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
 
-    // --- DEMO LOGIN LOGIC ---
+    // --- DEMO LOGIN ---
     window.demoLogin = async (role) => {
         try {
             const userCred = await signInAnonymously(auth);
-            // We set a local flag or update user profile to simulate role
-            // Ideally, we write to DB to persist this role for this session
             await setDoc(doc(db, "users", userCred.user.uid), {
                 uid: userCred.user.uid,
                 name: role === 'admin' ? "Demo Admin" : "Demo User",
@@ -339,29 +339,19 @@
                 createdAt: serverTimestamp()
             });
             location.reload();
-        } catch(e) { alert(e.message); }
+        } catch(e) { alert("Demo Login Error: " + e.message); }
     };
 
-    // --- CLOUD FUNCTION CALL ---
     window.resetQueueCloud = async () => {
-        if(!confirm("Reset entire queue via Cloud?")) return;
-        // NOTE: You must deploy the 'resetQueue' function to GCP for this to work.
-        // Falls back to manual delete if function not found/fails
-        const resetQueue = httpsCallable(functions, 'resetQueue');
-        try {
-            await resetQueue({ locationId: currentLocId });
-            alert("Cloud Reset Successful.");
-        } catch (e) {
-            console.warn("Cloud function failed (not deployed?), doing manual delete.");
-            const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
-            const snap = await getDocs(q);
-            const batch = writeBatch(db);
-            snap.forEach(d => batch.delete(d.ref));
-            await batch.commit();
-        }
+        if(!confirm("Reset entire queue?")) return;
+        const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        alert("Queue cleared.");
     };
 
-    // --- ADMIN CHART ---
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
@@ -375,7 +365,7 @@
         });
     }
 
-    // --- STANDARD LOGIC (From v31) ---
+    // --- STANDARD LOGIC ---
     window.handleImageUpload = (input, previewId) => {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader();
@@ -452,25 +442,35 @@
         input.value = "";
     };
 
+    // --- FIXED GEMINI CALL ---
     window.sendGemini = async () => {
         const input = document.getElementById('chat-input');
         const text = input.value.trim(); if(!text) return;
+        
         const box = document.getElementById('gemini-chat-box');
         const userDiv = document.createElement('div'); userDiv.className = 'chat-msg'; userDiv.style.justifyContent = 'flex-end';
         userDiv.innerHTML = `<div class="chat-bubble" style="background:#333;">${text}</div>`;
         box.appendChild(userDiv);
         input.value = "";
-        const loadingDiv = document.createElement('div'); loadingDiv.className = 'chat-msg'; loadingDiv.innerHTML = `<div class="chat-bubble ai">✨ Thinking...</div>`;
+        
+        const loadingDiv = document.createElement('div'); loadingDiv.className = 'chat-msg'; 
+        loadingDiv.innerHTML = `<div class="chat-bubble ai">✨ Thinking...</div>`;
         box.appendChild(loadingDiv); box.scrollTop = box.scrollHeight;
+        
         try {
-            const context = `You are QueueBot. Current Status: ${currentQueueSize} people in line. Est Wait: ${currentWaitTime}. User: ${text}`;
+            const context = `You are QueueBot. Status: ${currentQueueSize} people in line. Wait: ${currentWaitTime}. Question: ${text}`;
             const result = await model.generateContent(context);
             const response = await result.response;
             loadingDiv.remove();
+            
             const aiDiv = document.createElement('div'); aiDiv.className = 'chat-msg';
             aiDiv.innerHTML = `<div class="chat-bubble ai">✨ ${response.text()}</div>`;
             box.appendChild(aiDiv); box.scrollTop = box.scrollHeight;
-        } catch (e) { loadingDiv.innerHTML = `<div class="chat-bubble ai" style="border-color:red;">Error</div>`; }
+        } catch (e) { 
+            // SHOW ACTUAL ERROR TO DEBUG
+            console.error(e);
+            loadingDiv.innerHTML = `<div class="chat-bubble ai" style="border-color:red; color:#ffaaaa;">Error: ${e.message}</div>`; 
+        }
     };
 
     window.generateQRCode = () => {
@@ -533,7 +533,7 @@
             if(snap.empty) listDiv.innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:40px; color:#666'>No locations found.</div>";
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
-                const isOpen = checkTimeStatus(loc.openTime, loc.closeTime);
+                const isOpen = checkTimeStatus(loc); // Updated call
                 if(isOpen) openCount++;
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
@@ -557,11 +557,25 @@
         });
     }
 
-    function checkTimeStatus(openStr, closeStr) {
-        if(!openStr || !closeStr) return true; 
-        const now = new Date(); const currentMins = now.getHours() * 60 + now.getMinutes();
-        const [openH, openM] = openStr.split(':').map(Number); const [closeH, closeM] = closeStr.split(':').map(Number);
-        const startMins = openH * 60 + openM; const endMins = closeH * 60 + closeM;
+    // --- FIXED TIME LOGIC ---
+    function checkTimeStatus(locData) {
+        // 1. Manual Override Check (If Admin specifically closed it)
+        if (locData.status === 'closed') return false;
+        
+        // 2. Data Integrity Check
+        if (!locData.openTime || !locData.closeTime) return true; // Default Open if no hours set
+
+        // 3. Time Calculation
+        const now = new Date();
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        const [openH, openM] = locData.openTime.split(':').map(Number);
+        const [closeH, closeM] = locData.closeTime.split(':').map(Number);
+        
+        if (isNaN(openH) || isNaN(closeH)) return true; // Invalid Time = Open
+
+        const startMins = openH * 60 + openM;
+        const endMins = closeH * 60 + closeM;
+
         if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
         return currentMins >= startMins && currentMins < endMins;
     }
@@ -574,7 +588,7 @@
         const nowHour = new Date().getHours(); const labels = []; const data = [];
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
-        if(adminChart) renderAdminChart([5, 12, 19, 8, 3, 2]); // Dummy data for visual demo of admin chart
+        if(adminChart) renderAdminChart([5, 12, 19, 8, 3, 2]); 
     }
 
     function renderChart(labels, data) {
@@ -614,7 +628,8 @@
             if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
             else { safeClass('dash-notice', 'hidden', 'add'); }
             if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
-            const isOpen = checkTimeStatus(data.openTime, data.closeTime);
+            
+            const isOpen = checkTimeStatus(data); // Updated
             const badge = document.getElementById('dash-status-badge');
             if(badge) {
                 if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
