@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart | Viksit Bharat</title>
+    <title>QueueSmart | AI & Payments</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
@@ -22,7 +22,7 @@
     
     <style>
         :root {
-            --primary: #FF9933; 
+            --primary: #FF9933; /* Saffron */
             --primary-glow: rgba(255, 153, 51, 0.4);
             --secondary: #138808; 
             --bg-dark: #0a0a0f; 
@@ -154,6 +154,15 @@
             </div>
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
+        
+        <div class="glass-card" style="padding: 20px; display:flex; align-items:center; gap:15px; margin-bottom:30px; border-left: 4px solid var(--primary);">
+            <i data-lucide="brain-circuit" style="color: var(--primary);"></i>
+            <div>
+                <div style="font-size:11px; color:var(--primary); font-weight:800; letter-spacing:1px;">NEURAL NETWORK</div>
+                <div style="color: #fff; font-size: 14px;" id="ai-hub-insight">Initializing AI...</div>
+            </div>
+        </div>
+
         <div id="location-list-container">
             <div style="text-align:center; padding:40px; color:var(--text-muted);">Syncing Network...</div>
         </div>
@@ -172,10 +181,14 @@
                 </div>
                 <div id="dash-notice" class="notice-bar hidden"></div>
                 <div id="dash-desc" class="loc-description"></div>
+                
                 <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;"><i data-lucide="bar-chart-2"></i> View Wait Forecast</button>
                 <div id="neural-container" class="glass-card hidden" style="padding:10px; margin-bottom:15px;">
                     <div class="chart-container"><canvas id="predictionChart"></canvas></div>
                 </div>
+                
+                <div id="dash-ai-advice" style="color:var(--success); font-size:12px; margin-bottom:20px; text-align:center; font-weight:600;"></div>
+
                 <div style="text-align: center; margin: auto 0; padding: 20px 0;">
                     <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
                     <p id="dash-counter-label" style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 5px; font-weight:700;">LIVE COUNT</p>
@@ -720,6 +733,16 @@
         const nowHour = new Date().getHours(); const labels = []; const data = [];
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
+        
+        // --- AI BEST TIME LOGIC ---
+        let minVal = 999; let bestH = -1;
+        // Check business hours (9 AM - 5 PM)
+        for(let i=9; i<=17; i++) {
+            if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; }
+        }
+        const advice = bestH > -1 ? `✨ AI Suggestion: Visit around ${bestH}:00 for minimum wait.` : "✨ AI Suggestion: Data gathering in progress...";
+        safeText('dash-ai-advice', advice);
+
         if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
@@ -888,6 +911,7 @@
                 logDiv.appendChild(div);
             });
         });
+        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
         analyzeTrends(locId); 
     }
 
