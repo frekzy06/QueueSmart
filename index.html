@@ -14,17 +14,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
-        // Prevent layout shift errors from stopping the app
         window.onerror = function(msg, url, line) {
-            if(msg.includes("ResizeObserver") || msg.includes("null")) return true;
+            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
             return false;
         };
     </script>
     
     <style>
         :root {
-            --primary: #FF9933; 
+            --primary: #FF9933; /* Saffron */
             --primary-glow: rgba(255, 153, 51, 0.4);
+            --secondary: #138808; 
             --bg-dark: #0a0a0f; 
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff; 
@@ -55,6 +55,12 @@
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* GRIDS */
+        #location-list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
+        @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
+
         /* UI ELEMENTS */
         .loc-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; position: relative; }
         .loc-card:hover { transform: translateY(-3px); border-color: var(--primary); }
@@ -67,9 +73,9 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
         .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
+        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
-        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
 
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; }
         .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
@@ -109,13 +115,8 @@
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
         #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
+        /* Fix mobile image fit */
         .btn img { height: 20px; margin-right: 8px; vertical-align: middle; }
-
-        /* GRIDS */
-        #location-list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
-        .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
-        @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -154,15 +155,6 @@
             </div>
             <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
         </div>
-        
-        <div class="glass-card" style="padding: 20px; display:flex; align-items:center; gap:15px; margin-bottom:30px; border-left: 4px solid var(--primary);">
-            <i data-lucide="brain-circuit" style="color: var(--primary);"></i>
-            <div>
-                <div style="font-size:11px; color:var(--primary); font-weight:800; letter-spacing:1px;">NEURAL NETWORK</div>
-                <div style="color: #fff; font-size: 14px;" id="ai-hub-insight">Initializing AI...</div>
-            </div>
-        </div>
-
         <div id="location-list-container">
             <div style="text-align:center; padding:40px; color:var(--text-muted);">Syncing Network...</div>
         </div>
@@ -181,16 +173,10 @@
                 </div>
                 <div id="dash-notice" class="notice-bar hidden"></div>
                 <div id="dash-desc" class="loc-description"></div>
-                
-                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;">
-                    <i data-lucide="bar-chart-2"></i> View Wait Forecast
-                </button>
+                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;"><i data-lucide="bar-chart-2"></i> View Wait Forecast</button>
                 <div id="neural-container" class="glass-card hidden" style="padding:10px; margin-bottom:15px;">
                     <div class="chart-container"><canvas id="predictionChart"></canvas></div>
                 </div>
-
-                <div id="dash-ai-advice" style="color:var(--success); font-size:12px; margin-bottom:20px; text-align:center; font-weight:600;"></div>
-                
                 <div style="text-align: center; margin: auto 0; padding: 20px 0;">
                     <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
                     <p id="dash-counter-label" style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 5px; font-weight:700;">LIVE COUNT</p>
@@ -365,9 +351,9 @@
 
     let currentUser = null;
     let currentLocId = null;
-    let currentLocData = null; 
+    let currentLocData = null; // Store current location data
     let isAdmin = false;
-    let locUnsub = null, queueUnsub = null;
+    let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
     let predChart = null, adminChart = null;
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
@@ -541,22 +527,19 @@
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
-        if(!currentLocData) return alert("Loading data...");
-        
+        if(!currentLocData) return alert("Error loading location data. Please refresh.");
+
         // SECURITY CHECK: Is facility closed?
-        const status = checkTimeStatus(currentLocData);
-        if(!status.isOpen) {
-            return alert("Facility is currently CLOSED (" + status.reason + ").");
+        if(!checkTimeStatus(currentLocData)) {
+            return alert("Facility is currently CLOSED.");
         }
 
         if (currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Generate UPI Deep Link (Fixed Amount Formatting)
-            const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
-            const txnId = "T" + Date.now();
-            const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR&mc=0000&mode=02`;
+            // Generate UPI Deep Link
+            const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${currentLocData.ticketPrice}&cu=INR`;
             
             // 1. Setup Direct App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
@@ -564,7 +547,7 @@
             // 2. Setup QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
+            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
             
             modal.classList.remove('hidden');
         } else {
@@ -684,9 +667,8 @@
             if(snap.empty) listDiv.innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:40px; color:#666'>No locations found.</div>";
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
-                const status = checkTimeStatus(loc); 
-                if(status.isOpen) openCount++;
-                
+                const isOpen = checkTimeStatus(loc); 
+                if(isOpen) openCount++;
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
                 el.className = 'loc-card';
@@ -698,42 +680,39 @@
                         </div>
                     </div>
                     <div class="loc-body">
-                        <div class="badge ${status.isOpen ? 'open' : 'closed'}">${status.isOpen ? 'OPEN' : 'CLOSED'}</div>
+                        <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
                         ${isAdmin ? `<button onclick="window.openEditModal('${docSnap.id}')" class="edit-btn"><i data-lucide="pencil" style="width:14px;"></i></button><button onclick="window.deleteLocation('${docSnap.id}')" class="delete-btn"><i data-lucide="trash-2" style="width:14px;"></i></button>` : ''}
                     </div>
                 `;
                 listDiv.appendChild(el);
             });
-            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. All facilities closed.");
+            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities online.` : "Network idle.");
             if(window.lucide) lucide.createIcons();
         });
     }
 
-    // --- ROBUST TIME CHECKER (FIXED) ---
+    // --- ROBUST TIME CHECKER ---
     function checkTimeStatus(locData) {
-        if (locData.status === 'closed') return { isOpen: false, reason: "ADMIN" };
-        if (!locData.openTime || !locData.closeTime) return { isOpen: true, reason: "" }; 
+        if (locData.status === 'closed') return false; // Manual Admin Override
+        if (!locData.openTime || !locData.closeTime) return true; // No time set = Always Open
         
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = locData.openTime.split(':').map(Number);
         const [closeH, closeM] = locData.closeTime.split(':').map(Number);
         
-        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" }; 
+        if (isNaN(openH) || isNaN(closeH)) return true; // Invalid time = Always Open
         
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
         
-        let isOpen = false;
-        if (endMins < startMins) { // Overnight
-            isOpen = currentMins >= startMins || currentMins < endMins;
-        } else {
-            isOpen = currentMins >= startMins && currentMins < endMins;
+        // Handle overnight (e.g., 10 PM to 2 AM)
+        if (endMins < startMins) {
+            return currentMins >= startMins || currentMins < endMins;
         }
-        return { isOpen: isOpen, reason: isOpen ? "" : "TIME" };
+        return currentMins >= startMins && currentMins < endMins;
     }
 
-    // --- ANALYTICS & AI ---
     async function analyzeTrends(locId) {
         const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
         const snapshot = await getDocs(q);
@@ -742,13 +721,6 @@
         const nowHour = new Date().getHours(); const labels = []; const data = [];
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
-        
-        // AI Advice
-        let minVal = 999; let bestH = -1;
-        for(let i=9; i<=17; i++) { if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; } }
-        const advice = bestH > -1 ? `✨ AI Suggestion: Visit around ${bestH}:00 for minimum wait.` : "✨ AI Suggestion: Analyzing patterns...";
-        safeText('dash-ai-advice', advice);
-
         if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
@@ -762,7 +734,7 @@
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
-                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore large gaps
+                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
                 }
             }
             if(count === 0) return 5;
@@ -771,11 +743,9 @@
         } catch (e) { return 5; }
     }
 
-    // --- DASHBOARD LOGIC (REFRESH LOOP ADDED) ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         analyzeTrends(locId); 
-        
         locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
@@ -789,22 +759,21 @@
             else { safeClass('dash-notice', 'hidden', 'add'); }
             if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
             
-            const status = checkTimeStatus(data); 
+            const isOpen = checkTimeStatus(data); 
             const badge = document.getElementById('dash-status-badge');
             const btn = document.getElementById('btn-join-queue');
             
             if(badge) {
-                if(status.isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
-                else { badge.innerText = "OFFLINE (" + status.reason + ")"; badge.className = "badge closed"; }
+                if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
+                else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
             }
             
             if(btn) {
-                if(!status.isOpen) { 
+                if(!isOpen) { 
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
-                    // Dynamic Button Text
-                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE";
+                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE"; 
                 }
             }
         });
@@ -838,6 +807,7 @@
                 } else {
                     const velocity = await calculateVelocity(locId);
                     const estTime = Math.ceil((myPos * velocity) + velocity);
+                    
                     if (currentCountMode === 'total') {
                         safeText('dash-main-counter', docs.length);
                         safeText('dash-counter-label', "TOTAL IN QUEUE");
@@ -853,113 +823,161 @@
                 safeText('dash-est-time', "-- mins");
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
-                const btn = document.getElementById('btn-join-queue'); 
-                // Re-apply disabled state in case queue update overrides it
-                if(btn && currentLocData) { 
-                    const status = checkTimeStatus(currentLocData);
-                    btn.disabled = !status.isOpen;
-                    if(status.isOpen) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
-                    else btn.innerText = "CLOSED";
+                const btn = document.getElementById('btn-join-queue'); if(btn) { 
+                    btn.disabled = !checkTimeStatus(currentLocData);
+                    if (!btn.disabled) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
                 }
             }
         });
     }
 
-    // --- CHAT & HELPERS ---
-    window.sendChat = async () => {
-        const txt = document.getElementById('chat-input').value;
-        if(txt) await addDoc(collection(db, "comments"), { locationId: currentLocId, text: txt, userName: currentUser.displayName || "User", userPhoto: currentUser.photoURL, timestamp: serverTimestamp() });
-        document.getElementById('chat-input').value = "";
-    };
+    function loadChat(locId, purgePolicy = 'week') {
+        if(chatUnsub) chatUnsub();
+        const now = new Date(); let cutoff = new Date();
+        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
+        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
+        else cutoff.setMonth(now.getMonth() - 1);
+        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
+        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
 
-    function loadChat(locId) {
-        onSnapshot(query(collection(db, "comments"), where("locationId", "==", locId), orderBy("timestamp")), (snap) => {
-            const b = document.getElementById('location-chat-box'); b.innerHTML = "";
-            snap.forEach(d => {
-                const c = d.data();
+        const q = query(collection(db, "comments"), where("locationId", "==", locId));
+        chatUnsub = onSnapshot(q, (snap) => {
+            const box = document.getElementById('location-chat-box'); if(!box) return;
+            box.innerHTML = "";
+            const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            msgs.forEach(c => {
                 const div = document.createElement('div'); div.className = 'chat-msg';
-                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div>${c.text}</div>`;
-                b.appendChild(div);
+                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
+                box.appendChild(div);
             });
-            b.scrollTop = b.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         });
     }
 
-    // --- OTHER ---
-    window.handleImageUpload = (input, previewId) => {
-        const file = input.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById(previewId).src = e.target.result;
-            tempProfileBase64 = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // --- GOD MODE ---
     function initGodMode(locId) {
-        onSnapshot(query(collection(db, "queue"), where("locationId", "==", locId)), (snap) => {
-            const list = document.getElementById('god-queue-list'); list.innerHTML = "";
-            snap.docs.forEach(d => {
-                const data = d.data();
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById('god-queue-list'); if(!list) return;
+            list.innerHTML = "";
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            safeText('god-waiting', docs.length);
+            docs.forEach(data => {
                 const div = document.createElement('div');
-                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${data.name}</b></div><button onclick="window.godAction('${d.id}')" style="background:#00ff9d;border:none;padding:2px 8px;">✓</button></div>`;
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:700; font-size:13px;">${data.name}</div>
+                        ${data.paymentStatus === 'verified' ? '<span style="color:#00ff9d; font-size:9px; border:1px solid #00ff9d; padding:1px 3px; border-radius:3px;">PAID</span>' : ''}
+                    </div>
+                    <div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
                 list.appendChild(div);
             });
         });
+        const locRef = doc(db, "locations", locId);
+        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
+        
+        if(logsUnsub) logsUnsub();
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
+        logsUnsub = onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
+            logDiv.innerHTML = "";
+            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            logs.forEach(l => {
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
+                logDiv.appendChild(div);
+            });
+        });
+        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
+        analyzeTrends(locId); 
     }
-    window.godAction = async (qid) => { await deleteDoc(doc(db, "queue", qid)); };
-    window.resetQueueCloud = async () => { if(confirm("Clear?")) { const q = query(collection(db, "queue"), where("locationId", "==", currentLocId)); const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref)); }};
 
-    window.openAddLocModal = () => { document.getElementById('new-loc-id').value = ""; document.getElementById('modal-add-loc').classList.remove('hidden'); };
-    window.openEditModal = async (id) => {
-        const d = (await getDoc(doc(db, "locations", id))).data();
-        document.getElementById('new-loc-id').value = id;
-        document.getElementById('new-loc-name').value = d.name;
-        document.getElementById('new-loc-img').value = d.imageURL || "";
-        document.getElementById('new-loc-type').value = d.bookingType || 'free';
-        document.getElementById('new-loc-upi').value = d.upiId || '';
-        document.getElementById('new-loc-price').value = d.ticketPrice || '';
+    window.godAction = async (docId, type, name) => {
+        const docRef = doc(db, "queue", docId);
+        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
+        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        await deleteDoc(docRef);
+    };
+
+    window.toggleCamera = async () => {
+        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
+        let buffer = []; 
+        if(!isCamActive) {
+            wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP SENSOR`;
+            if(!aiModel) aiModel = await cocoSsd.load();
+            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
+            video.srcObject = stream; isCamActive = true;
+            camInterval = setInterval(async () => {
+                const predictions = await aiModel.detect(video);
+                const people = predictions.filter(p => p.class === 'person');
+                buffer.push(people.length); if(buffer.length>5) buffer.shift();
+                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
+                safeText('cam-count', avg);
+                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avg} people!`); } 
+                else { safeClass('god-alert-box', 'hidden', 'add'); }
+            }, 500);
+        } else {
+            wrapper.classList.add('hidden'); btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE SENSOR`;
+            clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
+        }
+    };
+
+    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
+
+    window.createLocation = async () => {
+        const id = document.getElementById('new-loc-id').value;
+        const name = document.getElementById('new-loc-name').value;
+        const img = document.getElementById('new-loc-img').value;
+        const desc = document.getElementById('new-loc-desc').value;
+        const notice = document.getElementById('new-loc-notice').value;
+        const open = document.getElementById('new-loc-open').value;
+        const close = document.getElementById('new-loc-close').value;
+        const mode = document.getElementById('new-loc-mode').value;
+        const type = document.getElementById('new-loc-type').value;
+        const upi = document.getElementById('new-loc-upi').value;
+        const price = document.getElementById('new-loc-price').value;
+
+        if(!name) return;
+        const locData = { 
+            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
+            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
+        };
+        
+        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
+        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
+        window.closeModals();
+    };
+
+    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
+    
+    window.openAddLocModal = () => {
+        document.getElementById('new-loc-id').value = ""; safeText('modal-loc-title', "New Facility");
+        document.getElementById('new-loc-name').value = ""; document.getElementById('new-loc-img').value = "";
+        document.getElementById('new-loc-desc').value = ""; document.getElementById('new-loc-notice').value = "";
+        safeClass('modal-add-loc', 'hidden', 'remove');
+    };
+
+    window.openEditModal = async (locId) => {
+        const snap = await getDoc(doc(db, "locations", locId)); const data = snap.data();
+        document.getElementById('new-loc-id').value = locId; safeText('modal-loc-title', "Edit Facility");
+        document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
+        document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
+        document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
+        document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
+        document.getElementById('new-loc-type').value = data.bookingType || 'free';
+        document.getElementById('new-loc-upi').value = data.upiId || '';
+        document.getElementById('new-loc-price').value = data.ticketPrice || '';
+        
         window.togglePaymentFields();
-        document.getElementById('modal-add-loc').classList.remove('hidden');
+        safeClass('modal-add-loc', 'hidden', 'remove');
     };
 
-    // --- SETUP ---
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        if(user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(!snap.exists()) { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-setup').classList.remove('hidden'); }
-            else {
-                isAdmin = snap.data().role === 'admin';
-                if(isAdmin) document.body.classList.add('god-mode');
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-select').classList.remove('hidden');
-                
-                onSnapshot(collection(db, "locations"), (snap) => {
-                    const list = document.getElementById('location-list-container');
-                    list.innerHTML = "";
-                    let openCount = 0;
-                    snap.forEach(d => {
-                        const l = d.data();
-                        const st = checkTimeStatus(l);
-                        if(st.isOpen) openCount++;
-                        const el = document.createElement('div'); el.className = 'loc-card';
-                        el.innerHTML = `<div class="loc-img" style="background-image:url('${l.imageURL}');" onclick="window.selectLocation('${d.id}')"><div class="loc-overlay"><b>${l.name}</b><br><span style="font-size:10px">${st.isOpen ? 'OPEN' : 'CLOSED'}</span></div></div>${isAdmin ? `<div class="loc-body"><button onclick="window.openEditModal('${d.id}')" class="btn-outline">Edit</button></div>` : ''}`;
-                        list.appendChild(el);
-                    });
-                    safeText('ai-hub-insight', `${openCount} Facilities Active. Low Congestion.`);
-                });
-            }
-        } else { document.getElementById('view-login').classList.remove('hidden'); }
-    });
-
-    window.goBack = () => {
-        document.getElementById('view-dashboard').classList.add('hidden');
-        document.getElementById('view-god-mode').classList.add('hidden');
-        document.getElementById('view-select').classList.remove('hidden');
-    };
+    window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2); };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
