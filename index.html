@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart | Viksit Bharat</title>
+    <title>QueueSmart | Viksit Bharat (Full)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
@@ -34,23 +34,36 @@
             --warning: #ffaa00;
         }
 
-        body.god-mode { --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.4); }
+        body.god-mode { 
+            --primary: #00d4ff; 
+            --primary-glow: rgba(0, 212, 255, 0.4); 
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
-            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
             background-image: radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.1) 0%, transparent 40%);
-            background-attachment: fixed; color: var(--text-main); min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; padding-top: 20px; overflow-x: hidden;
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: 20px; overflow-x: hidden;
         }
 
         .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .app-shell { padding: 15px; } }
 
+        /* GLASS CARD */
         .glass-card {
-            background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); width: 100%; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            width: 100%; margin-bottom: 20px;
             animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -73,9 +86,9 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
         .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
+        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
-        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
 
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; }
         .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
@@ -87,7 +100,7 @@
         .notice-bar { background: rgba(255, 170, 0, 0.1); border-left: 3px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
         .hidden { display: none !important; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
         
         /* CHAT */
         .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
@@ -202,6 +215,7 @@
                     <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
                 </div>
             </div>
+            
             <div class="chat-container">
                 <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; font-size:14px;">Community</h3><span style="font-size:10px; color:var(--text-muted);">LIVE</span>
@@ -365,7 +379,7 @@
     let currentLocId = null;
     let currentLocData = null; 
     let isAdmin = false;
-    let locUnsub = null, queueUnsub = null;
+    let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
     let predChart = null, adminChart = null;
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
@@ -382,6 +396,11 @@
         const type = document.getElementById('new-loc-type').value;
         if(type === 'paid') document.getElementById('payment-fields').classList.remove('hidden');
         else document.getElementById('payment-fields').classList.add('hidden');
+    };
+
+    window.toggleGraphDisplay = () => {
+        const el = document.getElementById('neural-container');
+        el.classList.toggle('hidden');
     };
 
     // --- DEMO LOGIN ---
@@ -425,11 +444,6 @@
         else { showView('view-dashboard'); initUserDashboard(locId); }
     };
 
-    window.toggleGraphDisplay = () => {
-        const el = document.getElementById('neural-container');
-        el.classList.toggle('hidden');
-    };
-
     // --- CLOUD RESET SIMULATION ---
     window.resetQueueCloud = async () => {
         if(!confirm("Reset entire queue?")) return;
@@ -438,7 +452,6 @@
         btn.innerText = "⏳ Processing...";
         btn.disabled = true;
         
-        // Simulate Serverless Latency
         setTimeout(async () => {
             const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
             const snap = await getDocs(q);
@@ -455,7 +468,6 @@
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
         
-        // Use dummy data if real data is empty
         let displayData = data;
         let isSimulated = false;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
@@ -518,15 +530,15 @@
         const notice = document.getElementById('new-loc-notice').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        const mode = document.getElementById('new-loc-mode').value; 
-        const type = document.getElementById('new-loc-type').value; 
+        const mode = document.getElementById('new-loc-mode').value;
+        const type = document.getElementById('new-loc-type').value;
         const upi = document.getElementById('new-loc-upi').value;
         const price = document.getElementById('new-loc-price').value;
 
         if(!name) return alert("Name is required");
 
         const data = { 
-            name, imageURL: img, description: desc, notice, openTime: open, closeTime: close, 
+            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
             countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
         };
 
@@ -539,27 +551,30 @@
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
-        // SECURITY CHECK: Is facility closed?
-        if(!checkTimeStatus(currentLocData)) {
-            return alert("Facility is currently CLOSED.");
+        if(!currentLocData) return alert("Please wait for location data...");
+        
+        // SECURITY CHECK
+        const status = checkTimeStatus(currentLocData);
+        if(!status.isOpen) {
+            return alert("Facility is currently CLOSED (" + status.reason + ").");
         }
 
         if (currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Generate UPI Deep Link (Fixed Amount Formatting)
+            // Payment Link
             const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
             const txnId = "T" + Date.now();
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR&mc=0000&mode=02`;
             
-            // 1. Setup Direct App Button
+            // App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
 
-            // 2. Setup QR Code
+            // QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
+            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
             
             modal.classList.remove('hidden');
         } else {
@@ -583,15 +598,14 @@
     window.joinQueue = async (txnId = null) => {
         const btn = document.getElementById('btn-join-queue');
         if(btn) { btn.innerText = "Processing..."; btn.disabled = true; }
-        
         try {
             await addDoc(collection(db, "queue"), { 
                 uid: currentUser.uid, 
                 name: currentUser.displayName || "User", 
                 locationId: currentLocId, 
-                timestamp: serverTimestamp(),
-                allocatedTime: null,
-                paymentStatus: txnId ? 'verified' : 'free',
+                timestamp: serverTimestamp(), 
+                allocatedTime: null, 
+                paymentStatus: txnId ? 'verified' : 'free', 
                 txnId: txnId || 'N/A'
             });
             await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp() });
@@ -613,8 +627,7 @@
     window.sendChat = async () => {
         const input = document.getElementById('chat-input');
         const text = input.value.trim(); if(!text) return;
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        const pfp = userDoc.exists() ? userDoc.data().photoURL : "";
+        const pfp = currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}`;
         await addDoc(collection(db, "comments"), { locationId: currentLocId, text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp() });
         input.value = "";
     };
@@ -679,8 +692,9 @@
             if(snap.empty) listDiv.innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:40px; color:#666'>No locations found.</div>";
             snap.forEach(docSnap => {
                 const loc = docSnap.data();
-                const isOpen = checkTimeStatus(loc); 
-                if(isOpen) openCount++;
+                const status = checkTimeStatus(loc); 
+                if(status.isOpen) openCount++;
+                
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
                 el.className = 'loc-card';
@@ -692,39 +706,42 @@
                         </div>
                     </div>
                     <div class="loc-body">
-                        <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
+                        <div class="badge ${status.isOpen ? 'open' : 'closed'}">${status.isOpen ? 'OPEN' : 'CLOSED'}</div>
                         ${isAdmin ? `<button onclick="window.openEditModal('${docSnap.id}')" class="edit-btn"><i data-lucide="pencil" style="width:14px;"></i></button><button onclick="window.deleteLocation('${docSnap.id}')" class="delete-btn"><i data-lucide="trash-2" style="width:14px;"></i></button>` : ''}
                     </div>
                 `;
                 listDiv.appendChild(el);
             });
-            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities online. Low congestion predicted.` : "Network idle. Waiting for activity.");
+            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. All facilities closed.");
             if(window.lucide) lucide.createIcons();
         });
     }
 
     // --- ROBUST TIME CHECKER (FIXED) ---
     function checkTimeStatus(locData) {
-        if (locData.status === 'closed') return false; // Manual Admin Override
-        if (!locData.openTime || !locData.closeTime) return true; // No time set = Always Open
+        if (locData.status === 'closed') return { isOpen: false, reason: "ADMIN" };
+        if (!locData.openTime || !locData.closeTime) return { isOpen: true, reason: "" }; 
         
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = locData.openTime.split(':').map(Number);
         const [closeH, closeM] = locData.closeTime.split(':').map(Number);
         
-        if (isNaN(openH) || isNaN(closeH)) return true; // Invalid time = Always Open
+        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" };
         
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
         
-        // Handle overnight (e.g., 10 PM to 2 AM)
-        if (endMins < startMins) {
-            return currentMins >= startMins || currentMins < endMins;
+        let isOpen = false;
+        if (endMins < startMins) { // Overnight
+            isOpen = currentMins >= startMins || currentMins < endMins;
+        } else {
+            isOpen = currentMins >= startMins && currentMins < endMins;
         }
-        return currentMins >= startMins && currentMins < endMins;
+        return { isOpen: isOpen, reason: isOpen ? "" : "TIME" };
     }
 
+    // --- ANALYTICS & AI ---
     async function analyzeTrends(locId) {
         const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
         const snapshot = await getDocs(q);
@@ -762,9 +779,11 @@
         } catch (e) { return 5; }
     }
 
+    // --- DASHBOARD LOGIC (REFRESH LOOP ADDED) ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         analyzeTrends(locId); 
+        
         locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
@@ -778,17 +797,17 @@
             else { safeClass('dash-notice', 'hidden', 'add'); }
             if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
             
-            const isOpen = checkTimeStatus(data); 
+            const status = checkTimeStatus(data);
             const badge = document.getElementById('dash-status-badge');
             const btn = document.getElementById('btn-join-queue');
             
             if(badge) {
-                if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
-                else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
+                if(status.isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
+                else { badge.innerText = "OFFLINE (" + status.reason + ")"; badge.className = "badge closed"; }
             }
             
             if(btn) {
-                if(!isOpen) { 
+                if(!status.isOpen) { 
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
@@ -842,161 +861,113 @@
                 safeText('dash-est-time', "-- mins");
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
-                const btn = document.getElementById('btn-join-queue'); if(btn) { 
-                    btn.disabled = !checkTimeStatus(currentLocData);
+                const btn = document.getElementById('btn-join-queue'); 
+                // Re-apply disabled state in case queue update overrides it
+                if(btn && currentLocData) { 
+                    const status = checkTimeStatus(currentLocData);
+                    btn.disabled = !status.isOpen;
                     if (!btn.disabled) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
+                    else btn.innerText = "CLOSED";
                 }
             }
         });
     }
 
-    function loadChat(locId, purgePolicy = 'week') {
-        if(chatUnsub) chatUnsub();
-        const now = new Date(); let cutoff = new Date();
-        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
-        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
-        else cutoff.setMonth(now.getMonth() - 1);
-        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
-        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
+    // --- CHAT & HELPERS ---
+    window.sendChat = async () => {
+        const txt = document.getElementById('chat-input').value;
+        if(txt) await addDoc(collection(db, "comments"), { locationId: currentLocId, text: txt, userName: currentUser.displayName || "User", userPhoto: currentUser.photoURL, timestamp: serverTimestamp() });
+        document.getElementById('chat-input').value = "";
+    };
 
-        const q = query(collection(db, "comments"), where("locationId", "==", locId));
-        chatUnsub = onSnapshot(q, (snap) => {
-            const box = document.getElementById('location-chat-box'); if(!box) return;
-            box.innerHTML = "";
-            const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            msgs.forEach(c => {
+    function loadChat(locId) {
+        onSnapshot(query(collection(db, "comments"), where("locationId", "==", locId), orderBy("timestamp")), (snap) => {
+            const b = document.getElementById('location-chat-box'); b.innerHTML = "";
+            snap.forEach(d => {
+                const c = d.data();
                 const div = document.createElement('div'); div.className = 'chat-msg';
-                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
-                box.appendChild(div);
+                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div>${c.text}</div>`;
+                b.appendChild(div);
             });
-            box.scrollTop = box.scrollHeight;
+            b.scrollTop = b.scrollHeight;
         });
     }
 
+    // --- OTHER ---
+    window.handleImageUpload = (input, previewId) => {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById(previewId).src = e.target.result;
+            tempProfileBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // --- GOD MODE ---
     function initGodMode(locId) {
-        const q = query(collection(db, "queue"), where("locationId", "==", locId));
-        onSnapshot(q, (snap) => {
-            const list = document.getElementById('god-queue-list'); if(!list) return;
-            list.innerHTML = "";
-            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            safeText('god-waiting', docs.length);
-            docs.forEach(data => {
+        onSnapshot(query(collection(db, "queue"), where("locationId", "==", locId)), (snap) => {
+            const list = document.getElementById('god-queue-list'); list.innerHTML = "";
+            snap.docs.forEach(d => {
+                const data = d.data();
                 const div = document.createElement('div');
-                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-weight:700; font-size:13px;">${data.name}</div>
-                        ${data.paymentStatus === 'verified' ? '<span style="color:#00ff9d; font-size:9px; border:1px solid #00ff9d; padding:1px 3px; border-radius:3px;">PAID</span>' : ''}
-                    </div>
-                    <div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${data.name}</b></div><button onclick="window.godAction('${d.id}')" style="background:#00ff9d;border:none;padding:2px 8px;">✓</button></div>`;
                 list.appendChild(div);
             });
         });
-        const locRef = doc(db, "locations", locId);
-        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
-        
-        if(logsUnsub) logsUnsub();
-        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
-        logsUnsub = onSnapshot(logQ, (snap) => {
-            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
-            logDiv.innerHTML = "";
-            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-            logs.forEach(l => {
-                const div = document.createElement('div');
-                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
-                logDiv.appendChild(div);
-            });
-        });
-        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
-        analyzeTrends(locId); 
     }
+    window.godAction = async (qid) => { await deleteDoc(doc(db, "queue", qid)); };
+    window.resetQueueCloud = async () => { if(confirm("Clear?")) { const q = query(collection(db, "queue"), where("locationId", "==", currentLocId)); const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref)); }};
 
-    window.godAction = async (docId, type, name) => {
-        const docRef = doc(db, "queue", docId);
-        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
-        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
-        await deleteDoc(docRef);
-    };
-
-    window.toggleCamera = async () => {
-        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
-        let buffer = []; 
-        if(!isCamActive) {
-            wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP SENSOR`;
-            if(!aiModel) aiModel = await cocoSsd.load();
-            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
-            video.srcObject = stream; isCamActive = true;
-            camInterval = setInterval(async () => {
-                const predictions = await aiModel.detect(video);
-                const people = predictions.filter(p => p.class === 'person');
-                buffer.push(people.length); if(buffer.length>5) buffer.shift();
-                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
-                safeText('cam-count', avg);
-                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avg} people!`); } 
-                else { safeClass('god-alert-box', 'hidden', 'add'); }
-            }, 500);
-        } else {
-            wrapper.classList.add('hidden'); btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE SENSOR`;
-            clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
-        }
-    };
-
-    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
-
-    window.createLocation = async () => {
-        const id = document.getElementById('new-loc-id').value;
-        const name = document.getElementById('new-loc-name').value;
-        const img = document.getElementById('new-loc-img').value;
-        const desc = document.getElementById('new-loc-desc').value;
-        const notice = document.getElementById('new-loc-notice').value;
-        const open = document.getElementById('new-loc-open').value;
-        const close = document.getElementById('new-loc-close').value;
-        const mode = document.getElementById('new-loc-mode').value;
-        const type = document.getElementById('new-loc-type').value;
-        const upi = document.getElementById('new-loc-upi').value;
-        const price = document.getElementById('new-loc-price').value;
-
-        if(!name) return;
-        const locData = { 
-            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
-            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
-        };
-        
-        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
-        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
-        window.closeModals();
-    };
-
-    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
-    
-    window.openAddLocModal = () => {
-        document.getElementById('new-loc-id').value = ""; safeText('modal-loc-title', "New Facility");
-        document.getElementById('new-loc-name').value = ""; document.getElementById('new-loc-img').value = "";
-        document.getElementById('new-loc-desc').value = ""; document.getElementById('new-loc-notice').value = "";
-        safeClass('modal-add-loc', 'hidden', 'remove');
-    };
-
-    window.openEditModal = async (locId) => {
-        const snap = await getDoc(doc(db, "locations", locId)); const data = snap.data();
-        document.getElementById('new-loc-id').value = locId; safeText('modal-loc-title', "Edit Facility");
-        document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
-        document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
-        document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
-        document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
-        document.getElementById('new-loc-type').value = data.bookingType || 'free';
-        document.getElementById('new-loc-upi').value = data.upiId || '';
-        document.getElementById('new-loc-price').value = data.ticketPrice || '';
-        
+    window.openAddLocModal = () => { document.getElementById('new-loc-id').value = ""; document.getElementById('modal-add-loc').classList.remove('hidden'); };
+    window.openEditModal = async (id) => {
+        const d = (await getDoc(doc(db, "locations", id))).data();
+        document.getElementById('new-loc-id').value = id;
+        document.getElementById('new-loc-name').value = d.name;
+        document.getElementById('new-loc-img').value = d.imageURL || "";
+        document.getElementById('new-loc-type').value = d.bookingType || 'free';
+        document.getElementById('new-loc-upi').value = d.upiId || '';
+        document.getElementById('new-loc-price').value = d.ticketPrice || '';
         window.togglePaymentFields();
-        safeClass('modal-add-loc', 'hidden', 'remove');
+        document.getElementById('modal-add-loc').classList.remove('hidden');
     };
 
-    window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
-    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
-    window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
-    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2); };
-    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); location.reload(); };
+    // --- SETUP ---
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if(user) {
+            const snap = await getDoc(doc(db, "users", user.uid));
+            if(!snap.exists()) { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-setup').classList.remove('hidden'); }
+            else {
+                isAdmin = snap.data().role === 'admin';
+                if(isAdmin) document.body.classList.add('god-mode');
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-select').classList.remove('hidden');
+                
+                onSnapshot(collection(db, "locations"), (snap) => {
+                    const list = document.getElementById('location-list-container');
+                    list.innerHTML = "";
+                    let openCount = 0;
+                    snap.forEach(d => {
+                        const l = d.data();
+                        const st = checkTimeStatus(l);
+                        if(st.isOpen) openCount++;
+                        const el = document.createElement('div'); el.className = 'loc-card';
+                        el.innerHTML = `<div class="loc-img" style="background-image:url('${l.imageURL}');" onclick="window.selectLocation('${d.id}')"><div class="loc-overlay"><b>${l.name}</b><br><span style="font-size:10px">${st.isOpen ? 'OPEN' : 'CLOSED'}</span></div></div>${isAdmin ? `<div class="loc-body"><button onclick="window.openEditModal('${d.id}')" class="btn-outline">Edit</button></div>` : ''}`;
+                        list.appendChild(el);
+                    });
+                    safeText('ai-hub-insight', `${openCount} Facilities Active. Low Congestion.`);
+                });
+            }
+        } else { document.getElementById('view-login').classList.remove('hidden'); }
+    });
+
+    window.goBack = () => {
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-god-mode').classList.add('hidden');
+        document.getElementById('view-select').classList.remove('hidden');
+    };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
