@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -424,17 +424,16 @@
         }, 800);
     };
 
-    // --- ADMIN CHART (HYBRID AI SIMULATION) ---
+    // --- CHART FUNCTIONS (User & Admin) ---
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
         
-        // ** FIX 2: FORCE DUMMY DATA IF EMPTY **
-        // If data is empty or sum is 0, use a cool looking curve
+        // Use dummy data if real data is empty
         let displayData = data;
         let isSimulated = false;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
-            displayData = [5, 12, 18, 10, 4, 2]; // Hardcoded "Busy Day" curve
+            displayData = [5, 12, 18, 10, 4, 2];
             isSimulated = true;
         }
 
@@ -453,7 +452,7 @@
                     },
                     { 
                         label: 'Predicted (Vertex AI)', 
-                        data: displayData.map(v => v * 1.1 + 2), // Simulate prediction
+                        data: displayData.map(v => v * 1.1 + 2), 
                         borderColor: '#7000ff', 
                         borderDash: [5, 5],
                         tension: 0.4,
@@ -467,6 +466,23 @@
                 plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, 
                 scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } 
             }
+        });
+    }
+
+    function renderChart(labels, data) {
+        if(predChart) predChart.destroy();
+        
+        // Use dummy data for User View if empty
+        let displayData = data;
+        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
+            displayData = [5, 12, 18, 10, 4, 2];
+        }
+
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        predChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Traffic Density', data: displayData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { display: false } }, y: { display: false } } }
         });
     }
 
@@ -621,27 +637,17 @@
         if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
-    function renderChart(labels, data) {
-        if(predChart) predChart.destroy();
-        const ctx = document.getElementById('predictionChart').getContext('2d');
-        predChart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: [{ label: 'Traffic Density', data: data, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true, tension: 0.4 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { display: false } }, y: { display: false } } }
-        });
-    }
-
+    // --- FIXED VELOCITY CALCULATION (Prevents 3777 min bug) ---
     async function calculateVelocity(locId) {
         try {
             const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
             const snap = await getDocs(q);
             
-            // Fallback to 5 mins if not enough data
             if(snap.size < 2) return 5; 
 
             const times = snap.docs
                 .map(d => d.data().timestamp ? d.data().timestamp.toDate().getTime() : 0)
-                .sort((a,b) => b - a); // Sort newest first
+                .sort((a,b) => b - a);
 
             let totalDiff = 0;
             let count = 0;
@@ -649,6 +655,8 @@
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
+                    // IGNORE gaps larger than 20 mins (Counter was closed/break)
+                    if (diff < 1200000) { 
                         totalDiff += diff;
                         count++;
                     }
@@ -658,13 +666,10 @@
 
             const avgMs = totalDiff / count;
             const velocityMins = Math.ceil(avgMs / 60000);
-            
             return velocityMins > 0 ? velocityMins : 5;
-        } catch (e) { 
-            console.warn(e);
-            return 5; 
-        }
+        } catch (e) { return 5; }
     }
+
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         analyzeTrends(locId); 
