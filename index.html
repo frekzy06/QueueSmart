@@ -124,11 +124,11 @@
         }
 
         .chart-container { position: relative; height: 200px; width: 100%; margin-top: 10px; }
+        
         .profile-uploader { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
         #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
-        .btn img { height: 20px; margin-right: 8px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -142,11 +142,15 @@
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Digital Public Infrastructure for Queues</p>
         </div>
         <button id="btn-login" class="btn btn-primary" style="margin-bottom:15px;"><i data-lucide="shield"></i> Secure Login</button>
+        
         <div style="display:flex; gap:10px; justify-content:center;">
             <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size:11px; width:auto;">👤 Demo User</button>
             <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size:11px; width:auto; border-color:var(--danger); color:var(--danger);">🔑 Demo Admin</button>
         </div>
-        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">POWERED BY GOOGLE CLOUD & EDGE AI</div>
+
+        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">
+            POWERED BY GOOGLE CLOUD & EDGE AI
+        </div>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
@@ -179,11 +183,13 @@
         <div id="location-list-container">
             <div style="text-align:center; padding:40px; color:var(--text-muted);">Syncing Network...</div>
         </div>
+        
         <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 30px; width: 100%;">+ Register New Facility</button>
     </div>
 
     <div id="view-dashboard" class="hidden">
         <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; margin-bottom:15px; font-size: 11px;">← BACK</button>
+        
         <div class="dashboard-grid">
             <div class="glass-card" style="display:flex; flex-direction:column;">
                 <div id="dash-banner" style="height: 140px; border-radius: 12px; background: #222; background-size: cover; background-position: center; margin-bottom: 20px; position: relative;">
@@ -192,10 +198,13 @@
                         <div id="dash-status-badge" class="badge closed" style="margin-top:6px; display:inline-block;">OFFLINE</div>
                     </div>
                 </div>
+
                 <div id="dash-notice" class="notice-bar hidden"></div>
                 <div id="dash-desc" class="loc-description"></div>
-                
-                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;"><i data-lucide="bar-chart-2"></i> View Wait Forecast</button>
+
+                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;">
+                    <i data-lucide="bar-chart-2"></i> View Wait Forecast
+                </button>
                 <div id="neural-container" class="glass-card hidden" style="padding:10px; margin-bottom:15px;">
                     <div class="chart-container"><canvas id="predictionChart"></canvas></div>
                 </div>
@@ -205,20 +214,23 @@
                 <div style="text-align: center; margin: auto 0; padding: 20px 0;">
                     <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
                     <p id="dash-counter-label" style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 5px; font-weight:700;">LIVE COUNT</p>
+                    
                     <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:15px; color:var(--primary);">
                         <i data-lucide="clock" style="width:14px;"></i>
                         <div id="dash-est-time" style="font-weight:700; font-size: 16px;">-- mins</div>
                     </div>
                 </div>
+
                 <div style="margin-top:auto;">
                     <button onclick="window.handleJoinClick()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
                     <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
                 </div>
             </div>
-            
+
             <div class="chat-container">
                 <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:14px;">Community</h3><span style="font-size:10px; color:var(--text-muted);">LIVE</span>
+                    <h3 style="margin:0; font-size:14px;">Community</h3>
+                    <span style="font-size:10px; color:var(--text-muted);">LIVE</span>
                 </div>
                 <div id="location-chat-box" class="chat-box"></div>
                 <div class="chat-input-area">
@@ -234,6 +246,7 @@
             <h2 style="color: var(--primary); margin:0; font-size:22px;">COMMAND CENTER</h2>
             <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">EXIT</button>
         </div>
+
         <div class="god-grid">
             <div class="glass-card" style="display:flex; flex-direction:column; max-height:500px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -242,11 +255,13 @@
                 </div>
                 <div id="god-queue-list" style="flex:1; overflow-y:auto;"></div>
             </div>
+
             <div style="display:flex; flex-direction:column; gap:15px;">
                 <div class="glass-card" style="padding:15px;">
                     <h5 style="margin:0 0 10px 0; color:var(--text-muted); font-size:11px;">CROWD PULSE (AI INSIGHTS)</h5>
                     <div style="height:120px; width:100%;"><canvas id="adminTrendChart"></canvas></div>
                 </div>
+
                 <div id="god-alert-box" class="glass-card hidden" style="border-color: var(--danger); background: rgba(255, 71, 87, 0.1); padding:15px;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <i data-lucide="alert-triangle" style="color:var(--danger)"></i>
@@ -254,9 +269,12 @@
                         <button onclick="window.emergencyLock()" class="btn btn-danger" style="width:auto; padding:5px 10px; font-size:10px;">LOCK</button>
                     </div>
                 </div>
+
                 <div class="glass-card" style="padding:0; overflow:hidden; border:1px solid var(--glass-border);">
                     <div id="cam-wrapper" class="cam-wrapper hidden">
-                        <div class="privacy-badge"><i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure</div>
+                        <div class="privacy-badge">
+                            <i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure
+                        </div>
                         <video id="webcam" autoplay playsinline muted></video>
                         <canvas id="cam-overlay"></canvas>
                     </div>
@@ -266,6 +284,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="glass-card" style="display:flex; flex-direction:column;">
                 <h4 style="margin:0 0 15px 0; color:var(--text-muted); font-size:12px;">AUDIT LOGS</h4>
                 <div id="god-log-list" style="flex:1; overflow-y:auto; font-family:'JetBrains Mono'; font-size:10px;"></div>
@@ -290,19 +309,23 @@
         
         <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
             <label style="font-size:11px; color:var(--primary); font-weight:bold; display:block; margin-bottom:5px;">QUEUE SETTINGS</label>
+            
             <select id="new-loc-mode" class="input-field">
                 <option value="ahead">Counting: People Ahead</option>
                 <option value="total">Counting: Total Headcount</option>
             </select>
+
             <select id="new-loc-type" class="input-field" onchange="window.togglePaymentFields()">
                 <option value="free">Entry: Free (Standard)</option>
                 <option value="paid">Entry: Paid (UPI Reservation)</option>
             </select>
+
             <div id="payment-fields" class="hidden" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
                 <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)" style="margin-bottom:5px;">
                 <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)">
             </div>
         </div>
+
         <button onclick="createLocation()" class="btn btn-primary" style="margin-top:10px;">SAVE CONFIG</button>
         <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">CANCEL</button>
     </div>
@@ -313,8 +336,8 @@
         <h3 style="color:var(--primary);">Confirm Reservation</h3>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Booking Fee: <b style="color:#fff; font-size:16px;" id="pay-amount">₹0</b></p>
         
-        <button id="btn-pay-app" class="btn btn-upi" style="width:100%;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px; vertical-align:middle; margin-right:8px;"> PAY WITH UPI APP
+        <button id="btn-pay-app" class="btn btn-upi" style="width:100%; margin-bottom:15px; display:flex; justify-content:center; align-items:center; gap:10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px;"> PAY WITH UPI APP
         </button>
 
         <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">OR SCAN QR CODE</div>
@@ -377,7 +400,7 @@
 
     let currentUser = null;
     let currentLocId = null;
-    let currentLocData = null; 
+    let currentLocData = null; // Store data for Join/Pay logic
     let isAdmin = false;
     let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
     let predChart = null, adminChart = null;
@@ -390,20 +413,8 @@
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
-    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
-    
-    window.togglePaymentFields = () => {
-        const type = document.getElementById('new-loc-type').value;
-        if(type === 'paid') document.getElementById('payment-fields').classList.remove('hidden');
-        else document.getElementById('payment-fields').classList.add('hidden');
-    };
 
-    window.toggleGraphDisplay = () => {
-        const el = document.getElementById('neural-container');
-        el.classList.toggle('hidden');
-    };
-
-    // --- DEMO LOGIN ---
+    // --- DEMO LOGIN (Restored) ---
     window.demoLogin = async (role) => {
         if (role === 'admin') {
             const pwd = prompt("Enter Admin Password:");
@@ -444,6 +455,17 @@
         else { showView('view-dashboard'); initUserDashboard(locId); }
     };
 
+    window.toggleGraphDisplay = () => {
+        const el = document.getElementById('neural-container');
+        el.classList.toggle('hidden');
+    };
+    
+    window.togglePaymentFields = () => {
+        const type = document.getElementById('new-loc-type').value;
+        if(type === 'paid') document.getElementById('payment-fields').classList.remove('hidden');
+        else document.getElementById('payment-fields').classList.add('hidden');
+    };
+
     // --- CLOUD RESET SIMULATION ---
     window.resetQueueCloud = async () => {
         if(!confirm("Reset entire queue?")) return;
@@ -451,7 +473,6 @@
         const originalText = btn.innerText;
         btn.innerText = "⏳ Processing...";
         btn.disabled = true;
-        
         setTimeout(async () => {
             const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
             const snap = await getDocs(q);
@@ -463,11 +484,10 @@
         }, 800);
     };
 
-    // --- CHART FUNCTIONS (User & Admin) ---
+    // --- CHART FUNCTIONS (AI RESTORED) ---
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
-        
         let displayData = data;
         let isSimulated = false;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
@@ -521,49 +541,20 @@
         });
     }
 
-    // --- ADMIN: CREATE/EDIT LOCATION ---
-    window.createLocation = async () => {
-        const id = document.getElementById('new-loc-id').value;
-        const name = document.getElementById('new-loc-name').value;
-        const img = document.getElementById('new-loc-img').value;
-        const desc = document.getElementById('new-loc-desc').value;
-        const notice = document.getElementById('new-loc-notice').value;
-        const open = document.getElementById('new-loc-open').value;
-        const close = document.getElementById('new-loc-close').value;
-        const mode = document.getElementById('new-loc-mode').value;
-        const type = document.getElementById('new-loc-type').value;
-        const upi = document.getElementById('new-loc-upi').value;
-        const price = document.getElementById('new-loc-price').value;
-
-        if(!name) return alert("Name is required");
-
-        const data = { 
-            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
-            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
-        };
-
-        try {
-            if(id) { await updateDoc(doc(db, "locations", id), data); alert("Updated!"); } 
-            else { data.status = 'open'; data.totalServed = 0; await addDoc(collection(db, "locations"), data); alert("Created!"); }
-            window.closeModals();
-        } catch(e) { alert("Error: " + e.message); }
-    };
-
-    // --- PAYMENT & JOIN LOGIC ---
+    // --- PAYMENT & JOIN LOGIC (Injected) ---
     window.handleJoinClick = () => {
-        if(!currentLocData) return alert("Please wait for location data...");
+        if(!currentLocData) return alert("Loading data...");
         
-        // SECURITY CHECK
+        // Security: Check if open
         const status = checkTimeStatus(currentLocData);
-        if(!status.isOpen) {
-            return alert("Facility is currently CLOSED (" + status.reason + ").");
-        }
+        if(!status.isOpen) return alert("Facility is currently CLOSED.");
 
+        // Check if Paid or Free
         if (currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Payment Link
+            // Format UPI Link
             const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
             const txnId = "T" + Date.now();
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR&mc=0000&mode=02`;
@@ -574,17 +565,17 @@
             // QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
+            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
             
             modal.classList.remove('hidden');
         } else {
-            window.joinQueue();
+            window.joinQueue(); // Free Join
         }
     };
 
     window.confirmPayment = async () => {
         const txnId = document.getElementById('user-txn-id').value;
-        if (!txnId || txnId.length < 4) return alert("Please enter valid Transaction ID digits.");
+        if (!txnId || txnId.length < 4) return alert("Enter valid Transaction ID");
         const btn = document.querySelector('#modal-payment .btn-primary');
         const originalText = btn.innerText;
         btn.innerText = "Verifying..."; btn.disabled = true;
@@ -598,36 +589,44 @@
     window.joinQueue = async (txnId = null) => {
         const btn = document.getElementById('btn-join-queue');
         if(btn) { btn.innerText = "Processing..."; btn.disabled = true; }
+        document.getElementById('btn-join-queue').classList.add('hidden');
+        document.getElementById('btn-leave-queue').classList.remove('hidden');
         try {
             await addDoc(collection(db, "queue"), { 
                 uid: currentUser.uid, 
                 name: currentUser.displayName || "User", 
                 locationId: currentLocId, 
                 timestamp: serverTimestamp(), 
-                allocatedTime: null, 
-                paymentStatus: txnId ? 'verified' : 'free', 
+                allocatedTime: null,
+                paymentStatus: txnId ? 'verified' : 'free',
                 txnId: txnId || 'N/A'
             });
             await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp() });
         } catch (e) { 
             alert("Error: " + e.message); 
+            document.getElementById('btn-join-queue').classList.remove('hidden');
+            document.getElementById('btn-leave-queue').classList.add('hidden');
             if(btn) { btn.innerText = "JOIN QUEUE"; btn.disabled = false; }
         }
     };
 
     window.leaveQueue = async () => {
+        document.getElementById('btn-join-queue').classList.remove('hidden');
+        document.getElementById('btn-leave-queue').classList.add('hidden');
         const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
         const snap = await getDocs(q);
         snap.forEach(async (d) => {
             await deleteDoc(d.ref);
             await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'LEFT', details: currentUser.displayName, timestamp: serverTimestamp() });
         });
+        const btn = document.getElementById('btn-join-queue'); if(btn) { btn.innerText = "JOIN QUEUE"; btn.disabled = false; }
     };
 
     window.sendChat = async () => {
         const input = document.getElementById('chat-input');
         const text = input.value.trim(); if(!text) return;
-        const pfp = currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}`;
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const pfp = userDoc.exists() ? userDoc.data().photoURL : "";
         await addDoc(collection(db, "comments"), { locationId: currentLocId, text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp() });
         input.value = "";
     };
@@ -668,6 +667,7 @@
                 safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
                 if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
                 else { document.body.classList.remove('god-mode'); }
+                
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('join')) handleDeepLink(user);
                 else { showView('view-select'); loadLocationsList(); }
@@ -694,7 +694,6 @@
                 const loc = docSnap.data();
                 const status = checkTimeStatus(loc); 
                 if(status.isOpen) openCount++;
-                
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
                 el.className = 'loc-card';
@@ -712,36 +711,30 @@
                 `;
                 listDiv.appendChild(el);
             });
-            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. All facilities closed.");
+            // Network AI Insight
+            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion.` : "Network idle. Waiting for activity.");
             if(window.lucide) lucide.createIcons();
         });
     }
 
-    // --- ROBUST TIME CHECKER (FIXED) ---
     function checkTimeStatus(locData) {
         if (locData.status === 'closed') return { isOpen: false, reason: "ADMIN" };
         if (!locData.openTime || !locData.closeTime) return { isOpen: true, reason: "" }; 
-        
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = locData.openTime.split(':').map(Number);
         const [closeH, closeM] = locData.closeTime.split(':').map(Number);
-        
-        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" };
+        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" }; 
         
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
-        
         let isOpen = false;
-        if (endMins < startMins) { // Overnight
-            isOpen = currentMins >= startMins || currentMins < endMins;
-        } else {
-            isOpen = currentMins >= startMins && currentMins < endMins;
-        }
+        if (endMins < startMins) isOpen = currentMins >= startMins || currentMins < endMins;
+        else isOpen = currentMins >= startMins && currentMins < endMins;
+        
         return { isOpen: isOpen, reason: isOpen ? "" : "TIME" };
     }
 
-    // --- ANALYTICS & AI ---
     async function analyzeTrends(locId) {
         const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
         const snapshot = await getDocs(q);
@@ -751,7 +744,7 @@
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
         
-        // AI Advice
+        // AI Suggestion
         let minVal = 999; let bestH = -1;
         for(let i=9; i<=17; i++) { if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; } }
         const advice = bestH > -1 ? `✨ AI Suggestion: Visit around ${bestH}:00 for minimum wait.` : "✨ AI Suggestion: Analyzing patterns...";
@@ -760,6 +753,17 @@
         if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
     }
 
+    function renderChart(labels, data) {
+        if(predChart) predChart.destroy();
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        predChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Traffic Density', data: data, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { display: false } }, y: { display: false } } }
+        });
+    }
+
+    // --- DASHBOARD INIT (Restored Logic) ---
     async function calculateVelocity(locId) {
         try {
             const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
@@ -770,7 +774,7 @@
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
-                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
+                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore large gaps
                 }
             }
             if(count === 0) return 5;
@@ -779,16 +783,14 @@
         } catch (e) { return 5; }
     }
 
-    // --- DASHBOARD LOGIC (REFRESH LOOP ADDED) ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
         analyzeTrends(locId); 
-        
         locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
             if(!doc.exists()) return;
             const data = doc.data();
-            currentCountMode = data.countingMode || 'ahead';
-            currentLocData = data; 
+            currentCountMode = data.countingMode || 'ahead'; 
+            currentLocData = data; // Save for Payment Logic
             
             loadChat(locId, data.purgeSetting);
             safeText('dash-loc-name', data.name);
@@ -797,10 +799,10 @@
             else { safeClass('dash-notice', 'hidden', 'add'); }
             if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
             
-            const status = checkTimeStatus(data);
+            const status = checkTimeStatus(data); 
             const badge = document.getElementById('dash-status-badge');
             const btn = document.getElementById('btn-join-queue');
-            
+
             if(badge) {
                 if(status.isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
                 else { badge.innerText = "OFFLINE (" + status.reason + ")"; badge.className = "badge closed"; }
@@ -811,7 +813,8 @@
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
-                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE"; 
+                    // Dynamic Button Text
+                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE";
                 }
             }
         });
@@ -845,7 +848,6 @@
                 } else {
                     const velocity = await calculateVelocity(locId);
                     const estTime = Math.ceil((myPos * velocity) + velocity);
-                    
                     if (currentCountMode === 'total') {
                         safeText('dash-main-counter', docs.length);
                         safeText('dash-counter-label', "TOTAL IN QUEUE");
@@ -862,112 +864,138 @@
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
                 const btn = document.getElementById('btn-join-queue'); 
-                // Re-apply disabled state in case queue update overrides it
                 if(btn && currentLocData) { 
                     const status = checkTimeStatus(currentLocData);
                     btn.disabled = !status.isOpen;
-                    if (!btn.disabled) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
+                    if(status.isOpen) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice} TO JOIN` : "JOIN QUEUE";
                     else btn.innerText = "CLOSED";
                 }
             }
         });
     }
 
-    // --- CHAT & HELPERS ---
-    window.sendChat = async () => {
-        const txt = document.getElementById('chat-input').value;
-        if(txt) await addDoc(collection(db, "comments"), { locationId: currentLocId, text: txt, userName: currentUser.displayName || "User", userPhoto: currentUser.photoURL, timestamp: serverTimestamp() });
-        document.getElementById('chat-input').value = "";
-    };
-
-    function loadChat(locId) {
-        onSnapshot(query(collection(db, "comments"), where("locationId", "==", locId), orderBy("timestamp")), (snap) => {
-            const b = document.getElementById('location-chat-box'); b.innerHTML = "";
-            snap.forEach(d => {
-                const c = d.data();
-                const div = document.createElement('div'); div.className = 'chat-msg';
-                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div>${c.text}</div>`;
-                b.appendChild(div);
-            });
-            b.scrollTop = b.scrollHeight;
-        });
-    }
-
-    // --- OTHER ---
-    window.handleImageUpload = (input, previewId) => {
-        const file = input.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById(previewId).src = e.target.result;
-            tempProfileBase64 = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // --- GOD MODE ---
     function initGodMode(locId) {
-        onSnapshot(query(collection(db, "queue"), where("locationId", "==", locId)), (snap) => {
-            const list = document.getElementById('god-queue-list'); list.innerHTML = "";
-            snap.docs.forEach(d => {
-                const data = d.data();
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById('god-queue-list'); if(!list) return;
+            list.innerHTML = "";
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            safeText('god-waiting', docs.length);
+            docs.forEach(data => {
                 const div = document.createElement('div');
-                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${data.name}</b></div><button onclick="window.godAction('${d.id}')" style="background:#00ff9d;border:none;padding:2px 8px;">✓</button></div>`;
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><div style="font-weight:700; font-size:13px;">${data.name}</div>
+                    ${data.paymentStatus === 'verified' ? '<span style="color:#00ff9d; font-size:9px; border:1px solid #00ff9d; padding:1px 3px; border-radius:3px;">PAID</span>' : ''}
+                    </div>
+                    <div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
                 list.appendChild(div);
             });
         });
+        const locRef = doc(db, "locations", locId);
+        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
+        
+        if(logsUnsub) logsUnsub();
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
+        logsUnsub = onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
+            logDiv.innerHTML = "";
+            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            logs.forEach(l => {
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
+                logDiv.appendChild(div);
+            });
+        });
+        analyzeTrends(locId); 
     }
-    window.godAction = async (qid) => { await deleteDoc(doc(db, "queue", qid)); };
-    window.resetQueueCloud = async () => { if(confirm("Clear?")) { const q = query(collection(db, "queue"), where("locationId", "==", currentLocId)); const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref)); }};
 
-    window.openAddLocModal = () => { document.getElementById('new-loc-id').value = ""; document.getElementById('modal-add-loc').classList.remove('hidden'); };
-    window.openEditModal = async (id) => {
-        const d = (await getDoc(doc(db, "locations", id))).data();
-        document.getElementById('new-loc-id').value = id;
-        document.getElementById('new-loc-name').value = d.name;
-        document.getElementById('new-loc-img').value = d.imageURL || "";
-        document.getElementById('new-loc-type').value = d.bookingType || 'free';
-        document.getElementById('new-loc-upi').value = d.upiId || '';
-        document.getElementById('new-loc-price').value = d.ticketPrice || '';
+    window.godAction = async (docId, type, name) => {
+        const docRef = doc(db, "queue", docId);
+        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
+        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        await deleteDoc(docRef);
+    };
+
+    window.toggleCamera = async () => {
+        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
+        let buffer = []; 
+        if(!isCamActive) {
+            wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP SENSOR`;
+            if(!aiModel) aiModel = await cocoSsd.load();
+            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
+            video.srcObject = stream; isCamActive = true;
+            camInterval = setInterval(async () => {
+                const predictions = await aiModel.detect(video);
+                const people = predictions.filter(p => p.class === 'person');
+                buffer.push(people.length); if(buffer.length>5) buffer.shift();
+                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
+                safeText('cam-count', avg);
+                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avg} people!`); } 
+                else { safeClass('god-alert-box', 'hidden', 'add'); }
+            }, 500);
+        } else {
+            wrapper.classList.add('hidden'); btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE SENSOR`;
+            clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
+        }
+    };
+
+    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
+
+    window.createLocation = async () => {
+        const id = document.getElementById('new-loc-id').value;
+        const name = document.getElementById('new-loc-name').value;
+        const img = document.getElementById('new-loc-img').value;
+        const desc = document.getElementById('new-loc-desc').value;
+        const notice = document.getElementById('new-loc-notice').value;
+        const open = document.getElementById('new-loc-open').value;
+        const close = document.getElementById('new-loc-close').value;
+        const mode = document.getElementById('new-loc-mode').value;
+        const type = document.getElementById('new-loc-type').value;
+        const upi = document.getElementById('new-loc-upi').value;
+        const price = document.getElementById('new-loc-price').value;
+
+        if(!name) return;
+        const locData = { 
+            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
+            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
+        };
+        
+        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
+        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
+        window.closeModals();
+    };
+
+    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
+    
+    window.openAddLocModal = () => {
+        document.getElementById('new-loc-id').value = ""; safeText('modal-loc-title', "New Facility");
+        document.getElementById('new-loc-name').value = ""; document.getElementById('new-loc-img').value = "";
+        document.getElementById('new-loc-desc').value = ""; document.getElementById('new-loc-notice').value = "";
+        safeClass('modal-add-loc', 'hidden', 'remove');
+    };
+
+    window.openEditModal = async (locId) => {
+        const snap = await getDoc(doc(db, "locations", locId)); const data = snap.data();
+        document.getElementById('new-loc-id').value = locId; safeText('modal-loc-title', "Edit Facility");
+        document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
+        document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
+        document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
+        document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
+        document.getElementById('new-loc-type').value = data.bookingType || 'free';
+        document.getElementById('new-loc-upi').value = data.upiId || '';
+        document.getElementById('new-loc-price').value = data.ticketPrice || '';
+        
         window.togglePaymentFields();
-        document.getElementById('modal-add-loc').classList.remove('hidden');
+        safeClass('modal-add-loc', 'hidden', 'remove');
     };
 
-    // --- SETUP ---
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        if(user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(!snap.exists()) { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-setup').classList.remove('hidden'); }
-            else {
-                isAdmin = snap.data().role === 'admin';
-                if(isAdmin) document.body.classList.add('god-mode');
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-select').classList.remove('hidden');
-                
-                onSnapshot(collection(db, "locations"), (snap) => {
-                    const list = document.getElementById('location-list-container');
-                    list.innerHTML = "";
-                    let openCount = 0;
-                    snap.forEach(d => {
-                        const l = d.data();
-                        const st = checkTimeStatus(l);
-                        if(st.isOpen) openCount++;
-                        const el = document.createElement('div'); el.className = 'loc-card';
-                        el.innerHTML = `<div class="loc-img" style="background-image:url('${l.imageURL}');" onclick="window.selectLocation('${d.id}')"><div class="loc-overlay"><b>${l.name}</b><br><span style="font-size:10px">${st.isOpen ? 'OPEN' : 'CLOSED'}</span></div></div>${isAdmin ? `<div class="loc-body"><button onclick="window.openEditModal('${d.id}')" class="btn-outline">Edit</button></div>` : ''}`;
-                        list.appendChild(el);
-                    });
-                    safeText('ai-hub-insight', `${openCount} Facilities Active. Low Congestion.`);
-                });
-            }
-        } else { document.getElementById('view-login').classList.remove('hidden'); }
-    });
-
-    window.goBack = () => {
-        document.getElementById('view-dashboard').classList.add('hidden');
-        document.getElementById('view-god-mode').classList.add('hidden');
-        document.getElementById('view-select').classList.remove('hidden');
-    };
+    window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2); };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
