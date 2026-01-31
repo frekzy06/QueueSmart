@@ -299,8 +299,7 @@
     // --- GEMINI CONFIG ---
     const GEMINI_API_KEY = "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk"; 
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    // Switched to Flash for speed and lower error rate
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
