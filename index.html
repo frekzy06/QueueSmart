@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
-        // Error suppression for cleaner demo
         window.onerror = function(msg, url, line) {
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
             return false;
@@ -23,9 +22,9 @@
     
     <style>
         :root {
-            --primary: #FF9933; /* India Saffron */
+            --primary: #FF9933; /* Saffron */
             --primary-glow: rgba(255, 153, 51, 0.4);
-            --secondary: #138808; /* India Green */
+            --secondary: #138808; 
             --bg-dark: #0a0a0f; 
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff; 
@@ -35,23 +34,15 @@
             --warning: #ffaa00;
         }
 
-        body.god-mode { 
-            --primary: #00d4ff; /* Tech Blue for Admin */
-            --primary-glow: rgba(0, 212, 255, 0.4); 
-        }
-
+        body.god-mode { --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.4); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
-            margin: 0; padding: 0;
-            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
             background-image: radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.1) 0%, transparent 40%);
-            background-attachment: fixed;
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            padding-top: 20px; overflow-x: hidden;
+            background-attachment: fixed; color: var(--text-main); min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; padding-top: 20px; overflow-x: hidden;
         }
 
         .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
@@ -59,12 +50,8 @@
 
         /* GLASS UI */
         .glass-card {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            width: 100%; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); width: 100%; margin-bottom: 20px;
             animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -75,7 +62,7 @@
         .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
         @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
 
-        /* COMPONENTS */
+        /* UI ELEMENTS */
         .loc-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; position: relative; }
         .loc-card:hover { transform: translateY(-3px); border-color: var(--primary); }
         .loc-img { height: 140px; width: 100%; background-size: cover; background-position: center; position: relative; }
@@ -86,6 +73,7 @@
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
+        .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
         .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
@@ -97,6 +85,8 @@
         .badge.open { background: rgba(0, 255, 157, 0.15); color: var(--success); }
         .badge.closed { background: rgba(255, 66, 66, 0.15); color: var(--danger); }
 
+        .notice-bar { background: rgba(255, 170, 0, 0.1); border-left: 3px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
         .hidden { display: none !important; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
         
@@ -126,7 +116,6 @@
         .profile-uploader { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* QR Container */
         #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
     </style>
 </head>
@@ -297,15 +286,23 @@
             <div style="flex:1"><label style="font-size:10px; color:var(--text-muted)">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
         </div>
 
-        <label style="font-size:11px; color:var(--primary); font-weight:bold; margin-top:10px; display:block;">ENTRY TYPE</label>
-        <select id="new-loc-type" class="input-field" onchange="window.togglePaymentFields()">
-            <option value="free">Free Entry (Standard)</option>
-            <option value="paid">Paid Entry (UPI Reservation)</option>
-        </select>
+        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+            <label style="font-size:11px; color:var(--primary); font-weight:bold; display:block; margin-bottom:5px;">QUEUE SETTINGS</label>
+            
+            <select id="new-loc-mode" class="input-field">
+                <option value="ahead">Counting: People Ahead</option>
+                <option value="total">Counting: Total Headcount</option>
+            </select>
 
-        <div id="payment-fields" class="hidden">
-            <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)">
-            <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)">
+            <select id="new-loc-type" class="input-field" onchange="window.togglePaymentFields()">
+                <option value="free">Entry: Free (Standard)</option>
+                <option value="paid">Entry: Paid (UPI Reservation)</option>
+            </select>
+
+            <div id="payment-fields" class="hidden" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
+                <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)" style="margin-bottom:5px;">
+                <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)">
+            </div>
         </div>
 
         <button onclick="createLocation()" class="btn btn-primary" style="margin-top:10px;">SAVE CONFIG</button>
@@ -315,16 +312,22 @@
 
 <div id="modal-payment" class="modal-overlay hidden">
     <div class="glass-card" style="width: 90%; max-width: 350px; text-align: center;">
-        <h3 style="color:var(--primary);">Confirm Booking</h3>
-        <p style="font-size:12px; color:var(--text-muted);">Scan to Pay <b style="color:#fff;" id="pay-amount">₹0</b></p>
+        <h3 style="color:var(--primary);">Confirm Reservation</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Booking Fee: <b style="color:#fff; font-size:16px;" id="pay-amount">₹0</b></p>
         
+        <button id="btn-pay-app" class="btn btn-upi" style="width:100%; margin-bottom:15px; display:flex; justify-content:center; align-items:center; gap:10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px;"> OPEN UPI APP
+        </button>
+
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">OR SCAN QR CODE</div>
         <div id="pay-qr-display"></div>
         
-        <p style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">UPI ID: <span id="pay-upi-id"></span></p>
+        <div style="margin-top:20px; text-align:left;">
+            <label style="font-size:10px; color:var(--text-muted);">Verify Payment</label>
+            <input id="user-txn-id" type="text" class="input-field" placeholder="Enter last 4 digits of Transaction ID">
+        </div>
         
-        <input id="user-txn-id" type="text" class="input-field" placeholder="Enter Last 4 Digits of Transaction ID">
-        
-        <button onclick="confirmPayment()" class="btn btn-primary">VERIFY & JOIN</button>
+        <button onclick="confirmPayment()" class="btn btn-primary" style="margin-top:10px;">VERIFY & JOIN</button>
         <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">CANCEL</button>
     </div>
 </div>
@@ -383,8 +386,9 @@
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
     let previousPosition = -1;
+    let currentCountMode = 'ahead'; 
 
-    // --- HELPER FUNCTIONS ---
+    // --- UTILS ---
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
     function safeStyle(id, prop, val) { const el = document.getElementById(id); if(el) el.style[prop] = val; }
     function safeClass(id, cls, action) { const el = document.getElementById(id); if(el) el.classList[action](cls); }
@@ -396,16 +400,16 @@
         else document.getElementById('payment-fields').classList.add('hidden');
     };
 
-    // --- AUTHENTICATION ---
+    // --- DEMO LOGIN ---
     window.demoLogin = async (role) => {
         if (role === 'admin') {
             const pwd = prompt("Enter Admin Password:");
             if (pwd !== "queuesmart90") return alert("Wrong Password");
         }
         try {
-            const cred = await signInAnonymously(auth);
-            await setDoc(doc(db, "users", cred.user.uid), {
-                uid: cred.user.uid,
+            const userCred = await signInAnonymously(auth);
+            await setDoc(doc(db, "users", userCred.user.uid), {
+                uid: userCred.user.uid,
                 name: role === 'admin' ? "Demo Admin" : "Demo User",
                 photoURL: `https://ui-avatars.com/api/?name=${role}&background=random`,
                 role: role,
@@ -413,10 +417,118 @@
                 createdAt: serverTimestamp()
             });
             location.reload();
-        } catch(e) { alert("Enable Anonymous Auth in Firebase Console!\n" + e.message); }
+        } catch(e) { alert("Enable 'Anonymous' in Firebase Auth Console first!\n\n" + e.message); }
     };
 
-    // --- ADMIN: CREATE/EDIT LOCATION (FIXED) ---
+    window.handleImageUpload = (input, previewId) => {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image(); img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                canvas.width = 200; canvas.height = 200; ctx.drawImage(img, 0, 0, 200, 200);
+                tempProfileBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                document.getElementById(previewId).src = tempProfileBase64;
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.selectLocation = (locId) => {
+        currentLocId = locId;
+        if(isAdmin) { showView('view-god-mode'); initGodMode(locId); } 
+        else { showView('view-dashboard'); initUserDashboard(locId); }
+    };
+
+    window.toggleGraphDisplay = () => {
+        const el = document.getElementById('neural-container');
+        el.classList.toggle('hidden');
+    };
+
+    // --- CLOUD RESET SIMULATION ---
+    window.resetQueueCloud = async () => {
+        if(!confirm("Reset entire queue?")) return;
+        const btn = document.querySelector('button[onclick="window.resetQueueCloud()"]');
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Processing...";
+        btn.disabled = true;
+        
+        // Simulate Serverless Latency
+        setTimeout(async () => {
+            const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
+            const snap = await getDocs(q);
+            const batch = writeBatch(db);
+            snap.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }, 800);
+    };
+
+    // --- CHART FUNCTIONS (User & Admin) ---
+    function renderAdminChart(data) {
+        if(adminChart) adminChart.destroy();
+        const ctx = document.getElementById('adminTrendChart').getContext('2d');
+        
+        // Use dummy data if real data is empty
+        let displayData = data;
+        let isSimulated = false;
+        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
+            displayData = [5, 12, 18, 10, 4, 2];
+            isSimulated = true;
+        }
+
+        adminChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'],
+                datasets: [
+                    { 
+                        label: isSimulated ? 'Simulated Actual' : 'Actual', 
+                        data: displayData, 
+                        borderColor: '#00d4ff', 
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)', 
+                        tension: 0.4,
+                        fill: true 
+                    },
+                    { 
+                        label: 'Predicted (Vertex AI)', 
+                        data: displayData.map(v => v * 1.1 + 2), 
+                        borderColor: '#7000ff', 
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false
+                    }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, 
+                scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } 
+            }
+        });
+    }
+
+    function renderChart(labels, data) {
+        if(predChart) predChart.destroy();
+        
+        // Use dummy data for User View if empty
+        let displayData = data;
+        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
+            displayData = [5, 12, 18, 10, 4, 2];
+        }
+
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        predChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Traffic Density', data: displayData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { display: false } }, y: { display: false } } }
+        });
+    }
+
+    // --- ADMIN: CREATE/EDIT LOCATION ---
     window.createLocation = async () => {
         const id = document.getElementById('new-loc-id').value;
         const name = document.getElementById('new-loc-name').value;
@@ -425,7 +537,8 @@
         const notice = document.getElementById('new-loc-notice').value;
         const open = document.getElementById('new-loc-open').value;
         const close = document.getElementById('new-loc-close').value;
-        const type = document.getElementById('new-loc-type').value;
+        const mode = document.getElementById('new-loc-mode').value; // Saved from previous version logic
+        const type = document.getElementById('new-loc-type').value; // New Booking Type
         const upi = document.getElementById('new-loc-upi').value;
         const price = document.getElementById('new-loc-price').value;
 
@@ -433,20 +546,17 @@
 
         const data = { 
             name, imageURL: img, description: desc, notice, openTime: open, closeTime: close, 
-            bookingType: type, upiId: upi, ticketPrice: price 
+            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
         };
 
         try {
             if(id) {
-                // UPDATE existing
                 await updateDoc(doc(db, "locations", id), data);
-                alert("Facility Updated Successfully!");
+                alert("Updated!");
             } else {
-                // CREATE new
-                data.status = 'open'; 
-                data.totalServed = 0;
+                data.status = 'open'; data.totalServed = 0;
                 await addDoc(collection(db, "locations"), data);
-                alert("New Facility Registered!");
+                alert("Created!");
             }
             window.closeModals();
         } catch(e) { alert("Error saving location: " + e.message); }
@@ -455,21 +565,24 @@
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
         if (currentLocData && currentLocData.bookingType === 'paid') {
-            // Show Payment Modal
+            // Setup Payment Modal
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             safeText('pay-upi-id', currentLocData.upiId);
             
-            // Generate UPI Link
+            // Generate UPI Link (Deep Link)
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${currentLocData.ticketPrice}&cu=INR`;
             
+            // 1. Setup Direct App Button
+            document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
+
+            // 2. Setup QR Code (for fallback)
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
             new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
             
             modal.classList.remove('hidden');
         } else {
-            // Standard Free Join
             window.joinQueue();
         }
     };
@@ -482,9 +595,9 @@
         const originalText = btn.innerText;
         btn.innerText = "Verifying..."; btn.disabled = true;
         
-        // Simulate Verification Delay
+        // Simulate Verification
         setTimeout(async () => {
-            await window.joinQueue(txnId); // Pass txnId to join
+            await window.joinQueue(txnId);
             window.closeModals();
             btn.innerText = originalText; btn.disabled = false;
         }, 1000);
@@ -520,323 +633,25 @@
         });
     };
 
-    // --- STANDARD APP LOGIC ---
-    window.selectLocation = (locId) => {
-        currentLocId = locId;
-        if(isAdmin) { 
-            document.getElementById('view-select').classList.add('hidden');
-            document.getElementById('view-god-mode').classList.remove('hidden');
-            initGodMode(locId);
-        } else {
-            document.getElementById('view-select').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
-            initUserDashboard(locId);
-        }
-    };
-
-    function initUserDashboard(locId) {
-        if(locUnsub) locUnsub();
-        analyzeTrends(locId); // Init Chart
-        locUnsub = onSnapshot(doc(db, "locations", locId), (docSnap) => {
-            if(!docSnap.exists()) return;
-            currentLocData = docSnap.data(); // Save for payment info
-            
-            safeText('dash-loc-name', currentLocData.name);
-            safeText('dash-desc', currentLocData.description || "");
-            
-            const noticeEl = document.getElementById('dash-notice');
-            if(currentLocData.notice) { 
-                safeText('dash-notice', "📢 " + currentLocData.notice); 
-                noticeEl.classList.remove('hidden');
-            } else { noticeEl.classList.add('hidden'); }
-
-            if(currentLocData.imageURL) document.getElementById('dash-banner').style.backgroundImage = `url('${currentLocData.imageURL}')`;
-            
-            // Open/Close Check
-            const isOpen = checkTimeStatus(currentLocData);
-            const badge = document.getElementById('dash-status-badge');
-            const btn = document.getElementById('btn-join-queue');
-            
-            if(isOpen) {
-                badge.innerText = "OPERATIONAL"; badge.className = "badge open";
-                btn.disabled = false; 
-                btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice} TO JOIN` : "JOIN QUEUE";
-            } else {
-                badge.innerText = "OFFLINE"; badge.className = "badge closed";
-                btn.disabled = true; btn.innerText = "CLOSED";
-            }
-        });
-        
-        // Queue Listener
-        if(queueUnsub) queueUnsub();
-        queueUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", locId)), async (snap) => {
-            const docs = snap.docs.map(d => ({id:d.id, ...d.data(), t: d.data().timestamp?.seconds || 0})).sort((a,b)=>a.t-b.t);
-            let myPos = -1;
-            docs.forEach((d, i) => { if(d.uid === currentUser.uid) myPos = i; });
-
-            if(myPos !== -1) {
-                document.getElementById('btn-join-queue').classList.add('hidden');
-                document.getElementById('btn-leave-queue').classList.remove('hidden');
-                
-                if(myPos === 0) {
-                    safeText('dash-main-counter', "YOU");
-                    safeText('dash-est-time', "NOW");
-                    // Ding Sound
-                    if(previousPosition > 0) new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(e=>{});
-                } else {
-                    const velocity = await calculateVelocity(locId);
-                    const estTime = Math.ceil((myPos * velocity) + velocity);
-                    safeText('dash-main-counter', myPos);
-                    safeText('dash-est-time', "~" + estTime + " mins");
-                }
-            } else {
-                document.getElementById('btn-join-queue').classList.remove('hidden');
-                document.getElementById('btn-leave-queue').classList.add('hidden');
-                safeText('dash-main-counter', docs.length);
-                safeText('dash-est-time', "-- mins");
-            }
-            previousPosition = myPos;
-        });
-        loadChat(locId);
-    }
-
-    function checkTimeStatus(loc) {
-        if(loc.status === 'closed') return false;
-        if(!loc.openTime || !loc.closeTime) return true;
-        const now = new Date();
-        const cur = now.getHours() * 60 + now.getMinutes();
-        const [oh, om] = loc.openTime.split(':').map(Number);
-        const [ch, cm] = loc.closeTime.split(':').map(Number);
-        if (isNaN(oh) || isNaN(ch)) return true;
-        const start = oh * 60 + om; const end = ch * 60 + cm;
-        if(end < start) return cur >= start || cur < end;
-        return cur >= start && cur < end;
-    }
-
-    // --- VELOCITY FIX (Prevents 3777 min bug) ---
-    async function calculateVelocity(locId) {
-        try {
-            const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
-            const snap = await getDocs(q);
-            if(snap.size < 2) return 5; 
-            const times = snap.docs.map(d => d.data().timestamp ? d.data().timestamp.toDate().getTime() : 0).sort((a,b) => b - a);
-            let totalDiff = 0, count = 0;
-            for(let i=0; i<times.length-1; i++) {
-                if(times[i] > 0 && times[i+1] > 0) {
-                    const diff = times[i] - times[i+1];
-                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
-                }
-            }
-            if(count === 0) return 5;
-            const val = Math.ceil((totalDiff / count) / 60000);
-            return val > 0 ? val : 5;
-        } catch (e) { return 5; }
-    }
-
-    // --- CHARTS (Simulated Data Fix) ---
-    async function analyzeTrends(locId) {
-        const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
-        const snapshot = await getDocs(q);
-        const hourCounts = Array(24).fill(0);
-        snapshot.forEach(doc => { if(doc.data().timestamp) { const h = doc.data().timestamp.toDate().getHours(); hourCounts[h]++; } });
-        const nowHour = new Date().getHours(); const labels = []; const data = [];
-        for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
-        renderChart(labels, data);
-        if(isAdmin) renderAdminChart(data.length > 0 ? data : []);
-    }
-
-    function renderChart(labels, data) {
-        if(predChart) predChart.destroy();
-        let displayData = data;
-        // Fallback simulation if empty
-        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) { displayData = [5, 12, 18, 10, 4, 2]; }
-        const ctx = document.getElementById('predictionChart').getContext('2d');
-        predChart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: [{ label: 'Traffic Density', data: displayData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true, tension: 0.4 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { display: false } }, y: { display: false } } }
-        });
-    }
-
-    function renderAdminChart(data) {
-        if(adminChart) adminChart.destroy();
-        const ctx = document.getElementById('adminTrendChart').getContext('2d');
-        let displayData = data;
-        let isSimulated = false;
-        if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
-            displayData = [5, 12, 18, 10, 4, 2]; isSimulated = true;
-        }
-        adminChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'],
-                datasets: [
-                    { label: isSimulated?'Simulated Actual':'Actual', data: displayData, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', tension: 0.4, fill: true },
-                    { label: 'Predicted (Vertex AI)', data: displayData.map(v => v * 1.1 + 2), borderColor: '#7000ff', borderDash: [5, 5], tension: 0.4, fill: false }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels:{color:'#999',font:{size:10}} } }, scales: { x: { display:false }, y: { display:false } } }
-        });
-    }
-
-    // --- ADMIN GOD MODE ---
-    function initGodMode(locId) {
-        analyzeTrends(locId); // Load Chart
-        onSnapshot(query(collection(db, "queue"), where("locationId", "==", locId)), (snap) => {
-            const list = document.getElementById('god-queue-list');
-            list.innerHTML = "";
-            snap.docs.forEach(d => {
-                const data = d.data();
-                const div = document.createElement('div');
-                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333";
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-size:13px;"><b>${data.name}</b> ${data.paymentStatus === 'verified' ? '<span style="color:#00ff9d; font-size:9px; border:1px solid #00ff9d; padding:1px 3px; border-radius:3px;">PAID</span>' : ''}</div>
-                        <button onclick="window.godAction('${d.id}', '${data.name}')" style="background:#00ff9d; color:#000; border:none; border-radius:4px; padding:2px 8px; font-weight:bold;">✓</button>
-                    </div>`;
-                list.appendChild(div);
-            });
-        });
-        
-        // Logs
-        onSnapshot(query(collection(db, "logs"), where("locationId", "==", locId), limit(20)), (snap) => {
-            const logDiv = document.getElementById('god-log-list'); logDiv.innerHTML = "";
-            snap.docs.forEach(d => {
-                const l = d.data();
-                const div = document.createElement('div');
-                div.style.padding="5px 0"; div.style.borderBottom="1px solid rgba(255,255,255,0.05)";
-                div.innerHTML = `<span style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</span> ${l.details}`;
-                logDiv.appendChild(div);
-            });
-        });
-    }
-
-    window.godAction = async (qid, name) => {
-        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'SERVED', details: name, timestamp: serverTimestamp() });
-        await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
-        await deleteDoc(doc(db, "queue", qid));
-    };
-    
-    window.resetQueueCloud = async () => {
-        if(!confirm("Clear queue?")) return;
-        const btn = document.querySelector('button[onclick="window.resetQueueCloud()"]');
-        btn.innerText = "⏳ ...";
-        setTimeout(async () => {
-            const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
-            const snap = await getDocs(q);
-            snap.forEach(d => deleteDoc(d.ref));
-            btn.innerText = "⚡ Reset";
-        }, 500);
-    };
-
-    // --- OTHER UI HANDLERS ---
-    window.handleImageUpload = (input, previewId) => {
-        const file = input.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById(previewId).src = e.target.result;
-            tempProfileBase64 = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-    
-    window.openAddLocModal = () => {
-        document.getElementById('new-loc-id').value = ""; // CLEAR ID FOR NEW
-        safeText('modal-loc-title', "Register Facility"); // Title for New
-        document.getElementById('modal-add-loc').classList.remove('hidden');
-    };
-
-    window.openEditModal = async (id) => {
-        const docSnap = await getDoc(doc(db, "locations", id));
-        const d = docSnap.data();
-        document.getElementById('new-loc-id').value = id;
-        document.getElementById('new-loc-name').value = d.name;
-        document.getElementById('new-loc-img').value = d.imageURL || "";
-        document.getElementById('new-loc-desc').value = d.description || "";
-        document.getElementById('new-loc-notice').value = d.notice || "";
-        document.getElementById('new-loc-open').value = d.openTime || "";
-        document.getElementById('new-loc-close').value = d.closeTime || "";
-        document.getElementById('new-loc-type').value = d.bookingType || 'free';
-        document.getElementById('new-loc-upi').value = d.upiId || '';
-        document.getElementById('new-loc-price').value = d.ticketPrice || '';
-        togglePaymentFields();
-        safeText('modal-loc-title', "Edit Facility"); // Title for Edit
-        document.getElementById('modal-add-loc').classList.remove('hidden');
+    window.sendChat = async () => {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim(); if(!text) return;
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const pfp = userDoc.exists() ? userDoc.data().photoURL : "";
+        await addDoc(collection(db, "comments"), { locationId: currentLocId, text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp() });
+        input.value = "";
     };
 
     window.generateQRCode = () => {
         const id = document.getElementById('new-loc-id').value;
-        if(!id) return alert("Save the facility first to get its ID.");
-        const qrDiv = document.getElementById('qr-display');
-        qrDiv.innerHTML = "";
-        const link = window.location.origin + window.location.pathname + "?join=" + id;
-        new QRCode(qrDiv, { text: link, width: 200, height: 200 });
+        if(!id) return alert("Save the location first!");
+        const qrContainer = document.getElementById('qr-display');
+        qrContainer.innerHTML = "";
+        const joinLink = window.location.origin + window.location.pathname + "?join=" + id;
+        new QRCode(qrContainer, { text: joinLink, width: 200, height: 200 });
         document.getElementById('modal-add-loc').classList.add('hidden');
         document.getElementById('modal-qr').classList.remove('hidden');
     };
-
-    window.toggleCamera = async () => {
-        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
-        let buffer = []; 
-        if(!isCamActive) {
-            wrapper.classList.remove('hidden'); btn.innerText = "STOP SENSOR";
-            if(!aiModel) aiModel = await cocoSsd.load();
-            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
-            video.srcObject = stream; isCamActive = true;
-            camInterval = setInterval(async () => {
-                const predictions = await aiModel.detect(video);
-                const people = predictions.filter(p => p.class === 'person');
-                buffer.push(people.length); if(buffer.length>5) buffer.shift();
-                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
-                safeText('cam-count', avg);
-                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `High Density: ${avg}`); } 
-                else { safeClass('god-alert-box', 'hidden', 'add'); }
-            }, 500);
-        } else {
-            wrapper.classList.add('hidden'); btn.innerText = "ACTIVATE SENSOR";
-            clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
-        }
-    };
-
-    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
-
-    // --- GLOBAL SETUP ---
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        if(user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if(!snap.exists()) { document.getElementById('view-login').classList.add('hidden'); document.getElementById('view-setup').classList.remove('hidden'); }
-            else {
-                isAdmin = snap.data().role === 'admin';
-                if(isAdmin) document.body.classList.add('god-mode');
-                document.getElementById('view-login').classList.add('hidden');
-                document.getElementById('view-select').classList.remove('hidden');
-                
-                // Deep Link Check
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('join')) handleDeepLink(user);
-
-                // Load Facilities List
-                onSnapshot(collection(db, "locations"), (snap) => {
-                    const list = document.getElementById('location-list-container');
-                    list.innerHTML = "";
-                    snap.forEach(d => {
-                        const l = d.data();
-                        const el = document.createElement('div'); el.className = 'loc-card';
-                        el.innerHTML = `
-                            <div class="loc-img" style="background-image:url('${l.imageURL}');" onclick="window.selectLocation('${d.id}')">
-                                <div class="loc-overlay"><b>${l.name}</b><br><span style="font-size:10px; opacity:0.8">${l.bookingType === 'paid' ? '₹'+l.ticketPrice : 'FREE ENTRY'}</span></div>
-                            </div>
-                            ${isAdmin ? `<div class="loc-body"><button onclick="window.openEditModal('${d.id}')" class="btn-outline" style="padding:5px;">Edit</button></div>` : ''}
-                        `;
-                        list.appendChild(el);
-                    });
-                });
-            }
-        } else {
-            document.getElementById('view-login').classList.remove('hidden');
-        }
-    });
 
     async function handleDeepLink(user) {
         const params = new URLSearchParams(window.location.search);
@@ -848,30 +663,365 @@
                 if(isAdmin) { showView('view-god-mode'); initGodMode(joinId); } 
                 else { showView('view-dashboard'); initUserDashboard(joinId); window.joinQueue(); }
                 window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            } else { alert("Location not found."); }
         }
     }
 
-    // Chat Logic
-    window.sendChat = async () => {
-        const txt = document.getElementById('chat-input').value;
-        if(txt) await addDoc(collection(db, "comments"), { locationId: currentLocId, text: txt, userName: currentUser.displayName || "User", userPhoto: currentUser.photoURL, timestamp: serverTimestamp() });
-        document.getElementById('chat-input').value = "";
-    };
+    onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
+        if (user) {
+            if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            if (!snap.exists()) { showView('view-setup'); } else {
+                const userData = snap.data();
+                isAdmin = (userData.role === 'admin');
+                safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
+                if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
+                else { document.body.classList.remove('god-mode'); }
+                
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('join')) handleDeepLink(user);
+                else { showView('view-select'); loadLocationsList(); }
+            }
+        } else { showView('view-login'); }
+    });
 
-    // Go Back
-    window.goBack = () => {
-        document.getElementById('view-dashboard').classList.add('hidden');
-        document.getElementById('view-god-mode').classList.add('hidden');
-        document.getElementById('view-select').classList.remove('hidden');
-    };
-    
-    // Auth Handlers
-    document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
+    document.getElementById('btn-login').onclick = async () => { await signInWithPopup(auth, provider); };
     document.getElementById('btn-save-profile').onclick = async () => {
-        await setDoc(doc(db, "users", currentUser.uid), { uid: currentUser.uid, name: document.getElementById('setup-name').value, role: 'user', photoURL: tempProfileBase64 || "https://ui-avatars.com/api/?background=random" });
+        const name = document.getElementById('setup-name').value;
+        const photoURL = tempProfileBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
+        await setDoc(doc(db, "users", currentUser.uid), { uid: currentUser.uid, name, photoURL, role: 'user', createdAt: serverTimestamp() });
         location.reload();
     };
+
+    function loadLocationsList() {
+        const listDiv = document.getElementById('location-list-container');
+        const q = collection(db, "locations"); 
+        onSnapshot(q, (snap) => {
+            listDiv.innerHTML = "";
+            let openCount = 0;
+            if(snap.empty) listDiv.innerHTML = "<div style='grid-column:1/-1; text-align:center; padding:40px; color:#666'>No locations found.</div>";
+            snap.forEach(docSnap => {
+                const loc = docSnap.data();
+                const isOpen = checkTimeStatus(loc); 
+                if(isOpen) openCount++;
+                const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
+                const el = document.createElement('div');
+                el.className = 'loc-card';
+                el.innerHTML = `
+                    <div class="loc-img" style="background-image: url('${bgImage}');" onclick="window.selectLocation('${docSnap.id}')">
+                        <div class="loc-overlay">
+                            <div style="font-weight:800; font-size:18px; color:#fff;">${loc.name}</div>
+                            <div style="font-size:11px; color:rgba(255,255,255,0.7);">${loc.openTime || '??'} - ${loc.closeTime || '??'}</div>
+                        </div>
+                    </div>
+                    <div class="loc-body">
+                        <div class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</div>
+                        ${isAdmin ? `<button onclick="window.openEditModal('${docSnap.id}')" class="edit-btn"><i data-lucide="pencil" style="width:14px;"></i></button><button onclick="window.deleteLocation('${docSnap.id}')" class="delete-btn"><i data-lucide="trash-2" style="width:14px;"></i></button>` : ''}
+                    </div>
+                `;
+                listDiv.appendChild(el);
+            });
+            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities online.` : "Network idle.");
+            if(window.lucide) lucide.createIcons();
+        });
+    }
+
+    function checkTimeStatus(locData) {
+        if (locData.status === 'closed') return false;
+        if (!locData.openTime || !locData.closeTime) return true; 
+        const now = new Date();
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+        const [openH, openM] = locData.openTime.split(':').map(Number);
+        const [closeH, closeM] = locData.closeTime.split(':').map(Number);
+        if (isNaN(openH) || isNaN(closeH)) return true; 
+        const startMins = openH * 60 + openM;
+        const endMins = closeH * 60 + closeM;
+        if (endMins < startMins) return currentMins >= startMins || currentMins < endMins;
+        return currentMins >= startMins && currentMins < endMins;
+    }
+
+    async function analyzeTrends(locId) {
+        const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
+        const snapshot = await getDocs(q);
+        const hourCounts = Array(24).fill(0);
+        snapshot.forEach(doc => { if(doc.data().timestamp) { const h = doc.data().timestamp.toDate().getHours(); hourCounts[h]++; } });
+        const nowHour = new Date().getHours(); const labels = []; const data = [];
+        for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
+        renderChart(labels, data);
+        
+        // Trigger Admin Chart Refresh (Even if empty)
+        if(isAdmin) renderAdminChart(data.length > 0 ? data : []); 
+    }
+
+    // --- FIXED VELOCITY CALCULATION (Prevents 3777 min bug) ---
+    async function calculateVelocity(locId) {
+        try {
+            const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
+            const snap = await getDocs(q);
+            
+            if(snap.size < 2) return 5; 
+
+            const times = snap.docs
+                .map(d => d.data().timestamp ? d.data().timestamp.toDate().getTime() : 0)
+                .sort((a,b) => b - a);
+
+            let totalDiff = 0;
+            let count = 0;
+
+            for(let i=0; i<times.length-1; i++) {
+                if(times[i] > 0 && times[i+1] > 0) {
+                    const diff = times[i] - times[i+1];
+                    // IGNORE gaps larger than 20 mins (Counter was closed/break)
+                    if (diff < 1200000) { 
+                        totalDiff += diff;
+                        count++;
+                    }
+                }
+            }
+            if(count === 0) return 5;
+
+            const avgMs = totalDiff / count;
+            const velocityMins = Math.ceil(avgMs / 60000);
+            return velocityMins > 0 ? velocityMins : 5;
+        } catch (e) { return 5; }
+    }
+
+    function initUserDashboard(locId) {
+        if(locUnsub) locUnsub();
+        analyzeTrends(locId); 
+        locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
+            if(!doc.exists()) return;
+            const data = doc.data();
+            currentCountMode = data.countingMode || 'ahead'; // Respects the "Count Mode"
+            currentLocData = data; // For payment
+            
+            loadChat(locId, data.purgeSetting);
+            safeText('dash-loc-name', data.name);
+            safeText('dash-desc', data.description || "");
+            
+            if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
+            else { safeClass('dash-notice', 'hidden', 'add'); }
+            
+            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
+            
+            const isOpen = checkTimeStatus(data); 
+            const badge = document.getElementById('dash-status-badge');
+            if(badge) {
+                if(isOpen) { badge.innerText = "OPERATIONAL"; badge.className = "badge open"; } 
+                else { badge.innerText = "OFFLINE"; badge.className = "badge closed"; }
+            }
+            const btn = document.getElementById('btn-join-queue');
+            if(btn) {
+                if(!isOpen) { 
+                    btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
+                } else { 
+                    btn.disabled = false; btn.style.opacity = "1"; 
+                    btn.innerText = data.bookingType === 'paid' ? "JOIN QUEUE" : "JOIN QUEUE"; 
+                }
+            }
+        });
+
+        if(queueUnsub) queueUnsub();
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
+        queueUnsub = onSnapshot(q, async (snap) => {
+            const docs = snap.docs.map(d => {
+                const data = d.data();
+                return { id: d.id, ...data, timeVal: data.timestamp ? data.timestamp.seconds : Math.floor(Date.now()/1000) };
+            }).sort((a,b) => a.timeVal - b.timeVal);
+            
+            let myPos = -1; let allocated = null;
+            docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
+            
+            if(myPos === 0 && previousPosition > 0) {
+                 const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                 alertSound.play().catch(e=>{});
+                 if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
+            }
+            previousPosition = myPos;
+
+            if (myPos !== -1) {
+                safeClass('btn-join-queue', 'hidden', 'add');
+                safeClass('btn-leave-queue', 'hidden', 'remove');
+                
+                if (myPos === 0) {
+                    safeText('dash-main-counter', "YOU");
+                    safeText('dash-counter-label', "IT'S YOUR TURN");
+                    safeText('dash-est-time', "NOW");
+                } else {
+                    const velocity = await calculateVelocity(locId);
+                    const estTime = Math.ceil((myPos * velocity) + velocity);
+                    
+                    if (currentCountMode === 'total') {
+                        safeText('dash-main-counter', docs.length);
+                        safeText('dash-counter-label', "TOTAL IN QUEUE");
+                    } else {
+                        safeText('dash-main-counter', myPos);
+                        safeText('dash-counter-label', "PEOPLE AHEAD");
+                    }
+                    safeText('dash-est-time', allocated ? allocated + " mins (Set)" : "~" + estTime + " mins");
+                }
+            } else {
+                safeText('dash-main-counter', docs.length);
+                safeText('dash-counter-label', "CURRENT QUEUE SIZE");
+                safeText('dash-est-time', "-- mins");
+                safeClass('btn-join-queue', 'hidden', 'remove');
+                safeClass('btn-leave-queue', 'hidden', 'add');
+                const btn = document.getElementById('btn-join-queue'); if(btn) { btn.innerText = "JOIN QUEUE"; btn.disabled = false; }
+            }
+        });
+    }
+
+    function loadChat(locId, purgePolicy = 'week') {
+        if(chatUnsub) chatUnsub();
+        const now = new Date(); let cutoff = new Date();
+        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
+        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
+        else cutoff.setMonth(now.getMonth() - 1);
+        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
+        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
+
+        const q = query(collection(db, "comments"), where("locationId", "==", locId));
+        chatUnsub = onSnapshot(q, (snap) => {
+            const box = document.getElementById('location-chat-box'); if(!box) return;
+            box.innerHTML = "";
+            const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            msgs.forEach(c => {
+                const div = document.createElement('div'); div.className = 'chat-msg';
+                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function initGodMode(locId) {
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById('god-queue-list'); if(!list) return;
+            list.innerHTML = "";
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            safeText('god-waiting', docs.length);
+            docs.forEach(data => {
+                const div = document.createElement('div');
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:700; font-size:13px;">${data.name}</div>
+                        ${data.paymentStatus === 'verified' ? '<span style="color:#00ff9d; font-size:9px; border:1px solid #00ff9d; padding:1px 3px; border-radius:3px;">PAID</span>' : ''}
+                    </div>
+                    <div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
+                list.appendChild(div);
+            });
+        });
+        const locRef = doc(db, "locations", locId);
+        onSnapshot(locRef, (docSnap) => { if(docSnap.exists()) safeText('god-served', docSnap.data().totalServed || 0); });
+        
+        if(logsUnsub) logsUnsub();
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
+        logsUnsub = onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
+            logDiv.innerHTML = "";
+            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            logs.forEach(l => {
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
+                logDiv.appendChild(div);
+            });
+        });
+        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
+        analyzeTrends(locId); 
+    }
+
+    window.godAction = async (docId, type, name) => {
+        const docRef = doc(db, "queue", docId);
+        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
+        if(type === 'done') await updateDoc(doc(db, "locations", currentLocId), { totalServed: increment(1) });
+        await deleteDoc(docRef);
+    };
+
+    window.toggleCamera = async () => {
+        const video = document.getElementById('webcam'); const wrapper = document.getElementById('cam-wrapper'); const btn = document.getElementById('btn-toggle-cam');
+        let buffer = []; 
+        if(!isCamActive) {
+            wrapper.classList.remove('hidden'); btn.innerHTML = `<i data-lucide="stop-circle"></i> STOP SENSOR`;
+            if(!aiModel) aiModel = await cocoSsd.load();
+            const stream = await navigator.mediaDevices.getUserMedia({ video: 'facingMode' });
+            video.srcObject = stream; isCamActive = true;
+            camInterval = setInterval(async () => {
+                const predictions = await aiModel.detect(video);
+                const people = predictions.filter(p => p.class === 'person');
+                buffer.push(people.length); if(buffer.length>5) buffer.shift();
+                const avg = Math.round(buffer.reduce((a,b)=>a+b,0)/buffer.length);
+                safeText('cam-count', avg);
+                if(avg > 5) { safeClass('god-alert-box', 'hidden', 'remove'); safeText('alert-msg', `Camera detected ${avg} people!`); } 
+                else { safeClass('god-alert-box', 'hidden', 'add'); }
+            }, 500);
+        } else {
+            wrapper.classList.add('hidden'); btn.innerHTML = `<i data-lucide="camera"></i> ACTIVATE SENSOR`;
+            clearInterval(camInterval); video.srcObject.getTracks().forEach(track => track.stop()); isCamActive = false;
+        }
+    };
+
+    window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
+
+    window.createLocation = async () => {
+        const id = document.getElementById('new-loc-id').value;
+        const name = document.getElementById('new-loc-name').value;
+        const img = document.getElementById('new-loc-img').value;
+        const desc = document.getElementById('new-loc-desc').value;
+        const notice = document.getElementById('new-loc-notice').value;
+        const open = document.getElementById('new-loc-open').value;
+        const close = document.getElementById('new-loc-close').value;
+        // --- FIXED: ADDED NEW FIELDS ---
+        const mode = document.getElementById('new-loc-mode').value;
+        const type = document.getElementById('new-loc-type').value;
+        const upi = document.getElementById('new-loc-upi').value;
+        const price = document.getElementById('new-loc-price').value;
+
+        if(!name) return;
+        const locData = { 
+            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
+            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
+        };
+        
+        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
+        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
+        window.closeModals();
+    };
+
+    window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
+    
+    window.openAddLocModal = () => {
+        document.getElementById('new-loc-id').value = ""; safeText('modal-loc-title', "New Facility");
+        document.getElementById('new-loc-name').value = ""; document.getElementById('new-loc-img').value = "";
+        document.getElementById('new-loc-desc').value = ""; document.getElementById('new-loc-notice').value = "";
+        safeClass('modal-add-loc', 'hidden', 'remove');
+    };
+
+    window.openEditModal = async (locId) => {
+        const snap = await getDoc(doc(db, "locations", locId)); const data = snap.data();
+        document.getElementById('new-loc-id').value = locId; safeText('modal-loc-title', "Edit Facility");
+        document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
+        document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
+        document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
+        // --- FIXED: LOAD NEW FIELDS ---
+        document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
+        document.getElementById('new-loc-type').value = data.bookingType || 'free';
+        document.getElementById('new-loc-upi').value = data.upiId || '';
+        document.getElementById('new-loc-price').value = data.ticketPrice || '';
+        
+        window.togglePaymentFields();
+        safeClass('modal-add-loc', 'hidden', 'remove');
+    };
+
+    window.showView = (id) => { ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(v => document.getElementById(v).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); };
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    window.goBack = () => { if(locUnsub) locUnsub(); if(queueUnsub) queueUnsub(); showView('view-select'); };
+    window.openProfileEdit = () => { document.getElementById('modal-profile').classList.remove('hidden'); document.getElementById('edit-profile-name').value = currentUser.displayName || ""; document.getElementById('edit-preview').src = document.getElementById('profile-bubble').style.backgroundImage.slice(5, -2); };
+    window.updateProfile = async () => { const newName = document.getElementById('edit-profile-name').value; const photoURL = tempProfileBase64 || document.getElementById('edit-preview').src; await updateDoc(doc(db, "users", currentUser.uid), { name: newName, photoURL: photoURL }); location.reload(); };
     window.logout = () => signOut(auth).then(()=>location.reload());
 </script>
 </body>
