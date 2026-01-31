@@ -22,7 +22,7 @@
     
     <style>
         :root {
-            --primary: #FF9933; /* Saffron */
+            --primary: #FF9933; 
             --primary-glow: rgba(255, 153, 51, 0.4);
             --secondary: #138808; 
             --bg-dark: #0a0a0f; 
@@ -73,9 +73,9 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
         .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
-        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
         .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--primary); color: #fff; }
+        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
 
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; }
         .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
@@ -87,7 +87,7 @@
         .notice-bar { background: rgba(255, 170, 0, 0.1); border-left: 3px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
         .hidden { display: none !important; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
         
         /* CHAT */
         .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
@@ -115,7 +115,6 @@
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
         #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
-        /* Fix mobile image fit */
         .btn img { height: 20px; margin-right: 8px; vertical-align: middle; }
     </style>
 </head>
@@ -351,9 +350,9 @@
 
     let currentUser = null;
     let currentLocId = null;
-    let currentLocData = null; // Store current location data
+    let currentLocData = null; 
     let isAdmin = false;
-    let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
+    let locUnsub = null, queueUnsub = null;
     let predChart = null, adminChart = null;
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
@@ -527,19 +526,19 @@
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
-        if(!currentLocData) return alert("Error loading location data. Please refresh.");
-
         // SECURITY CHECK: Is facility closed?
         if(!checkTimeStatus(currentLocData)) {
             return alert("Facility is currently CLOSED.");
         }
 
-        if (currentLocData.bookingType === 'paid') {
+        if (currentLocData && currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Generate UPI Deep Link
-            const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${currentLocData.ticketPrice}&cu=INR`;
+            // Generate UPI Deep Link (Fixed Amount Formatting)
+            const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
+            const txnId = "T" + Date.now();
+            const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR`;
             
             // 1. Setup Direct App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
@@ -547,7 +546,7 @@
             // 2. Setup QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
+            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
             
             modal.classList.remove('hidden');
         } else {
@@ -889,7 +888,6 @@
                 logDiv.appendChild(div);
             });
         });
-        // ** FIX 3: CALL CHART RENDER IN ADMIN INIT **
         analyzeTrends(locId); 
     }
 
