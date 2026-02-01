@@ -659,8 +659,13 @@
             }
         } else { showView('view-login'); }
     });
-
-    document.getElementById('btn-login').onclick = async () => { await signInWithPopup(auth, provider); };
+document.getElementById('btn-login').onclick = async () => {
+    // Request notification permission immediately on user click
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
+    await signInWithPopup(auth, provider);
+};
     document.getElementById('btn-save-profile').onclick = async () => {
         const name = document.getElementById('setup-name').value;
         const photoURL = tempProfileBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
@@ -804,13 +809,20 @@
             let myPos = -1; let allocated = null;
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            if(myPos === 0 && previousPosition > 0) {
-                 const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                 alertSound.play().catch(e=>{});
-                 if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
-            }
-            previousPosition = myPos;
+           if (myPos === 0 && previousPosition > 0) {
+    // 1. Play the Sound
+    const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    alertSound.play().catch(e => console.log("Audio blocked: Needs user interaction."));
 
+    // 2. Send the Pro-Level Notification
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("QueueSmart: Your Turn!", {
+            body: `Please proceed to the counter at ${currentLocData?.name || 'the facility'}.`,
+            icon: "0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png", 
+            vibrate: [200, 100, 200]
+        });
+    }
+}
             if (myPos !== -1) {
                 safeClass('btn-join-queue', 'hidden', 'add');
                 safeClass('btn-leave-queue', 'hidden', 'remove');
