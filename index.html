@@ -123,7 +123,8 @@
     
     <div id="view-login" class="glass-card">
         <div style="text-align: center; margin-bottom: 40px;">
-            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 30px var(--primary-glow);">
+            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png"
+     style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 30px var(--primary-glow);">
             <h1 style="color:#fff; font-weight:800; font-size:32px; margin:0; text-shadow:0 0 30px var(--primary-glow);">QueueSmart</h1>
             <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Digital Public Infrastructure for Queues</p>
         </div>
@@ -371,7 +372,6 @@
     let tempProfileBase64 = null;
     let previousPosition = -1;
     let currentCountMode = 'ahead'; 
-    let statusInterval = null;
 
     // --- UTILS ---
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
@@ -390,16 +390,8 @@
         el.classList.toggle('hidden');
     };
 
-    // --- AUTHENTICATION ---
+    // --- DEMO LOGIN ---
     window.demoLogin = async (role) => {
-        // Explicitly request permissions on user action (crucial for mobile)
-        if ("Notification" in window) Notification.requestPermission();
-        
-        // Silent audio unlock (crucial for mobile Safari/Chrome)
-        const unlockAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        unlockAudio.volume = 0;
-        unlockAudio.play().then(() => unlockAudio.pause()).catch(() => {});
-
         if (role === 'admin') {
             const pwd = prompt("Enter Admin Password:");
             if (pwd !== "queuesmart90") return alert("Wrong Password");
@@ -416,16 +408,6 @@
             });
             location.reload();
         } catch(e) { alert("Enable 'Anonymous' in Firebase Auth Console first!\n\n" + e.message); }
-    };
-
-    document.getElementById('btn-login').onclick = async () => { 
-        if ("Notification" in window) Notification.requestPermission();
-        
-        const unlockAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        unlockAudio.volume = 0;
-        unlockAudio.play().then(() => unlockAudio.pause()).catch(() => {});
-
-        await signInWithPopup(auth, provider); 
     };
 
     window.handleImageUpload = (input, previewId) => {
@@ -456,7 +438,6 @@
         const originalText = btn.innerText;
         btn.innerText = "⏳ Processing...";
         btn.disabled = true;
-        
         setTimeout(async () => {
             const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
             const snap = await getDocs(q);
@@ -468,10 +449,12 @@
         }, 800);
     };
 
-    // --- CHART FUNCTIONS ---
+    // --- CHART FUNCTIONS (User & Admin) ---
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
+        
+        // Use dummy data if real data is empty
         let displayData = data;
         let isSimulated = false;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
@@ -484,11 +467,30 @@
             data: {
                 labels: ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'],
                 datasets: [
-                    { label: isSimulated ? 'Simulated Actual' : 'Actual', data: displayData, borderColor: '#00d4ff', backgroundColor: 'rgba(0, 212, 255, 0.1)', tension: 0.4, fill: true },
-                    { label: 'Predicted (Vertex AI)', data: displayData.map(v => v * 1.1 + 2), borderColor: '#7000ff', borderDash: [5, 5], tension: 0.4, fill: false }
+                    { 
+                        label: isSimulated ? 'Simulated Actual' : 'Actual', 
+                        data: displayData, 
+                        borderColor: '#00d4ff', 
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)', 
+                        tension: 0.4,
+                        fill: true 
+                    },
+                    { 
+                        label: 'Predicted (Vertex AI)', 
+                        data: displayData.map(v => v * 1.1 + 2), 
+                        borderColor: '#7000ff', 
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false
+                    }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, 
+                scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } 
+            }
         });
     }
 
@@ -523,7 +525,7 @@
         if(!name) return alert("Name is required");
 
         const data = { 
-            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
+            name, imageURL: img, description: desc, notice, openTime: open, closeTime: close, 
             countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
         };
 
@@ -531,35 +533,32 @@
             if(id) { await updateDoc(doc(db, "locations", id), data); alert("Updated!"); } 
             else { data.status = 'open'; data.totalServed = 0; await addDoc(collection(db, "locations"), data); alert("Created!"); }
             window.closeModals();
-        } catch(e) { alert("Error: " + e.message); }
+        } catch(e) { alert("Error saving location: " + e.message); }
     };
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
-        if(!currentLocData) return alert("Loading data...");
+        // Data Check
+        if(!currentLocData) return alert("System loading... please wait.");
         
+        // Status Check
         const status = checkTimeStatus(currentLocData);
-        if(!status.isOpen) {
-            return alert("Facility is currently CLOSED (" + status.reason + ").");
-        }
+        if(!status.isOpen) return alert("Facility is CLOSED.");
 
+        // Payment Check
         if (currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Payment Link
+            // Link
             const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
             const txnId = "T" + Date.now();
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR&mc=0000&mode=02`;
             
-            // App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
-
-            // QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
             new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
-            
             modal.classList.remove('hidden');
         } else {
             window.joinQueue();
@@ -568,20 +567,20 @@
 
     window.confirmPayment = async () => {
         const txnId = document.getElementById('user-txn-id').value;
-        if (!txnId || txnId.length < 4) return alert("Please enter valid Transaction ID digits.");
+        if (!txnId || txnId.length < 4) return alert("Enter valid Transaction ID");
         const btn = document.querySelector('#modal-payment .btn-primary');
-        const originalText = btn.innerText;
         btn.innerText = "Verifying..."; btn.disabled = true;
         setTimeout(async () => {
             await window.joinQueue(txnId);
             window.closeModals();
-            btn.innerText = originalText; btn.disabled = false;
+            btn.innerText = "VERIFY & JOIN"; btn.disabled = false;
         }, 1000);
     };
 
     window.joinQueue = async (txnId = null) => {
         const btn = document.getElementById('btn-join-queue');
         if(btn) { btn.innerText = "Processing..."; btn.disabled = true; }
+        
         try {
             await addDoc(collection(db, "queue"), { 
                 uid: currentUser.uid, 
@@ -650,17 +649,23 @@
             if (!snap.exists()) { showView('view-setup'); } else {
                 const userData = snap.data();
                 isAdmin = (userData.role === 'admin');
-                if(isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
-                else { document.body.classList.remove('god-mode'); }
-
                 safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
+                if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
+                else { document.body.classList.remove('god-mode'); }
+                
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('join')) handleDeepLink(user);
                 else { showView('view-select'); loadLocationsList(); }
             }
         } else { showView('view-login'); }
     });
-
+document.getElementById('btn-login').onclick = async () => {
+    // Request notification permission immediately on user click
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
+    await signInWithPopup(auth, provider);
+};
     document.getElementById('btn-save-profile').onclick = async () => {
         const name = document.getElementById('setup-name').value;
         const photoURL = tempProfileBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
@@ -679,7 +684,6 @@
                 const loc = docSnap.data();
                 const status = checkTimeStatus(loc); 
                 if(status.isOpen) openCount++;
-                
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
                 el.className = 'loc-card';
@@ -697,6 +701,7 @@
                 `;
                 listDiv.appendChild(el);
             });
+            // AI Network Insight
             safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. Waiting for activity.");
             if(window.lucide) lucide.createIcons();
         });
@@ -748,7 +753,7 @@
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
-                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
+                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore large gaps
                 }
             }
             if(count === 0) return 5;
@@ -757,15 +762,23 @@
         } catch (e) { return 5; }
     }
 
-    // --- DASHBOARD LOGIC (REFRESH LOOP ADDED) ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
-        if(statusInterval) clearInterval(statusInterval);
-        
         analyzeTrends(locId); 
-        
-        const updateUI = (data) => {
-            const status = checkTimeStatus(data);
+        locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
+            if(!doc.exists()) return;
+            const data = doc.data();
+            currentCountMode = data.countingMode || 'ahead'; 
+            currentLocData = data; 
+            
+            loadChat(locId, data.purgeSetting);
+            safeText('dash-loc-name', data.name);
+            safeText('dash-desc', data.description || "");
+            if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
+            else { safeClass('dash-notice', 'hidden', 'add'); }
+            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
+            
+            const status = checkTimeStatus(data); 
             const badge = document.getElementById('dash-status-badge');
             const btn = document.getElementById('btn-join-queue');
             
@@ -779,26 +792,10 @@
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
-                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE"; 
+                    // Dynamic Button
+                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE";
                 }
             }
-        };
-
-        locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
-            if(!doc.exists()) return;
-            const data = doc.data();
-            currentCountMode = data.countingMode || 'ahead';
-            currentLocData = data; 
-            
-            loadChat(locId, data.purgeSetting);
-            safeText('dash-loc-name', data.name);
-            safeText('dash-desc', data.description || "");
-            if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
-            else { safeClass('dash-notice', 'hidden', 'add'); }
-            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
-            
-            updateUI(data); 
-            statusInterval = setInterval(() => updateUI(data), 60000);
         });
 
         if(queueUnsub) queueUnsub();
@@ -812,26 +809,20 @@
             let myPos = -1; let allocated = null;
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-            // --- STRICT NOTIFICATION LOGIC (Only 1 -> 0) ---
-            if (myPos === 0 && previousPosition === 1) { 
-                 const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                 alertSound.play().catch(e => console.log("Audio blocked. User must interact first."));
+           if (myPos === 0 && previousPosition > 0) {
+    // 1. Play the Sound
+    const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    alertSound.play().catch(e => console.log("Audio blocked: Needs user interaction."));
 
-                 if ("Notification" in window && Notification.permission === "granted") {
-                     // Vibration for Mobile
-                     if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
-                     
-                     new Notification("🎉 IT'S YOUR TURN!", {
-                         body: `Please proceed to ${currentLocData?.name || 'the counter'} immediately.`,
-                         icon: "0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png", // Corrected Icon
-                         tag: "queue-alert", 
-                         requireInteraction: true 
-                     });
-                 }
-            }
-            previousPosition = myPos;
-            // -----------------------------------------------
-
+    // 2. Send the Pro-Level Notification
+    if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("QueueSmart: Your Turn!", {
+            body: `Please proceed to the counter at ${currentLocData?.name || 'the facility'}.`,
+            icon: "0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png", 
+            vibrate: [200, 100, 200]
+        });
+    }
+}
             if (myPos !== -1) {
                 safeClass('btn-join-queue', 'hidden', 'add');
                 safeClass('btn-leave-queue', 'hidden', 'remove');
@@ -843,7 +834,6 @@
                 } else {
                     const velocity = await calculateVelocity(locId);
                     const estTime = Math.ceil((myPos * velocity) + velocity);
-                    
                     if (currentCountMode === 'total') {
                         safeText('dash-main-counter', docs.length);
                         safeText('dash-counter-label', "TOTAL IN QUEUE");
@@ -864,13 +854,65 @@
                     const status = checkTimeStatus(currentLocData);
                     btn.disabled = !status.isOpen;
                     if(status.isOpen) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
-                    else btn.innerText = "CLOSED";
                 }
             }
         });
     }
 
-    // --- OTHER HELPERS ---
+    function loadChat(locId, purgePolicy = 'week') {
+        if(chatUnsub) chatUnsub();
+        const now = new Date(); let cutoff = new Date();
+        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
+        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
+        else cutoff.setMonth(now.getMonth() - 1);
+        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
+        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
+
+        const q = query(collection(db, "comments"), where("locationId", "==", locId));
+        chatUnsub = onSnapshot(q, (snap) => {
+            const box = document.getElementById('location-chat-box'); if(!box) return;
+            box.innerHTML = "";
+            const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            msgs.forEach(c => {
+                const div = document.createElement('div'); div.className = 'chat-msg';
+                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function initGodMode(locId) {
+        const q = query(collection(db, "queue"), where("locationId", "==", locId));
+        onSnapshot(q, (snap) => {
+            const list = document.getElementById('god-queue-list'); if(!list) return;
+            list.innerHTML = "";
+            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+            safeText('god-waiting', docs.length);
+            docs.forEach(data => {
+                const div = document.createElement('div');
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:700; font-size:13px;">${data.name}</div></div><div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
+                list.appendChild(div);
+            });
+        });
+        
+        if(logsUnsub) logsUnsub();
+        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
+        logsUnsub = onSnapshot(logQ, (snap) => {
+            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
+            logDiv.innerHTML = "";
+            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            logs.forEach(l => {
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
+                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
+                logDiv.appendChild(div);
+            });
+        });
+        analyzeTrends(locId); 
+    }
+
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
         await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
@@ -902,6 +944,31 @@
     };
 
     window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
+
+    window.createLocation = async () => {
+        const id = document.getElementById('new-loc-id').value;
+        const name = document.getElementById('new-loc-name').value;
+        const img = document.getElementById('new-loc-img').value;
+        const desc = document.getElementById('new-loc-desc').value;
+        const notice = document.getElementById('new-loc-notice').value;
+        const open = document.getElementById('new-loc-open').value;
+        const close = document.getElementById('new-loc-close').value;
+        // NEW FIELDS
+        const mode = document.getElementById('new-loc-mode').value;
+        const type = document.getElementById('new-loc-type').value;
+        const upi = document.getElementById('new-loc-upi').value;
+        const price = document.getElementById('new-loc-price').value;
+
+        if(!name) return;
+        const locData = { 
+            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
+            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
+        };
+        
+        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
+        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
+        window.closeModals();
+    };
 
     window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
     
