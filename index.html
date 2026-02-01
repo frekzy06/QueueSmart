@@ -3,516 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#050507">
-    <meta name="description" content="QueueSmart: The Digital Public Infrastructure for Queue Management. Viksit Bharat Network.">
+    <meta name="theme-color" content="#000000">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
     <title>QueueSmart | Digital Public Infrastructure</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
-            // Ignore benign resize errors common in canvas rendering
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            console.error(`[System Error] ${msg} at ${line}`);
+            console.error("App Error:", msg);
             return false;
         };
     </script>
     
     <style>
-        /* ==================================================================================
-           2. DESIGN SYSTEM: "VIKSIT BHARAT" (NEO-GOV TECH)
-           ================================================================================== */
         :root {
-            /* Palette: Deep Saffron, India Green, Navy Blue, and Void Black */
-            --primary: #FF9933; 
+            /* Minimalist Deep Space Theme */
+            --bg: #050505;
+            --surface: #0a0a0a;
+            --border: #222;
+            --primary: #ff9933; /* Saffron */
             --primary-dim: rgba(255, 153, 51, 0.1);
-            --primary-glow: rgba(255, 153, 51, 0.4);
-            
-            --secondary: #138808; 
-            --secondary-glow: rgba(19, 136, 8, 0.3);
-            
-            --accent: #000080; /* Ashoka Chakra Blue */
-            
-            --bg-root: #020203;
-            --bg-card: #0a0a0c;
-            --bg-input: #121216;
-            
-            --border: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.2);
-            
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-            --text-dark: #000;
-            
+            --text: #ffffff;
+            --text-muted: #888;
             --success: #00ff9d;
             --danger: #ff4444;
-            --warning: #ffaa00;
-
             --font-ui: 'Inter', sans-serif;
-            --font-tech: 'Rajdhani', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            
-            --shadow-card: 0 20px 40px -10px rgba(0,0,0,0.7);
-            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* Admin Mode Overrides */
-        body.god-mode { 
-            --primary: #00d4ff; 
-            --primary-dim: rgba(0, 212, 255, 0.1);
-            --primary-glow: rgba(0, 212, 255, 0.4);
-        }
+        body.god-mode { --primary: #00d4ff; --border: #004455; }
 
-        /* Reset */
-        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
         body {
             margin: 0; padding: 0; font-family: var(--font-ui);
-            background-color: var(--bg-root);
-            /* Subtle technical grid background */
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 40px 40px;
-            color: var(--text-main); 
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-x: hidden;
+            background-color: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        .app-shell { 
-            width: 100%; max-width: 1400px; padding: 20px; flex: 1; 
-            display: flex; flex-direction: column; position: relative; z-index: 1;
-        }
+        .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
 
-        /* --- UI COMPONENT: GLASS CARD --- */
+        /* --- GLASS CARD --- */
         .glass-card {
-            background: rgba(20, 20, 25, 0.6);
+            background: rgba(20, 20, 20, 0.6); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--shadow-card);
-            margin-bottom: 25px;
-            position: relative; overflow: hidden;
-            transition: border-color 0.3s ease, transform 0.3s ease;
-            animation: fadeUp 0.5s var(--ease-out);
+            border: 1px solid var(--border); border-radius: 16px; padding: 24px; 
+            margin-bottom: 20px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.8);
+            transition: 0.3s ease; animation: fadeUp 0.4s ease;
         }
-        .glass-card:hover { border-color: var(--border-hover); }
-
-        /* --- UI COMPONENT: DPI IDENTITY CARD --- */
-        .dpi-card {
-            background: linear-gradient(135deg, #1a1f2e 0%, #0b0d10 100%);
-            border: 1px solid var(--primary);
-            border-radius: 20px;
-            padding: 0; 
-            position: relative; overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            width: 100%; max-width: 400px; margin: 0 auto;
-            transform-style: preserve-3d;
-            transition: transform 0.6s var(--ease-out);
-        }
-        .dpi-strip { height: 6px; width: 100%; background: linear-gradient(90deg, #FF9933, #fff, #138808); }
-        .dpi-body { padding: 25px; position: relative; z-index: 2; }
-        .dpi-watermark {
-            position: absolute; bottom: -20px; right: -20px; font-size: 150px; font-weight: 900;
-            color: #fff; opacity: 0.02; pointer-events: none; font-family: var(--font-tech); z-index: 1;
-        }
-        .dpi-chip {
-            width: 48px; height: 34px; 
-            background: linear-gradient(135deg, #e0aa3e 0%, #b88a44 100%);
-            border-radius: 6px; margin-bottom: 20px; 
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.4);
-            position: relative;
-        }
-        .dpi-chip::after {
-            content:""; position: absolute; top: 50%; left: 5px; right: 5px; height: 1px; background: rgba(0,0,0,0.3);
-        }
-        .dpi-label { 
-            font-size: 10px; color: var(--text-muted); text-transform: uppercase; 
-            letter-spacing: 1.5px; display: block; margin-bottom: 4px; font-family: var(--font-tech); 
-        }
-        .dpi-value { 
-            font-family: var(--font-mono); font-size: 15px; color: #fff; 
-            display: block; margin-bottom: 15px; font-weight: 500; text-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-
-        /* --- UI COMPONENT: AUTH TABS --- */
-        .auth-nav { display: flex; width: 100%; border-bottom: 1px solid var(--border); margin-bottom: 25px; }
+        
+        /* --- AUTH TABS --- */
+        .auth-nav { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
         .auth-tab { 
-            flex: 1; text-align: center; padding: 15px; cursor: pointer; 
-            font-size: 12px; font-weight: 700; color: var(--text-muted); 
-            transition: all 0.3s; letter-spacing: 1px; font-family: var(--font-tech);
+            flex: 1; text-align: center; padding: 14px; font-size: 12px; font-weight: 600; 
+            color: var(--text-muted); cursor: pointer; transition: 0.2s; letter-spacing: 0.5px;
         }
-        .auth-tab.active { 
-            color: #fff; border-bottom: 2px solid var(--primary); 
-            background: linear-gradient(to top, var(--primary-dim), transparent);
-        }
+        .auth-tab.active { color: var(--text); border-bottom: 2px solid var(--primary); }
 
-        /* --- UI COMPONENT: LOCATIONS --- */
-        .loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
-        .loc-card { 
-            background: #0d0d10; border: 1px solid var(--border); border-radius: 14px; 
-            overflow: hidden; cursor: pointer; position: relative; transition: all 0.3s var(--ease-out);
-        }
-        .loc-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px -10px var(--primary-dim); }
-        .loc-img-box { height: 160px; width: 100%; position: relative; overflow: hidden; }
-        .loc-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .loc-card:hover .loc-img { transform: scale(1.05); }
-        .loc-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: linear-gradient(to top, #000 10%, transparent);
-            padding: 60px 20px 15px 20px;
-        }
-        .loc-footer {
-            padding: 15px 20px; background: rgba(255,255,255,0.02); 
-            border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
-        }
-
-        /* --- UI COMPONENT: INPUTS & BUTTONS --- */
-        .input-group { margin-bottom: 15px; width: 100%; }
+        /* --- INPUTS & BUTTONS --- */
         .input-field { 
-            width: 100%; background: var(--bg-input); border: 1px solid var(--border); 
-            padding: 14px 16px; border-radius: 10px; color: #fff; font-size: 14px; 
-            font-family: var(--font-ui); transition: 0.2s;
+            width: 100%; background: #111; border: 1px solid var(--border); 
+            padding: 14px; border-radius: 8px; color: #fff; font-size: 14px; margin-bottom: 12px; 
+            font-family: var(--font-ui);
         }
-        .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-dim); }
-        .input-field::placeholder { color: #555; }
+        .input-field:focus { border-color: var(--primary); outline: none; }
 
         .btn { 
-            width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 700; 
-            font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; 
-            gap: 10px; text-transform: uppercase; transition: all 0.2s; letter-spacing: 0.5px;
-            font-family: var(--font-tech);
+            width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 700; 
+            font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
         }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 8px 20px -6px var(--primary-glow); }
-        .btn-upi { background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-primary { background: #fff; color: #000; }
+        .btn-primary:hover { background: #ddd; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
-        .btn-outline:hover { border-color: var(--primary); color: #fff; background: var(--primary-dim); }
+        .btn-outline:hover { border-color: var(--text); color: var(--text); }
         .btn-danger { background: rgba(255, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(255, 68, 68, 0.2); }
-        
-        /* --- DASHBOARD ELEMENTS --- */
-        .dash-layout { display: grid; grid-template-columns: 1fr 380px; gap: 25px; }
-        @media (max-width: 950px) { .dash-layout { grid-template-columns: 1fr; } }
-        
-        .stat-ring {
-            width: 180px; height: 180px; border-radius: 50%; 
-            border: 4px solid var(--border); margin: 30px auto;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: radial-gradient(circle, var(--primary-dim) 0%, transparent 70%);
-            box-shadow: 0 0 50px var(--primary-dim); position: relative;
-        }
-        .stat-ring::after {
-            content: ""; position: absolute; inset: -15px; border-radius: 50%;
-            border: 1px dashed var(--primary); opacity: 0.4; animation: spin 20s linear infinite;
-        }
 
-        .chat-panel { 
-            background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--border); 
-            display: flex; flex-direction: column; height: 600px; max-height: 60vh; 
+        /* --- LOCATIONS --- */
+        .loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        .loc-card { 
+            background: #0a0a0a; border: 1px solid var(--border); border-radius: 12px; 
+            overflow: hidden; cursor: pointer; transition: 0.2s; 
         }
-        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .chat-msg { display: flex; gap: 10px; animation: fadeUp 0.3s ease; }
-        .chat-avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
-        .chat-bubble { 
-            background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 12px; 
-            border-bottom-left-radius: 2px; max-width: 85%; font-size: 13px; line-height: 1.5; 
-            border: 1px solid rgba(255,255,255,0.02); color: #ddd;
-        }
-        .chat-header { font-size: 10px; color: var(--primary); margin-bottom: 2px; font-weight: 700; opacity: 0.8; }
-
-        /* --- ADMIN GOD MODE --- */
-        .god-grid { display: grid; grid-template-columns: 320px 1fr 300px; gap: 20px; }
-        @media (max-width: 1200px) { .god-grid { grid-template-columns: 1fr; } }
+        .loc-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .loc-img { height: 140px; width: 100%; object-fit: cover; opacity: 0.8; }
+        .loc-body { padding: 16px; display: flex; justify-content: space-between; align-items: center; }
         
-        .cam-feed { 
-            position: relative; width: 100%; aspect-ratio: 16/9; background: #000; 
-            border-radius: 12px; overflow: hidden; border: 1px solid var(--primary);
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
-        }
-        .ai-hud { position: absolute; inset: 0; pointer-events: none; }
+        .badge { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+        .badge.open { color: var(--success); background: rgba(0, 255, 157, 0.1); }
+        .badge.closed { color: var(--danger); background: rgba(255, 68, 68, 0.1); }
 
-        /* --- UTILITIES --- */
+        /* --- DASHBOARD --- */
+        .dash-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+        @media(max-width:900px) { .dash-grid { grid-template-columns: 1fr; } }
+        
+        .big-stat { font-size: 72px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+        .stat-label { font-size: 11px; letter-spacing: 2px; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; }
+
+        /* --- ADMIN --- */
+        .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
+        @media(max-width:1100px) { .god-grid { grid-template-columns: 1fr; } }
+
+        /* --- UTILS --- */
         .hidden { display: none !important; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-family: var(--font-tech); }
-        .badge.open { background: rgba(0, 255, 157, 0.1); color: var(--success); border: 1px solid rgba(0,255,157,0.3); }
-        .badge.closed { background: rgba(255, 71, 87, 0.1); color: var(--danger); border: 1px solid rgba(255,71,87,0.3); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .cam-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; overflow: hidden; border-radius: 8px; border: 1px solid var(--border); }
+        video { width: 100%; height: 100%; object-fit: cover; }
         
-        .modal-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); 
-            z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;
-            animation: fadeIn 0.2s ease;
-        }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; background: #333; background-size: cover; border: 1px solid var(--border); cursor: pointer; }
 
-        .profile-uploader {
-            width: 100px; height: 100px; border-radius: 50%; background: #151515; 
-            margin: 0 auto 20px; border: 2px dashed var(--primary); 
-            display: flex; align-items: center; justify-content: center; overflow: hidden; 
-            cursor: pointer; transition: 0.3s;
-        }
-        .profile-uploader:hover { border-style: solid; box-shadow: 0 0 20px var(--primary-glow); }
-
-        /* Animations */
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
-
-    <div id="view-login" class="glass-card" style="max-width: 480px; margin: 40px auto; padding: 0;">
-        <div style="text-align: center; padding: 40px 40px 20px 40px;">
-            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png" style="width: 80px; height: 80px; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 0 40px var(--primary-glow); animation: pulse 3s infinite;">
-            <h1 style="font-size: 32px; font-weight: 900; margin: 0; letter-spacing: -1px; background: linear-gradient(to right, #fff, var(--text-muted)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">QueueSmart</h1>
-            [cite_start]<p style="color: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase;">Time Infrastructure for India [cite: 98]</p>
+    
+    <div id="view-login" class="glass-card" style="max-width: 420px; margin: 40px auto; padding: 0;">
+        <div style="text-align: center; padding: 40px 30px 20px;">
+            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png" style="width: 60px; margin-bottom: 15px; border-radius: 12px;">
+            <h1 style="font-size: 24px; font-weight: 700; margin: 0;">QueueSmart</h1>
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Time Infrastructure for India</p>
         </div>
 
         <div class="auth-nav">
-            <div id="tab-signin" class="auth-tab active" onclick="window.ui.switchAuthTab('signin')">SIGN IN</div>
-            <div id="tab-signup" class="auth-tab" onclick="window.ui.switchAuthTab('signup')">CREATE ACCOUNT</div>
+            <div id="tab-signin" class="auth-tab active" onclick="window.switchAuth('signin')">SIGN IN</div>
+            <div id="tab-signup" class="auth-tab" onclick="window.switchAuth('signup')">CREATE ACCOUNT</div>
         </div>
 
-        <div style="padding: 0 40px 40px 40px;">
-            
+        <div style="padding: 0 30px 30px;">
             <div id="panel-signin">
-                <button onclick="window.authHandler.googleLogin()" class="btn btn-primary" style="margin-bottom: 20px; background: #fff; color: #000;">
+                <button onclick="window.googleLogin()" class="btn btn-primary" style="margin-bottom: 15px;">
                     <i data-lucide="shield"></i> Continue with Google
                 </button>
+                <div style="text-align: center; color: var(--border); font-size: 10px; margin: 15px 0;">— OR —</div>
                 
-                <div style="text-align: center; margin: 15px 0; color: var(--text-muted); font-size: 10px; position: relative;">
-                    <span style="background: var(--bg-card); padding: 0 10px;">OR USE CREDENTIALS</span>
-                </div>
-                
-                <input type="email" id="login-email" class="input-field" placeholder="Email or Phone Number" style="margin-bottom: 10px;">
-                <input type="password" id="login-pass" class="input-field" placeholder="Password" style="margin-bottom: 20px;">
-                
-                <button onclick="window.authHandler.emailLogin()" class="btn btn-outline" style="margin-bottom: 10px;">Sign In</button>
-                <button onclick="window.authHandler.phoneLogin()" class="btn btn-outline" style="font-size: 11px;">Request OTP (Phone)</button>
+                <input type="email" id="login-email" class="input-field" placeholder="Email Address">
+                <input type="password" id="login-pass" class="input-field" placeholder="Password">
+                <button onclick="window.emailLogin()" class="btn btn-outline">Login</button>
             </div>
 
             <div id="panel-signup" class="hidden">
-                <div style="text-align: center; font-size: 11px; color: var(--text-muted); margin-bottom: 15px;">Join the Digital Queue Network</div>
-                <input type="email" id="reg-email" class="input-field" placeholder="Email Address" style="margin-bottom: 10px;">
-                <input type="text" id="reg-phone" class="input-field" placeholder="Phone Number (Optional)" style="margin-bottom: 10px;">
-                <input type="password" id="reg-pass" class="input-field" placeholder="Create Password (min 6 chars)" style="margin-bottom: 20px;">
-                <button onclick="window.authHandler.emailSignup()" class="btn btn-primary">Create Account</button>
+                <input type="email" id="reg-email" class="input-field" placeholder="Email Address">
+                <input type="password" id="reg-pass" class="input-field" placeholder="Create Password (Min 6 chars)">
+                <button onclick="window.emailSignup()" class="btn btn-primary" style="margin-top: 10px;">Create Account</button>
             </div>
 
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 10px;">
-                <button onclick="window.authHandler.demoLogin('user')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px;">👤 Citizen Demo</button>
-                <button onclick="window.authHandler.demoLogin('admin')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px; color: var(--danger); border-color: rgba(255,71,87,0.3);">🔑 Facility Admin</button>
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: center;">
+                <button onclick="window.demoLogin('user')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 6px 12px;">Demo Citizen</button>
+                <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 6px 12px; color: var(--danger); border-color: rgba(255,0,0,0.2);">Demo Admin</button>
             </div>
-            
-            <div id="recaptcha-container"></div>
         </div>
     </div>
 
-    <div id="view-setup" class="glass-card hidden" style="max-width: 500px; margin: 40px auto;">
-        <h2 style="text-align: center; margin-bottom: 5px;">Citizen Identity</h2>
-        <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-bottom: 30px;">Complete your DPI profile for verification.</p>
+    <div id="view-setup" class="glass-card hidden" style="max-width: 450px; margin: 40px auto; text-align: center;">
+        <h2 style="font-size: 20px; margin-bottom: 5px;">Citizen Identity</h2>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Verify your details to access public facilities.</p>
         
-        <label class="profile-uploader">
-            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=333&color=fff&size=128">
-            <input type="file" hidden accept="image/*" onchange="window.profileHandler.preview(this)">
+        <label style="display: block; width: 80px; height: 80px; border-radius: 50%; background: #111; margin: 0 auto 20px; border: 1px dashed var(--primary); cursor: pointer; overflow: hidden;">
+            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=random" style="width:100%; height:100%; object-fit:cover;">
+            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
         </label>
 
-        <div class="input-group">
-            <label class="dpi-label">Full Name</label>
-            <input type="text" id="setup-name" class="input-field" placeholder="As per official ID">
+        <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
+        
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="setup-age" class="input-field" placeholder="Age">
+            <select id="setup-gender" class="input-field">
+                <option value="">Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
         </div>
+        
+        <input type="text" id="setup-phone" class="input-field" placeholder="Mobile Number (Unique ID)">
+        <input type="text" id="setup-vid" class="input-field" placeholder="Aadhar / Voter ID Number">
+        
+        <p style="font-size: 10px; color: var(--text-muted); text-align: left; margin-top: -5px; margin-bottom: 15px;">
+            <i data-lucide="lock" style="width: 10px; vertical-align: middle;"></i> Data encrypted. Visible only to facility Admins.
+        </p>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="input-group">
-                <label class="dpi-label">Age</label>
-                <input type="number" id="setup-age" class="input-field" placeholder="Years">
-            </div>
-            <div class="input-group">
-                <label class="dpi-label">Gender</label>
-                <select id="setup-gender" class="input-field">
-                    <option value="">Select...</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label class="dpi-label">Verification ID (Aadhar / Voter ID)</label>
-            <input type="text" id="setup-vid" class="input-field" placeholder="XXXX-XXXX-XXXX">
-            <div style="font-size: 10px; color: var(--success); margin-top: 5px; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="lock" style="width: 10px;"></i>
-                Masked for privacy. Visible only to Admins.
-            </div>
-        </div>
-
-        <button onclick="window.profileHandler.save()" class="btn btn-primary" style="margin-top: 20px;">Complete Registration</button>
+        <button onclick="window.saveProfile()" class="btn btn-primary">Complete Registration</button>
     </div>
 
     <div id="view-select" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
             <div>
-                <h1 style="font-size: 26px; font-weight: 900; margin: 0; font-family: var(--font-tech);">FACILITIES HUB</h1>
-                [cite_start]<p style="color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 1px; margin: 5px 0 0 0;">VIKSIT BHARAT NETWORK [cite: 2]</p>
+                <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Facilities Hub</h1>
+                <div style="font-size: 11px; color: var(--primary); font-weight: 600; letter-spacing: 1px; margin-top: 4px;">VIKSIT BHARAT NETWORK</div>
             </div>
-            <div onclick="window.ui.showProfile()" id="nav-profile-pic" style="width: 50px; height: 50px; border-radius: 50%; background: #222; border: 2px solid var(--border); cursor: pointer; background-size: cover; box-shadow: 0 0 15px var(--primary-dim);"></div>
+            <div id="profile-bubble" class="profile-pic" onclick="window.openProfile()"></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-            <button onclick="window.ui.showInfo('about')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="info" style="width: 14px;"></i> ABOUT</button>
-            <button onclick="window.ui.showInfo('manual')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="book-open" style="width: 14px;"></i> MANUAL</button>
-            <button onclick="window.ui.showInfo('motto')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="flag" style="width: 14px;"></i> MOTTO</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+            <button onclick="window.showInfo('about')" class="btn btn-outline" style="font-size: 11px;">About</button>
+            <button onclick="window.showInfo('manual')" class="btn btn-outline" style="font-size: 11px;">Manual</button>
+            <button onclick="window.showInfo('motto')" class="btn btn-outline" style="font-size: 11px;">Motto</button>
         </div>
 
-        <div id="location-list" class="loc-grid">
-            <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--text-muted);">
-                <i data-lucide="loader-2" class="animate-spin"></i><br><br>Syncing Infrastructure...
-            </div>
+        <div id="location-list-container" class="loc-grid">
+            <div style="color: var(--text-muted); text-align: center; padding: 40px; grid-column: 1/-1;">Loading Infrastructure...</div>
         </div>
-
-        <button id="btn-admin-add" class="btn btn-outline hidden" onclick="window.ui.openLocModal(true)" style="margin-top: 40px; border-style: dashed; opacity: 0.6;">
-            [cite_start]<i data-lucide="plus"></i> Register New Facility [cite: 86]
+        
+        <button id="btn-admin-add" class="btn btn-outline hidden" onclick="window.openLocModal(true)" style="margin-top: 30px; border-style: dashed;">
+            <i data-lucide="plus"></i> Register Facility
         </button>
     </div>
 
     <div id="view-dashboard" class="hidden">
-        <button onclick="window.ui.goBack()" class="btn btn-outline" style="width: auto; padding: 8px 15px; margin-bottom: 20px; font-size: 11px;">
-            <i data-lucide="arrow-left" style="width: 14px;"></i> RETURN TO HUB
+        <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 8px 12px; font-size: 11px; margin-bottom: 15px;">
+            <i data-lucide="arrow-left" style="width: 12px;"></i> Back to Hub
         </button>
 
-        <div class="dash-layout">
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="glass-card" style="padding: 0; display: flex; flex-direction: column;">
-                    <div id="dash-img" style="height: 180px; width: 100%; background: #222; background-size: cover; position: relative;">
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, #0e0e12 10%, transparent);">
-                            <h2 id="dash-name" style="margin: 0; font-size: 24px; font-weight: 800;">Loading...</h2>
-                            <div style="display: flex; gap: 10px; margin-top: 8px;">
-                                <span id="dash-status" class="badge closed">OFFLINE</span>
-                                <span id="dash-type" class="badge" style="background: rgba(255,255,255,0.1); color: #fff;">STANDARD</span>
-                            </div>
+        <div class="dash-grid">
+            <div class="glass-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                <div id="dash-img" style="height: 150px; background: #222; background-size: cover; position: relative;">
+                    <div style="position: absolute; bottom: 0; width: 100%; padding: 20px; background: linear-gradient(to top, #0a0a0a, transparent);">
+                        <h2 id="dash-name" style="margin: 0; font-size: 20px;">Location</h2>
+                        <div style="display: flex; gap: 8px; margin-top: 5px;">
+                            <span id="dash-status" class="badge closed">OFFLINE</span>
+                            <span id="dash-type" class="badge" style="background: #222; color: #fff; border: 1px solid #333;">FREE</span>
                         </div>
                     </div>
+                </div>
+                <div style="padding: 24px; flex: 1; display: flex; flex-direction: column;">
+                    <div id="dash-notice" class="hidden" style="background: rgba(255, 170, 0, 0.1); color: var(--warning); padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 15px;"></div>
+                    <p id="dash-desc" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;"></p>
                     
-                    <div style="padding: 25px; flex: 1; display: flex; flex-direction: column;">
-                        <div id="dash-notice" class="hidden" style="background: rgba(255, 170, 0, 0.15); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-                            <i data-lucide="alert-circle" style="width: 16px;"></i> <span id="dash-notice-text"></span>
-                        </div>
-                        
-                        <div style="text-align: center; margin: 10px 0 30px 0;">
-                            <div class="stat-ring">
-                                <span id="dash-count" style="font-size: 64px; font-weight: 900; color: #fff; line-height: 1; font-family: var(--font-tech);">0</span>
-                                <span id="dash-label" style="font-size: 10px; font-weight: 700; color: var(--primary); letter-spacing: 1.5px; margin-top: 5px;">AHEAD OF YOU</span>
-                            </div>
-                            <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
-                                <div style="text-align: center;">
-                                    [cite_start]<span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Est. Wait [cite: 32]</span>
-                                    <div id="dash-time" style="font-size: 18px; font-weight: 700; color: var(--text-main); font-family: var(--font-mono);">--</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Velocity</span>
-                                    <div id="dash-speed" style="font-size: 18px; font-weight: 700; color: var(--success); font-family: var(--font-mono);">Normal</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div class="big-stat" id="dash-count">0</div>
+                        <div class="stat-label">People Ahead</div>
+                        <div style="margin-top: 15px; color: var(--primary); font-weight: 600; font-size: 18px;" id="dash-time">-- min</div>
+                    </div>
 
-                        <button onclick="document.getElementById('chart-wrap').classList.toggle('hidden')" class="btn btn-outline" style="margin-bottom: 15px; font-size: 11px;">
-                            [cite_start]<i data-lucide="bar-chart-2"></i> Toggle Prediction [cite: 33]
-                        </button>
-                        <div id="chart-wrap" class="hidden" style="margin-bottom: 20px;">
-                            <div style="height: 150px;"><canvas id="userChart"></canvas></div>
-                            <div id="dash-ai-msg" style="text-align: center; font-size: 11px; color: var(--success); margin-top: 10px;"></div>
-                        </div>
+                    <button onclick="window.toggleGraph()" class="btn btn-outline" style="font-size: 11px; margin-bottom: 10px;">Show Forecast</button>
+                    <div id="neural-box" class="hidden" style="height: 150px; margin-bottom: 15px;"><canvas id="userChart"></canvas></div>
 
-                        <div style="margin-top: auto;">
-                            [cite_start]<button id="btn-join" onclick="window.queueHandler.join()" class="btn btn-primary">JOIN QUEUE [cite: 56]</button>
-                            <button id="btn-leave" onclick="window.queueHandler.leave()" class="btn btn-danger hidden">LEAVE QUEUE</button>
-                        </div>
+                    <div style="margin-top: auto;">
+                        <button id="btn-join" onclick="window.handleJoin()" class="btn btn-primary">Join Queue</button>
+                        <button id="btn-leave" onclick="window.leaveQueue()" class="btn btn-danger hidden">Leave Queue</button>
                     </div>
                 </div>
             </div>
 
-            <div class="chat-panel">
-                <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                    [cite_start]<span style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: var(--text-muted);">COMMUNITY [cite: 34]</span>
-                    <span class="badge open" style="font-size: 8px;">LIVE</span>
-                </div>
-                <div id="location-chat-box" class="chat-box"></div>
-                <div style="padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px;">
-                    <input type="text" id="chat-input" class="input-field" placeholder="Ask the crowd..." style="margin-bottom: 0; font-size: 13px;">
-                    <button onclick="window.chatHandler.send()" class="btn btn-primary" style="width: auto; padding: 0 12px;"><i data-lucide="send" style="width: 16px;"></i></button>
+            <div class="glass-card" style="display: flex; flex-direction: column; height: 500px; padding: 0;">
+                <div style="padding: 15px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600;">COMMUNITY FEED</div>
+                <div id="chat-box" style="flex: 1; overflow-y: auto; padding: 15px; font-size: 13px;"></div>
+                <div style="padding: 10px; display: flex; gap: 8px; border-top: 1px solid var(--border);">
+                    <input id="chat-input" type="text" class="input-field" style="margin: 0;" placeholder="Updates...">
+                    <button onclick="window.sendChat()" class="btn btn-primary" style="width: auto; padding: 0 12px;"><i data-lucide="send" style="width: 14px;"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="view-god-mode" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <div>
-                <h2 style="margin: 0; color: var(--primary); font-weight: 900; font-size: 24px; font-family: var(--font-tech); letter-spacing: 1px;">COMMAND CENTER</h2>
-                <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">FACILITY ID: <span id="god-loc-id">...</span></div>
-            </div>
-            <button onclick="window.ui.goBack()" class="btn btn-outline" style="width: auto; padding: 10px 20px; font-size: 11px;">EXIT CONSOLE</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <h2 style="color: var(--primary); margin: 0;">COMMAND CENTER</h2>
+            <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 11px;">Exit</button>
         </div>
-
         <div class="god-grid">
-            <div class="glass-card" style="display: flex; flex-direction: column; max-height: 600px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                    <h4 style="margin: 0; font-size: 13px; text-transform: uppercase;">Citizen Queue</h4>
-                    <div>
-                        <button onclick="window.ui.openLocModal(false)" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; display: inline-flex;"><i data-lucide="edit-2" style="width: 10px;"></i> Edit</button>
-                        <button onclick="window.adminHandler.nuke()" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; color: var(--danger); border-color: rgba(255,71,87,0.3); display: inline-flex;">Reset</button>
-                    </div>
+            <div class="glass-card" style="height: 600px; display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <h4>Active Citizens</h4>
+                    <button onclick="window.resetQueue()" class="btn btn-outline" style="width: auto; font-size: 10px; color: var(--danger); border-color: #333;">RESET</button>
                 </div>
                 <div id="god-list" style="flex: 1; overflow-y: auto;"></div>
             </div>
-
+            
             <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="glass-card" style="padding: 20px;">
-                    [cite_start]<h5 style="margin: 0 0 15px 0; font-size: 11px; color: var(--text-muted);">CROWD DENSITY [cite: 25]</h5>
-                    <div style="height: 150px; width: 100%;"><canvas id="adminChart"></canvas></div>
+                <div class="glass-card">
+                    <h4>Analytics</h4>
+                    <div style="height: 150px;"><canvas id="adminChart"></canvas></div>
                 </div>
-
-                <div id="god-alert" class="glass-card hidden" style="background: rgba(255, 71, 87, 0.1); border-color: var(--danger); padding: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px; color: var(--danger);">
-                        <i data-lucide="alert-triangle"></i>
-                        <span style="font-weight: 700; font-size: 12px; flex: 1;">OVERCROWDING DETECTED</span>
-                        <button onclick="window.adminHandler.lock()" class="btn btn-danger" style="width: auto; font-size: 10px; padding: 6px 12px;">LOCK</button>
-                    </div>
-                </div>
-
                 <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid var(--primary);">
-                    <div class="cam-feed">
-                        <div style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary); font-size: 10px; color: var(--primary); font-family: var(--font-mono); display: flex; gap: 5px;">
-                            [cite_start]<i data-lucide="eye" style="width: 10px;"></i> EDGE AI [cite: 22]
-                        </div>
-                        <video id="webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <canvas id="cam-overlay" class="ai-hud"></canvas>
+                    <div class="cam-wrapper">
+                        <video id="webcam" autoplay playsinline muted></video>
+                        <canvas id="cam-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px; border-radius: 4px; font-size: 10px; color: var(--primary);">EDGE AI</div>
                     </div>
-                    <div style="padding: 15px; background: rgba(0,0,0,0.6); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 11px;">Count: <b id="cam-count" style="font-size: 16px; color: var(--primary);">0</b></div>
-                        <button id="btn-cam" onclick="window.aiHandler.toggle()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 10px;">ACTIVATE</button>
+                    <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px;">Detected: <b id="cam-count" style="color: var(--primary);">0</b></span>
+                        <button id="btn-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px;">ACTIVATE</button>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card" style="display: flex; flex-direction: column;">
-                <h4 style="margin: 0 0 15px 0; font-size: 13px; text-transform: uppercase;">Audit Logs</h4>
-                <div id="god-logs" style="flex: 1; overflow-y: auto; font-family: var(--font-data); font-size: 10px; color: var(--text-muted);"></div>
+            <div class="glass-card">
+                <h4>Audit Logs</h4>
+                <div id="god-logs" style="font-family: 'JetBrains Mono'; font-size: 10px; color: var(--text-muted); overflow-y: auto; height: 100%;"></div>
             </div>
         </div>
     </div>
@@ -520,84 +308,55 @@
 </div>
 
 <div id="modal-profile" class="modal-overlay hidden">
-    <div class="dpi-card">
-        <div class="dpi-strip"></div>
-        <div class="dpi-body">
-            <div class="dpi-watermark">Q</div>
-            <div class="dpi-chip"></div>
-            
-            <div style="display: flex; gap: 20px; margin-bottom: 25px;">
-                <img id="card-img" src="" style="width: 90px; height: 100px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); object-fit: cover;">
-                <div style="flex: 1;">
-                    <span class="dpi-label">Citizen Name</span>
-                    <span id="card-name" class="dpi-value" style="font-size: 18px; font-weight: 700;">--</span>
-                    <span class="dpi-label" style="margin-top: 10px;">Verification ID</span>
-                    <span id="card-vid" class="dpi-value" style="color: var(--primary);">--</span>
-                </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
-                <div><span class="dpi-label">Age</span><span id="card-age" class="dpi-value">--</span></div>
-                <div><span class="dpi-label">Gender</span><span id="card-gender" class="dpi-value">--</span></div>
-            </div>
+    <div class="glass-card" style="max-width: 350px; text-align: center; border: 1px solid var(--primary);">
+        <div style="width: 100%; height: 5px; background: linear-gradient(90deg, #FF9933, #fff, #138808); margin-bottom: 20px;"></div>
+        <img id="card-img" src="" style="width: 80px; height: 80px; border-radius: 8px; margin-bottom: 15px; object-fit: cover; border: 1px solid #333;">
+        <h3 id="card-name" style="margin: 0;">--</h3>
+        <div style="font-size: 11px; color: var(--success); margin-bottom: 15px;">VERIFIED CITIZEN</div>
+        
+        <div style="text-align: left; background: #111; padding: 15px; border-radius: 8px; font-size: 12px; border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Age:</span> <span id="card-age">--</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Gender:</span> <span id="card-gender">--</span></div>
+            <div style="display: flex; justify-content: space-between; color: var(--text-muted);"><span>Mobile:</span> <span id="card-phone">--</span></div>
+            <div style="display: flex; justify-content: space-between; color: var(--text-muted);"><span>ID:</span> <span id="card-vid" style="font-family:'JetBrains Mono'">--</span></div>
         </div>
-        <div style="padding: 15px; background: rgba(0,0,0,0.5); display: flex; gap: 10px; justify-content: flex-end;">
-            <button onclick="window.authHandler.logout()" class="btn btn-danger" style="width: auto; font-size: 10px; padding: 8px 15px;">Sign Out</button>
-            <button onclick="window.ui.closeModal('modal-profile')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 15px;">Close</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-edit-loc" class="modal-overlay hidden">
-    <div class="glass-card" style="max-width: 420px;">
-        <h3 style="margin-top: 0; color: var(--primary);">Facility Config</h3>
-        <input type="hidden" id="conf-id">
-        <div class="input-group"><span class="dpi-label">Name</span><input type="text" id="conf-name" class="input-field"></div>
-        <div class="input-group"><span class="dpi-label">Image URL</span><input type="text" id="conf-img" class="input-field"></div>
-        <div class="input-group"><span class="dpi-label">Description</span><input type="text" id="conf-desc" class="input-field"></div>
-        <div class="input-group"><span class="dpi-label">Public Notice</span><input type="text" id="conf-notice" class="input-field"></div>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <div style="flex:1"><span class="dpi-label">Open</span><input type="time" id="conf-open" class="input-field"></div>
-            <div style="flex:1"><span class="dpi-label">Close</span><input type="time" id="conf-close" class="input-field"></div>
-        </div>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
-            <span class="dpi-label" style="color: var(--primary);">Access Control</span>
-            <select id="conf-type" class="input-field" onchange="window.ui.togglePay()">
-                <option value="free">Free Entry</option>
-                <option value="paid">Paid Reservation</option>
-            </select>
-            <div id="conf-pay" class="hidden" style="margin-top: 10px;">
-                <input type="text" id="conf-upi" class="input-field" placeholder="UPI ID" style="margin-bottom: 10px;">
-                <input type="number" id="conf-price" class="input-field" placeholder="Amount (₹)">
-            </div>
-        </div>
-        <button onclick="window.adminHandler.saveLoc()" class="btn btn-primary">Save Changes</button>
-        <button onclick="window.ui.closeModal('modal-edit-loc')" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
-    </div>
-</div>
-
-<div id="modal-pay" class="modal-overlay hidden">
-    <div class="glass-card" style="max-width: 360px; text-align: center;">
-        <h3 style="color: var(--primary); margin-top: 0;">Secure Reservation</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Booking Fee: <b style="color:#fff; font-size: 18px;" id="pay-amt">₹0</b></p>
-        <div style="background: #fff; padding: 15px; border-radius: 16px; margin-bottom: 20px; display: inline-block;">
-            <div id="pay-qr"></div>
-        </div>
-        <button id="btn-pay-upi" class="btn btn-upi" style="margin-bottom: 20px;">PAY VIA UPI</button>
-        <div class="input-group">
-            <span class="dpi-label">Ref ID (Last 4 digits)</span>
-            <input type="text" id="pay-txn" class="input-field" placeholder="xxxx">
-        </div>
-        <button onclick="window.queueHandler.verifyPay()" class="btn btn-primary">Verify & Join</button>
-        <button onclick="window.ui.closeModal('modal-pay')" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+        
+        <button onclick="window.logout()" class="btn btn-danger" style="margin-top: 20px;">Sign Out</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Close</button>
     </div>
 </div>
 
 <div id="modal-info" class="modal-overlay hidden">
-    <div class="glass-card" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
-        <h3 id="info-head" style="color: var(--primary); margin-top: 0; font-family: var(--font-tech); text-transform: uppercase;"></h3>
-        <div id="info-body" style="font-size: 14px; line-height: 1.7; color: #ccc;"></div>
-        <button onclick="window.ui.closeModal('modal-info')" class="btn btn-primary" style="margin-top: 20px;">Close</button>
+    <div class="glass-card" style="max-width: 400px;">
+        <h3 id="info-title" style="color: var(--primary); margin-top: 0;"></h3>
+        <div id="info-content" style="font-size: 13px; line-height: 1.6; color: #ccc;"></div>
+        <button onclick="window.closeModals()" class="btn btn-primary" style="margin-top: 20px;">Close</button>
+    </div>
+</div>
+
+<div id="modal-loc" class="modal-overlay hidden">
+    <div class="glass-card" style="max-width: 400px;">
+        <h3>Facility Config</h3>
+        <input id="loc-id" type="hidden">
+        <input id="loc-name" class="input-field" placeholder="Name">
+        <input id="loc-img" class="input-field" placeholder="Image URL">
+        <input id="loc-desc" class="input-field" placeholder="Description">
+        <input id="loc-notice" class="input-field" placeholder="Public Notice">
+        <div style="display: flex; gap: 10px;">
+            <input id="loc-open" type="time" class="input-field">
+            <input id="loc-close" type="time" class="input-field">
+        </div>
+        <select id="loc-type" class="input-field" onchange="window.togglePay()">
+            <option value="free">Free Entry</option>
+            <option value="paid">Paid Reservation</option>
+        </select>
+        <div id="loc-pay-fields" class="hidden">
+            <input id="loc-upi" class="input-field" placeholder="UPI ID">
+            <input id="loc-price" type="number" class="input-field" placeholder="Price">
+        </div>
+        
+        <button onclick="window.saveLoc()" class="btn btn-primary">Save Config</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
 
@@ -606,7 +365,7 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 1. FIREBASE CONFIG
+    // --- CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
       authDomain: "queuesmart-c3c28.firebaseapp.com",
@@ -622,455 +381,349 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 2. STATE
-    const state = {
-        user: null, isAdmin: false, locId: null, locData: null,
-        unsubs: [], chart: null, adminChart: null, aiModel: null, 
-        camActive: false, camInterval: null, tempImg: null
-    };
+    let currentUser = null, isAdmin = false, currentLocId = null, currentLocData = null;
+    let locUnsub = null, qUnsub = null, chatUnsub = null;
+    let aiModel = null, camInterval = null, isCamActive = false;
+    let tempImg = null, adminChart = null, userChart = null;
 
-    // 3. UI HANDLER
-    window.ui = {
-        el: (id) => document.getElementById(id),
-        
-        showView: (vid) => {
-            ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(id => window.ui.el(id).classList.add('hidden'));
-            window.ui.el(vid).classList.remove('hidden');
-            window.scrollTo(0,0);
-        },
-
-        openModal: (id) => window.ui.el(id).classList.remove('hidden'),
-        closeModal: (id) => window.ui.el(id).classList.add('hidden'),
-        goBack: () => location.reload(),
-
-        switchAuthTab: (tab) => {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            window.ui.el('tab-'+tab).classList.add('active');
-            if(tab === 'signin') {
-                window.ui.el('panel-signin').classList.remove('hidden');
-                window.ui.el('panel-signup').classList.add('hidden');
-            } else {
-                window.ui.el('panel-signin').classList.add('hidden');
-                window.ui.el('panel-signup').classList.remove('hidden');
-            }
-        },
-
-        togglePay: () => {
-            if(window.ui.el('conf-type').value === 'paid') window.ui.el('conf-pay').classList.remove('hidden');
-            else window.ui.el('conf-pay').classList.add('hidden');
-        },
-
-        showInfo: (type) => {
-            const h = window.ui.el('info-head'); const b = window.ui.el('info-body');
-            if(type==='about') {
-                h.innerText = "Vision: Viksit Bharat";
-                b.innerHTML = "India pays an 'Invisible Tax' in lost time. QueueSmart transforms manual queues into digital systems.";
-            } else if(type==='help') {
-                h.innerText = "Manual";
-                b.innerHTML = "1. Scan QR.<br>2. Choose Free/Paid entry.<br>3. Wait comfortably.<br>4. AI predicts traffic.";
-            } else {
-                h.innerText = "Mission";
-                b.innerHTML = "Queuing is not inevitable. It is a solvable data problem.";
-            }
-            window.ui.openModal('modal-info');
-        },
-
-        showProfile: async (uid = null) => {
-            const targetUid = uid || state.user.uid;
-            const snap = await getDoc(doc(db, "users", targetUid));
-            if(!snap.exists()) return;
-            const d = snap.data();
-            
-            window.ui.el('card-name').innerText = d.name;
-            window.ui.el('card-img').src = d.photoURL;
-            window.ui.el('card-age').innerText = d.age || '-';
-            window.ui.el('card-gender').innerText = d.gender || '-';
-            
-            let vidText = "MASKED";
-            if(state.isAdmin) {
-                vidText = d.vid || "N/A";
-                window.ui.el('card-vid').style.color = "#00ff9d";
-            } else {
-                if(d.vid && d.vid.length > 4) vidText = "XXXX-" + d.vid.slice(-4);
-                window.ui.el('card-vid').style.color = "var(--primary)";
-            }
-            window.ui.el('card-vid').innerText = vidText;
-            window.ui.openModal('modal-profile');
-        },
-
-        openLocModal: (isNew) => {
-            if(isNew) {
-                window.ui.el('conf-id').value = "";
-                window.ui.el('conf-name').value = "";
-                window.ui.el('conf-img').value = "";
-                window.ui.el('conf-desc').value = "";
-                window.ui.el('conf-notice').value = "";
-                window.ui.el('conf-type').value = "free";
-            }
-            window.ui.openModal('modal-edit-loc');
+    // --- HELPER FUNCTIONS ATTACHED TO WINDOW ---
+    window.switchAuth = (tab) => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+tab).classList.add('active');
+        if(tab === 'signin') {
+            document.getElementById('panel-signin').classList.remove('hidden');
+            document.getElementById('panel-signup').classList.add('hidden');
+        } else {
+            document.getElementById('panel-signin').classList.add('hidden');
+            document.getElementById('panel-signup').classList.remove('hidden');
         }
     };
 
-    // 4. AUTH HANDLER
-    window.authHandler = {
-        googleLogin: async () => { try { await signInWithPopup(auth, provider); } catch(e){ alert(e.message); } },
-        
-        emailLogin: async () => {
-            const e = window.ui.el('login-email').value; const p = window.ui.el('login-pass').value;
-            try { await signInWithEmailAndPassword(auth, e, p); } catch(err) { alert(err.message); }
-        },
-
-        emailSignup: async () => {
-            const e = window.ui.el('reg-email').value; const p = window.ui.el('reg-pass').value;
-            try { await createUserWithEmailAndPassword(auth, e, p); } catch(err) { alert(err.message); }
-        },
-
-        phoneLogin: () => { alert("Simulated Phone Auth: OTP sent to mobile."); },
-
-        demoLogin: async (role) => {
-            if(role==='admin' && prompt("PIN:")!=="queuesmart90") return;
-            const c = await signInAnonymously(auth);
-            await setDoc(doc(db, "users", c.user.uid), {
-                uid: c.user.uid, name: role==='admin'?"Admin Demo":"User Demo",
-                role: role, photoURL: `https://ui-avatars.com/api/?name=${role}`, isDemo: true
-            });
-            location.reload();
-        },
-        logout: () => signOut(auth).then(()=>location.reload())
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    
+    window.goBack = () => location.reload();
+    
+    window.toggleGraph = () => document.getElementById('neural-box').classList.toggle('hidden');
+    
+    window.togglePay = () => {
+        const t = document.getElementById('loc-type').value;
+        if(t === 'paid') document.getElementById('loc-pay-fields').classList.remove('hidden');
+        else document.getElementById('loc-pay-fields').classList.add('hidden');
     };
 
-    // 5. PROFILE HANDLER
-    window.profileHandler = {
-        preview: (inp) => {
-            if(inp.files[0]) {
-                const r = new FileReader();
-                r.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-                        c.width = 150; c.height = 150; ctx.drawImage(img,0,0,150,150);
-                        state.tempImg = c.toDataURL('image/jpeg', 0.8);
-                        window.ui.el('setup-preview').src = state.tempImg;
-                    }
-                };
-                r.readAsDataURL(inp.files[0]);
-            }
-        },
-        save: async () => {
-            const n = window.ui.el('setup-name').value;
-            const a = window.ui.el('setup-age').value;
-            const g = window.ui.el('setup-gender').value;
-            const v = window.ui.el('setup-vid').value;
-            if(!n || !v) return alert("Verification fields required");
-            
-            await setDoc(doc(db, "users", state.user.uid), {
-                uid: state.user.uid, name: n, age: a, gender: g, vid: v,
-                photoURL: state.tempImg || `https://ui-avatars.com/api/?name=${n}`,
-                role: 'user', createdAt: serverTimestamp()
-            });
-            location.reload();
+    window.showInfo = (type) => {
+        const title = document.getElementById('info-title');
+        const body = document.getElementById('info-content');
+        if(type === 'about') {
+            title.innerText = "Vision: Viksit Bharat";
+            body.innerText = "India pays a massive 'Invisible Tax' daily in lost time. QueueSmart transforms chaotic physical queues into data-driven digital systems, returning dignity to citizens.";
+        } else if(type === 'manual') {
+            title.innerText = "User Manual";
+            body.innerHTML = "1. Sign In or Create Account.<br>2. Select Facility from Hub.<br>3. Join Queue (Free or Paid).<br>4. Wait remotely; AI predicts your time.<br>5. Arrive when notified.";
+        } else {
+            title.innerText = "Mission";
+            body.innerText = "Queuing is not a cultural inevitability - it's a solvable data problem. We are the Virtual Line for India.";
+        }
+        document.getElementById('modal-info').classList.remove('hidden');
+    };
+
+    // --- AUTH ---
+    window.googleLogin = async () => { try { await signInWithPopup(auth, provider); } catch(e){ alert(e.message); } };
+    window.emailLogin = async () => {
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } 
+        catch(e){ alert(e.message); }
+    };
+    window.emailSignup = async () => {
+        try { await createUserWithEmailAndPassword(auth, document.getElementById('reg-email').value, document.getElementById('reg-pass').value); } 
+        catch(e){ alert(e.message); }
+    };
+    
+    window.demoLogin = async (role) => {
+        if(role==='admin' && prompt("Enter PIN:")!=="queuesmart90") return;
+        const c = await signInAnonymously(auth);
+        await setDoc(doc(db, "users", c.user.uid), {
+            uid: c.user.uid, name: role==='admin'?"Demo Admin":"Demo Citizen",
+            role: role, isDemo: true, photoURL: `https://ui-avatars.com/api/?name=${role}`,
+            phone: '000-000-0000', vid: 'DEMO-1234'
+        });
+        location.reload();
+    };
+
+    window.logout = () => signOut(auth).then(()=>location.reload());
+
+    // --- PROFILE ---
+    window.handleImageUpload = (input, target) => {
+        if(input.files[0]) {
+            const r = new FileReader();
+            r.onload = (e) => { tempImg = e.target.result; document.getElementById(target).src = tempImg; };
+            r.readAsDataURL(input.files[0]);
         }
     };
 
-    // 6. QUEUE HANDLER
-    window.queueHandler = {
-        loadList: () => {
-            const l = window.ui.el('location-list');
-            state.unsubs.push(onSnapshot(collection(db, "locations"), (snap) => {
-                l.innerHTML = "";
-                snap.forEach(d => {
-                    const loc = d.data();
-                    const isOpen = window.logic.isOpen(loc);
-                    const div = document.createElement('div'); div.className = 'loc-card';
-                    div.onclick = () => window.logic.selectLoc(d.id);
-                    div.innerHTML = `
-                        <div class="loc-img-box"><img src="${loc.imageURL}" class="loc-img"></div>
-                        <div class="loc-overlay"><h3 style="margin:0; text-shadow:0 2px 4px #000;">${loc.name}</h3></div>
-                        <div class="loc-footer">
-                            <span class="badge ${isOpen?'open':'closed'}">${isOpen?'OPEN':'CLOSED'}</span>
-                            <span style="font-size:10px;">${loc.bookingType.toUpperCase()}</span>
-                        </div>
-                    `;
-                    l.appendChild(div);
-                });
-            }));
-        },
+    window.saveProfile = async () => {
+        const name = document.getElementById('setup-name').value;
+        const vid = document.getElementById('setup-vid').value;
+        const phone = document.getElementById('setup-phone').value;
+        if(!name || !vid || !phone) return alert("All fields required");
+        
+        await setDoc(doc(db, "users", currentUser.uid), {
+            uid: currentUser.uid, name, vid, phone,
+            age: document.getElementById('setup-age').value,
+            gender: document.getElementById('setup-gender').value,
+            photoURL: tempImg || `https://ui-avatars.com/api/?name=${name}`,
+            role: 'user', createdAt: serverTimestamp()
+        });
+        location.reload();
+    };
 
-        initDash: (id) => {
-            // Loc Data
-            state.unsubs.push(onSnapshot(doc(db, "locations", id), (s) => {
-                if(!s.exists()) return;
-                const d = s.data(); state.locData = d;
-                window.ui.el('dash-name').innerText = d.name;
-                window.ui.el('dash-desc').innerText = d.description || "";
-                window.ui.el('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
+    window.openProfile = async (uid = null) => {
+        const target = uid || currentUser.uid;
+        const snap = await getDoc(doc(db, "users", target));
+        if(!snap.exists()) return;
+        const d = snap.data();
+        
+        document.getElementById('card-name').innerText = d.name;
+        document.getElementById('card-img').src = d.photoURL;
+        document.getElementById('card-age').innerText = d.age || '-';
+        document.getElementById('card-gender').innerText = d.gender || '-';
+        document.getElementById('card-phone').innerText = d.phone || '-';
+        
+        // Mask ID unless Admin
+        if(isAdmin) document.getElementById('card-vid').innerText = d.vid;
+        else document.getElementById('card-vid').innerText = d.vid ? "XXXX-" + d.vid.slice(-4) : "HIDDEN";
+        
+        document.getElementById('modal-profile').classList.remove('hidden');
+    };
+
+    // --- CORE LOGIC ---
+    window.loadLocationsList = () => {
+        const l = document.getElementById('location-list-container');
+        onSnapshot(collection(db, "locations"), (snap) => {
+            l.innerHTML = "";
+            snap.forEach(d => {
+                const loc = d.data();
+                const div = document.createElement('div'); div.className = 'loc-card';
+                div.onclick = () => window.selectLocation(d.id);
+                div.innerHTML = `
+                    <div style="height:140px; overflow:hidden;"><img src="${loc.imageURL}" style="width:100%; height:100%; object-fit:cover;"></div>
+                    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <strong>${loc.name}</strong>
+                        <span class="badge ${loc.status==='open'?'open':'closed'}">${loc.status.toUpperCase()}</span>
+                    </div>`;
+                l.appendChild(div);
+            });
+        });
+    };
+
+    window.selectLocation = (id) => {
+        currentLocId = id;
+        document.getElementById('view-select').classList.add('hidden');
+        if(isAdmin) {
+            document.getElementById('view-god-mode').classList.remove('hidden');
+            document.getElementById('god-loc-id').innerText = id;
+            window.initGodMode(id);
+        } else {
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            window.initDashboard(id);
+        }
+    };
+
+    window.initDashboard = (id) => {
+        if(locUnsub) locUnsub();
+        locUnsub = onSnapshot(doc(db, "locations", id), (s) => {
+            if(!s.exists()) return;
+            const d = s.data(); currentLocData = d;
+            document.getElementById('dash-name').innerText = d.name;
+            document.getElementById('dash-desc').innerText = d.description;
+            document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
+            
+            const isOpen = (d.status === 'open');
+            const btn = document.getElementById('btn-join');
+            if(!isOpen) { btn.disabled = true; btn.innerText = "CLOSED"; }
+            else { btn.disabled = false; btn.innerText = d.bookingType === 'paid' ? "BOOK SLOT" : "JOIN QUEUE"; }
+            
+            if(d.notice) { 
+                document.getElementById('dash-notice').classList.remove('hidden'); 
+                document.getElementById('dash-notice').innerText = d.notice; 
+            }
+        });
+
+        if(qUnsub) qUnsub();
+        qUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
+            const docs = s.docs.map(x=>x.data());
+            const myPos = docs.findIndex(x => x.uid === currentUser.uid);
+            
+            if(myPos !== -1) {
+                document.getElementById('dash-count').innerText = myPos;
+                document.getElementById('dash-time').innerText = `~${(myPos+1)*5} min`;
+                document.getElementById('btn-join').classList.add('hidden');
+                document.getElementById('btn-leave').classList.remove('hidden');
+            } else {
+                document.getElementById('dash-count').innerText = docs.length;
+                document.getElementById('dash-time').innerText = "--";
+                document.getElementById('btn-join').classList.remove('hidden');
+                document.getElementById('btn-leave').classList.add('hidden');
+            }
+            window.renderUserChart(docs.length);
+        });
+        
+        window.initChat(id);
+    };
+
+    window.handleJoin = async () => {
+        if(!currentLocData) return;
+        if(currentLocData.bookingType === 'paid') alert("Payment Gateway: Verified."); // Mock
+        await addDoc(collection(db, "queue"), { uid: currentUser.uid, locationId: currentLocId, timestamp: serverTimestamp(), txn: 'free' });
+    };
+
+    window.leaveQueue = async () => {
+        const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
+        const s = await getDocs(q);
+        s.forEach(d => deleteDoc(d.ref));
+    };
+
+    window.initChat = (id) => {
+        if(chatUnsub) chatUnsub();
+        const b = document.getElementById('chat-box');
+        chatUnsub = onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc")), (s) => {
+            b.innerHTML = "";
+            s.forEach(d => {
+                const c = d.data();
+                b.innerHTML += `<div class="chat-msg"><img class="chat-avatar" src="${c.userPhoto}"><div class="chat-bubble"><div class="chat-header">${c.userName}</div>${c.text}</div></div>`;
+            });
+            b.scrollTop = b.scrollHeight;
+        });
+    };
+
+    window.sendChat = async () => {
+        const t = document.getElementById('chat-input').value; if(!t) return;
+        const u = (await getDoc(doc(db, "users", currentUser.uid))).data();
+        await addDoc(collection(db, "comments"), { locationId: currentLocId, text: t, uid: currentUser.uid, userName: u.name, userPhoto: u.photoURL, timestamp: serverTimestamp() });
+        document.getElementById('chat-input').value = "";
+    };
+
+    // --- ADMIN ---
+    window.initGodMode = (id) => {
+        onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
+            const l = document.getElementById('god-list'); l.innerHTML = "";
+            for(const d of s.docs) {
+                const q = d.data();
+                let name = "Loading...";
+                try { const u = await getDoc(doc(db, "users", q.uid)); if(u.exists()) name = u.data().name; } catch(e){}
                 
-                const open = window.logic.isOpen(d);
-                window.ui.el('dash-status').innerText = open?"ONLINE":"OFFLINE";
-                window.ui.el('dash-status').className = `badge ${open?'open':'closed'}`;
-                window.ui.el('dash-type').innerText = d.bookingType.toUpperCase();
-
-                if(d.notice) {
-                    window.ui.el('dash-notice').classList.remove('hidden');
-                    window.ui.el('dash-notice-text').innerText = d.notice;
-                }
-
-                const btn = window.ui.el('btn-join');
-                if(!open) { btn.disabled=true; btn.innerText="CLOSED"; btn.style.opacity=0.5; }
-                else { btn.disabled=false; btn.style.opacity=1; btn.innerText = d.bookingType==='paid'?`BOOK (₹${d.ticketPrice})`:"JOIN QUEUE"; }
-            }));
-
-            // Queue
-            state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
-                const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=>a.timestamp-b.timestamp);
-                const pos = docs.findIndex(x => x.uid === state.user.uid);
-                
-                if(pos !== -1) {
-                    window.ui.el('dash-count').innerText = pos; 
-                    window.ui.el('dash-label').innerText = "PEOPLE AHEAD";
-                    window.ui.el('dash-time').innerText = `~${(pos+1)*5} min`;
-                    window.ui.el('btn-join').classList.add('hidden');
-                    window.ui.el('btn-leave').classList.remove('hidden');
-                } else {
-                    window.ui.el('dash-count').innerText = docs.length;
-                    window.ui.el('dash-label').innerText = "TOTAL IN LINE";
-                    window.ui.el('dash-time').innerText = "--";
-                    window.ui.el('btn-join').classList.remove('hidden');
-                    window.ui.el('btn-leave').classList.add('hidden');
-                }
-                window.logic.updateChart(docs.length);
-            }));
-            
-            window.logic.initChat(id);
-        },
-
-        join: () => {
-            if(state.locData.bookingType === 'paid') {
-                window.ui.el('pay-amt').innerText = "₹"+state.locData.ticketPrice;
-                const link = `upi://pay?pa=${state.locData.upiId}&pn=QueueSmart&am=${state.locData.ticketPrice}&cu=INR`;
-                window.ui.el('pay-qr').innerHTML = "";
-                new QRCode(window.ui.el('pay-qr'), { text: link, width: 128, height: 128 });
-                window.ui.el('btn-pay-upi').onclick = () => window.location.href = link;
-                window.ui.openModal('modal-pay');
-            } else {
-                window.queueHandler.add();
+                const div = document.createElement('div');
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333"; div.style.display = "flex"; div.style.justifyContent = "space-between";
+                div.innerHTML = `<span>${name}</span> <div><button onclick="window.openProfile('${q.uid}')">👁️</button> <button onclick="window.adminAct('${d.id}')">✅</button></div>`;
+                l.appendChild(div);
             }
-        },
-
-        verifyPay: () => {
-            if(window.ui.el('pay-txn').value.length < 4) return alert("Invalid Ref ID");
-            window.queueHandler.add(window.ui.el('pay-txn').value);
-            window.ui.closeModal('modal-pay');
-        },
-
-        add: async (txn = null) => {
-            await addDoc(collection(db, "queue"), {
-                uid: state.user.uid, locationId: state.locId, timestamp: serverTimestamp(), txn: txn || 'free'
-            });
-            await addDoc(collection(db, "logs"), {
-                locationId: state.locId, action: "JOIN", user: state.user.uid, timestamp: serverTimestamp()
-            });
-        },
-
-        leave: async () => {
-            const q = query(collection(db, "queue"), where("uid", "==", state.user.uid), where("locationId", "==", state.locId));
-            const s = await getDocs(q);
-            s.forEach(d => deleteDoc(d.ref));
-        }
-    };
-
-    // 7. ADMIN HANDLER
-    window.adminHandler = {
-        init: (id) => {
-            // Queue List with "Inspect" Button
-            state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
-                const l = window.ui.el('god-list'); l.innerHTML = "";
-                for(const d of s.docs) {
-                    const q = d.data();
-                    let u = { name: "Loading..." };
-                    try { const us = await getDoc(doc(db, "users", q.uid)); if(us.exists()) u = us.data(); } catch(e){}
-                    
-                    const div = document.createElement('div');
-                    div.style.cssText = "padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
-                    div.innerHTML = `
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <img src="${u.photoURL}" style="width:30px; height:30px; border-radius:50%;">
-                            <div>
-                                <div style="font-size:13px; font-weight:700;">${u.name}</div>
-                                <div style="font-size:10px; color:var(--primary); font-family:var(--font-mono);">${q.txn!=='free'?'PAID':'FREE'}</div>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="window.ui.showProfile('${q.uid}')" class="btn btn-outline" style="padding:6px;" title="Inspect ID"><i data-lucide="eye" style="width:14px;"></i></button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'serve')" style="background:var(--success); border:none; border-radius:4px; padding:6px; color:#000;">✓</button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'kick')" style="background:var(--danger); border:none; border-radius:4px; padding:6px; color:#fff;">✕</button>
-                        </div>
-                    `;
-                    l.appendChild(div);
-                }
-            }));
-            
-            // Logs
-            state.unsubs.push(onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp","desc"), limit(20)), (s) => {
-                const gl = window.ui.el('god-logs'); gl.innerHTML = "";
-                s.forEach(d => {
-                    const l = d.data();
-                    const div = document.createElement('div');
-                    div.style.cssText = "padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.1); font-family:var(--font-data); font-size:10px; color:#aaa;";
-                    div.innerText = `[${l.timestamp ? new Date(l.timestamp.seconds*1000).toLocaleTimeString() : 'NOW'}] ${l.action}`;
-                    gl.appendChild(div);
-                });
-            }));
-        },
-
-        act: async (qid, type) => {
-            await deleteDoc(doc(db, "queue", qid));
-            await addDoc(collection(db, "logs"), { locationId: state.locId, action: type.toUpperCase(), timestamp: serverTimestamp() });
-        },
-
-        nuke: async () => {
-            if(!confirm("Reset entire queue?")) return;
-            const q = query(collection(db, "queue"), where("locationId", "==", state.locId));
-            const s = await getDocs(q);
-            const b = writeBatch(db);
-            s.forEach(d => b.delete(d.ref));
-            await b.commit();
-        },
-
-        saveLoc: async () => {
-            const id = window.ui.el('conf-id').value;
-            const data = {
-                name: window.ui.el('conf-name').value,
-                imageURL: window.ui.el('conf-img').value,
-                description: window.ui.el('conf-desc').value,
-                notice: window.ui.el('conf-notice').value,
-                openTime: window.ui.el('conf-open').value,
-                closeTime: window.ui.el('conf-close').value,
-                bookingType: window.ui.el('conf-type').value,
-                upiId: window.ui.el('conf-upi').value,
-                ticketPrice: window.ui.el('conf-price').value
-            };
-            if(id) await updateDoc(doc(db, "locations", id), data);
-            else { data.status = 'open'; await addDoc(collection(db, "locations"), data); }
-            window.ui.closeModal('modal-edit-loc');
-        },
+            window.renderAdminChart(s.size);
+        });
         
-        lock: async () => updateDoc(doc(db, "locations", state.locId), { status: 'closed', notice: 'Emergency Lockdown' })
+        onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp", "desc"), limit(10)), (s) => {
+            const l = document.getElementById('god-logs'); l.innerHTML = "";
+            s.forEach(d => l.innerHTML += `<div>${d.data().action} at ${new Date(d.data().timestamp.seconds*1000).toLocaleTimeString()}</div>`);
+        });
     };
 
-    // 8. AI & CHAT
-    window.aiHandler = {
-        toggle: async () => {
-            const v = window.ui.el('webcam');
-            if(!state.camActive) {
-                if(!state.aiModel) state.aiModel = await cocoSsd.load();
-                v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
-                state.camActive = true;
-                state.camInterval = setInterval(async () => {
-                    const p = await state.aiModel.detect(v);
-                    const count = p.filter(x=>x.class==='person').length;
-                    window.ui.el('cam-count').innerText = count;
-                    if(count > 10) window.ui.el('god-alert').classList.remove('hidden');
-                    else window.ui.el('god-alert').classList.add('hidden');
-                    
-                    const c = window.ui.el('cam-overlay'); const ctx = c.getContext('2d');
-                    c.width = v.videoWidth; c.height = v.videoHeight;
-                    ctx.clearRect(0,0,c.width,c.height);
-                    p.forEach(x => { if(x.class==='person'){ ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2; ctx.strokeRect(...x.bbox); } });
-                }, 500);
-            } else {
-                clearInterval(state.camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); state.camActive=false;
-            }
+    window.adminAct = async (qid) => {
+        await deleteDoc(doc(db, "queue", qid));
+        await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'SERVED', timestamp: serverTimestamp() });
+    };
+    
+    window.resetQueue = async () => {
+        if(!confirm("Reset?")) return;
+        const s = await getDocs(query(collection(db, "queue"), where("locationId", "==", currentLocId)));
+        s.forEach(d => deleteDoc(d.ref));
+    };
+
+    window.openLocModal = (isNew) => {
+        if(isNew) {
+            document.getElementById('loc-id').value = "";
+            document.getElementById('loc-name').value = "";
+        }
+        document.getElementById('modal-loc').classList.remove('hidden');
+    };
+
+    window.saveLoc = async () => {
+        const id = document.getElementById('loc-id').value;
+        const data = {
+            name: document.getElementById('loc-name').value,
+            imageURL: document.getElementById('loc-img').value,
+            description: document.getElementById('loc-desc').value,
+            notice: document.getElementById('loc-notice').value,
+            openTime: document.getElementById('loc-open').value,
+            closeTime: document.getElementById('loc-close').value,
+            bookingType: document.getElementById('loc-type').value,
+            upiId: document.getElementById('loc-upi').value,
+            ticketPrice: document.getElementById('loc-price').value,
+            status: 'open'
+        };
+        if(id) await updateDoc(doc(db, "locations", id), data);
+        else await addDoc(collection(db, "locations"), data);
+        window.closeModals();
+    };
+
+    window.toggleCamera = async () => {
+        const v = document.getElementById('webcam');
+        if(!isCamActive) {
+            if(!aiModel) aiModel = await cocoSsd.load();
+            v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
+            isCamActive = true;
+            camInterval = setInterval(async () => {
+                const p = await aiModel.detect(v);
+                document.getElementById('cam-count').innerText = p.filter(x=>x.class==='person').length;
+            }, 1000);
+        } else {
+            clearInterval(camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); isCamActive=false;
         }
     };
-
-    window.chatHandler = {
-        send: async () => {
-            const t = window.ui.el('chat-input').value; if(!t) return;
-            await addDoc(collection(db, "comments"), { locationId: state.locId, text: t, user: state.user.displayName||state.user.name, timestamp: serverTimestamp() });
-            window.ui.el('chat-input').value = "";
-        }
+    
+    // --- CHARTS ---
+    window.renderUserChart = (count) => {
+        const ctx = document.getElementById('userChart');
+        if(userChart) userChart.destroy();
+        userChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['Now','+15','+30'], datasets: [{label:'Traffic', data:[count, count+2, count-1], borderColor:'#ff9933'}] },
+            options: { responsive:true, plugins:{legend:{display:false}}, scales:{x:{display:false}} }
+        });
+    };
+    
+    window.renderAdminChart = (count) => {
+        const ctx = document.getElementById('adminChart');
+        if(adminChart) adminChart.destroy();
+        adminChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Current'], datasets: [{label:'Density', data:[count], backgroundColor:'#00d4ff'}] },
+            options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        });
     };
 
-    window.logic = {
-        isOpen: (loc) => {
-            if(loc.status === 'closed') return false;
-            const now = new Date(); const c = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
-            return (!loc.openTime || (c >= loc.openTime && c < loc.closeTime));
-        },
-        selectLoc: (id) => {
-            state.locId = id;
-            window.ui.el('view-select').classList.add('hidden');
-            if(state.isAdmin) {
-                window.ui.el('view-god-mode').classList.remove('hidden');
-                window.ui.el('god-loc-id').innerText = id;
-                window.adminHandler.init(id);
-                // Fill Edit Modal
-                getDoc(doc(db, "locations", id)).then(s => {
-                    const d = s.data();
-                    window.ui.el('conf-id').value = id;
-                    window.ui.el('conf-name').value = d.name;
-                    window.ui.el('conf-img').value = d.imageURL;
-                    window.ui.el('conf-desc').value = d.description;
-                    window.ui.el('conf-notice').value = d.notice;
-                    window.ui.el('conf-open').value = d.openTime;
-                    window.ui.el('conf-close').value = d.closeTime;
-                    window.ui.el('conf-type').value = d.bookingType;
-                    window.ui.togglePay();
-                    if(d.bookingType==='paid') { window.ui.el('conf-upi').value = d.upiId; window.ui.el('conf-price').value = d.ticketPrice; }
-                });
-            } else {
-                window.ui.el('view-dashboard').classList.remove('hidden');
-                window.queueHandler.initDash(id);
-            }
-        },
-        initChat: (id) => {
-            state.unsubs.push(onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp","asc"), limit(50)), (s) => {
-                const f = window.ui.el('chat-feed'); f.innerHTML = "";
-                s.forEach(d => {
-                    const m = d.data();
-                    const el = document.createElement('div'); el.className = 'chat-bubble';
-                    el.innerHTML = `<strong style="color:var(--primary);">${m.user}:</strong> ${m.text}`;
-                    f.appendChild(el);
-                });
-                f.scrollTop = f.scrollHeight;
-            }));
-        },
-        updateChart: (count) => {
-            const ctx = window.ui.el('userChart').getContext('2d');
-            if(state.chart) state.chart.destroy();
-            state.chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Now', '+15', '+30', '+45'],
-                    datasets: [{ label: 'Traffic', data: [count, count+2, count+5, count-1], borderColor: '#FF9933', backgroundColor: 'rgba(255,153,51,0.1)', fill: true }]
-                },
-                options: { responsive: true, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{display:false} } }
-            });
-            window.ui.el('dash-ai-msg').innerText = "AI PREDICTION: Traffic peaking in 30 mins.";
-        }
-    };
-
-    // 9. BOOTSTRAP
+    // --- BOOTSTRAP ---
     onAuthStateChanged(auth, async (u) => {
-        state.user = u;
+        currentUser = u;
         if(u) {
-            const s = await getDoc(doc(db, "users", u.uid));
-            if(s.exists()) {
-                const d = s.data();
-                state.isAdmin = (d.role === 'admin');
-                window.ui.el('nav-profile-pic').style.backgroundImage = `url('${d.photoURL}')`;
-                if(state.isAdmin) {
-                    document.body.classList.add('god-mode');
-                    window.ui.el('btn-admin-add').classList.remove('hidden');
-                }
-                window.ui.showView('view-select');
-                window.queueHandler.loadList();
+            const snap = await getDoc(doc(db, "users", u.uid));
+            if(!snap.exists()) {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-setup').classList.remove('hidden');
             } else {
-                window.ui.showView('view-setup');
+                const d = snap.data();
+                isAdmin = (d.role === 'admin');
+                document.getElementById('profile-bubble').style.backgroundImage = `url('${d.photoURL}')`;
+                if(isAdmin) {
+                    document.body.classList.add('god-mode');
+                    document.getElementById('btn-admin-add').classList.remove('hidden');
+                }
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-setup').classList.add('hidden');
+                document.getElementById('view-select').classList.remove('hidden');
+                window.loadLocationsList();
             }
         } else {
-            window.ui.showView('view-login');
+            document.getElementById('view-login').classList.remove('hidden');
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('view-select').classList.add('hidden');
         }
     });
 
