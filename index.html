@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QueueSmart</title>
+    <title>QueueSmart | Viksit Bharat</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
@@ -13,108 +13,169 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <script>
-        window.onerror = function(msg, url, line) {
-            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            return false;
-        };
-    </script>
-    
     <style>
+        /* --- 🔵 NORMAL THEME (Electric Blue) --- */
         :root {
-            --primary: #FF9933; 
-            --primary-glow: rgba(255, 153, 51, 0.4);
-            --bg-dark: #0a0a0f; 
+            --primary: #3b82f6;        /* Electric Blue */
+            --primary-dark: #2563eb;   /* Darker Blue for Gradients */
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            
+            --bg-dark: #0f172a;        /* Deep Slate Blue Background */
             --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff; 
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            
+            --text-main: #f8fafc; 
             --text-muted: #94a3b8;
-            --success: #00ff9d; 
-            --danger: #ff4757; 
-            --warning: #ffaa00;
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b;
         }
 
-        body.god-mode { --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.4); }
+        /* --- 🔴 BEAST / GOD MODE (Crimson Red) --- */
+        body.god-mode { 
+            --primary: #ff0000;        /* Pure Red */
+            --primary-dark: #990000;   /* Blood Red */
+            --primary-glow: rgba(255, 0, 0, 0.6);
+            --bg-dark: #000000;        /* Pitch Black */
+            --glass-bg: rgba(20, 0, 0, 0.8);
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
             margin: 0; padding: 0; font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.1) 0%, transparent 40%);
+            /* Subtle Grid Background */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
             background-attachment: fixed; color: var(--text-main); min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; padding-top: 20px; overflow-x: hidden;
+            transition: background 0.5s ease;
         }
 
         .app-shell { width: 100%; max-width: 1200px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
         @media (max-width: 768px) { .app-shell { padding: 15px; } }
 
+        /* GLASS CARD STYLING */
         .glass-card {
-            background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); width: 100%; margin-bottom: 20px;
+            background: var(--glass-bg); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 25px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            width: 100%; margin-bottom: 20px;
             animation: slideUp 0.5s ease;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* --- 🎨 CREATIVE BUTTONS --- */
+        .btn { 
+            width: 100%; padding: 14px; border: none; border-radius: 14px; 
+            font-weight: 700; font-size: 13px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        
+        .btn:active { transform: scale(0.96); }
+
+        /* Primary Button (Gradient + Glow) */
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #fff; 
+            box-shadow: 0 4px 15px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,0.3);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover { 
+            filter: brightness(1.2); 
+            box-shadow: 0 6px 20px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Outline Button (Glassy) */
+        .btn-outline { 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--glass-border); 
+            color: var(--text-muted); 
+        }
+        .btn-outline:hover { 
+            border-color: var(--primary); 
+            color: #fff; 
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Danger Button */
+        .btn-danger { 
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            color: white; 
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* UPI Button (Special Gold/Dark) */
+        .btn-upi { 
+            background: linear-gradient(135deg, #1e293b, #000000); 
+            color: #fff; border: 1px solid var(--glass-border); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
         /* UI ELEMENTS */
-        .loc-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; transition: transform 0.2s ease; cursor: pointer; position: relative; }
-        .loc-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .loc-img { height: 140px; width: 100%; background-size: cover; background-position: center; position: relative; }
-        .loc-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, #000 10%, transparent 100%); padding: 40px 15px 15px 15px; }
+        .loc-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; transition: all 0.3s ease; cursor: pointer; position: relative; }
+        .loc-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px var(--primary-glow); }
+        .loc-img { height: 150px; width: 100%; background-size: cover; background-position: center; position: relative; }
+        .loc-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, #0f172a 10%, transparent 100%); padding: 50px 20px 15px 20px; }
         .loc-body { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
 
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; transition: all 0.2s; letter-spacing: 0.5px; }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #FF7722); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
-        .btn-upi { background: linear-gradient(135deg, #2c3e50, #000000); color: #fff; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; }
-        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); }
-        .btn-outline:hover { border-color: var(--primary); color: #fff; }
-        .btn-danger { background: rgba(255, 71, 87, 0.15); color: var(--danger); border: 1px solid rgba(255, 71, 87, 0.3); }
-
-        .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 10px; }
-        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 16px; border-radius: 12px; color: #fff; font-size: 14px; margin-bottom: 12px; transition: 0.3s; }
+        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); outline: none; box-shadow: 0 0 15px var(--primary-glow); }
         
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .badge.open { background: rgba(0, 255, 157, 0.15); color: var(--success); }
-        .badge.closed { background: rgba(255, 66, 66, 0.15); color: var(--danger); }
+        .badge { padding: 6px 12px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+        .badge.open { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge.closed { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
 
-        .notice-bar { background: rgba(255, 170, 0, 0.1); border-left: 3px solid var(--warning); color: var(--warning); padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .notice-bar { background: rgba(245, 158, 11, 0.15); border-left: 4px solid var(--warning); color: var(--warning); padding: 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
         
         .hidden { display: none !important; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px); }
         
         /* CHAT */
         .chat-container { background: rgba(0,0,0,0.2); border-radius: 20px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; height: 500px; max-height: 60vh; }
-        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { display: flex; gap: 10px; }
-        .chat-pfp { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border); object-fit: cover; }
-        .chat-bubble { background: rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 4px 14px 14px 14px; max-width: 85%; font-size: 13px; line-height: 1.4; }
-        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; font-weight: 700; opacity: 0.7; }
-        .chat-input-area { padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; }
+        .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { display: flex; gap: 12px; }
+        .chat-pfp { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--glass-border); object-fit: cover; }
+        .chat-bubble { background: rgba(255,255,255,0.08); padding: 10px 14px; border-radius: 4px 18px 18px 18px; max-width: 85%; font-size: 13px; line-height: 1.5; backdrop-filter: blur(5px); }
+        .chat-header { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; opacity: 0.8; text-transform: uppercase; }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; background: rgba(0,0,0,0.2); border-radius: 0 0 20px 20px; }
 
         /* CAMERA & CHARTS */
-        .cam-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); }
+        .cam-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
         video { width: 100%; height: 100%; object-fit: cover; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
         .privacy-badge {
             position: absolute; top: 15px; left: 15px; z-index: 999;
             background: rgba(0, 0, 0, 0.8); padding: 6px 12px; border-radius: 8px;
-            font-size: 11px; font-weight: 700; color: #00ff9d; display: flex; align-items: center; gap: 6px;
-            border: 1px solid #00ff9d; box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+            font-size: 11px; font-weight: 700; color: var(--success); display: flex; align-items: center; gap: 6px;
+            border: 1px solid var(--success); box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
         }
 
         .chart-container { position: relative; height: 200px; width: 100%; margin-top: 10px; }
-        .profile-uploader { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 20px; border: 2px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+        
+        .profile-uploader { width: 100px; height: 100px; border-radius: 50%; background: #1e293b; margin: 0 auto 25px; border: 3px dashed var(--primary); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; transition: 0.3s; }
+        .profile-uploader:hover { transform: scale(1.05); border-style: solid; box-shadow: 0 0 20px var(--primary-glow); }
         .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
         
-        #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 12px; margin: 15px auto; width: fit-content; }
-        .btn img { height: 20px; margin-right: 8px; vertical-align: middle; }
+        #qr-display, #pay-qr-display { background: #fff; padding: 15px; border-radius: 16px; margin: 20px auto; width: fit-content; box-shadow: 0 0 30px rgba(255,255,255,0.1); }
+        .btn img { height: 24px; margin-right: 10px; vertical-align: middle; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
 
         /* GRIDS */
         #location-list-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
         .dashboard-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
-        .god-grid { display: grid; grid-template-columns: 300px 1fr 300px; gap: 20px; }
-        @media (max-width: 900px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
+        .god-grid { display: grid; grid-template-columns: 320px 1fr 300px; gap: 20px; }
+        @media (max-width: 1000px) { .dashboard-grid, .god-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -122,140 +183,146 @@
 <div class="app-shell">
     
     <div id="view-login" class="glass-card">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png"
-     style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 0 30px var(--primary-glow);">
-            <h1 style="color:#fff; font-weight:800; font-size:32px; margin:0; text-shadow:0 0 30px var(--primary-glow);">QueueSmart</h1>
-            <p style="color: var(--text-muted); margin-top: 5px; font-size: 14px;">Digital Public Infrastructure for Queues</p>
+        <div style="text-align: center; margin-bottom: 50px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                 style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--primary-glow));">
+            <h1 style="color:#fff; font-weight:900; font-size:36px; margin:0; letter-spacing: -1px; background: -webkit-linear-gradient(45deg, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">QueueSmart</h1>
+            <p style="color: var(--text-muted); margin-top: 10px; font-size: 15px;">Digital Public Infrastructure for India</p>
         </div>
-        <button id="btn-login" class="btn btn-primary" style="margin-bottom:15px;"><i data-lucide="shield"></i> Secure Login</button>
-        <div style="display:flex; gap:10px; justify-content:center;">
-            <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size:11px; width:auto;">👤 Demo User</button>
-            <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size:11px; width:auto; border-color:var(--danger); color:var(--danger);">🔑 Demo Admin</button>
+        <button id="btn-login" class="btn btn-primary" style="margin-bottom:20px; font-size: 15px; padding: 16px;"><i data-lucide="shield"></i> Secure Google Login</button>
+        <div style="display:flex; gap:15px; justify-content:center;">
+            <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size:12px; width:auto;">👤 Try Demo User</button>
+            <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size:12px; width:auto; border-color:var(--danger); color:var(--danger);">🔑 Try Demo Admin</button>
         </div>
-        <div style="text-align:center; margin-top:20px; font-size:10px; color:var(--text-muted); opacity:0.6;">POWERED BY GOOGLE CLOUD & EDGE AI</div>
+        <div style="text-align:center; margin-top:30px; font-size:11px; color:var(--text-muted); opacity:0.6; letter-spacing: 1px;">POWERED BY GOOGLE CLOUD & VERTEX AI</div>
     </div>
 
     <div id="view-setup" class="glass-card hidden">
-        <h2 style="text-align:center;">User Profile</h2>
+        <h2 style="text-align:center; color:var(--primary); margin-bottom: 30px;">Create Profile</h2>
         <label class="profile-uploader">
-            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=333&color=fff">
+            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=1e293b&color=fff">
             <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
         </label>
-        <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
+        <p style="text-align: center; color: var(--text-muted); font-size: 12px; margin-bottom: 20px;">Tap to upload photo</p>
+        <input type="text" id="setup-name" class="input-field" placeholder="Enter Full Name">
         <button id="btn-save-profile" class="btn btn-primary" style="margin-top:20px;">Complete Registration</button>
     </div>
 
     <div id="view-select" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <div>
-                <h1 style="margin:0; font-size: 24px;">Facilities</h1>
-                <p style="margin:5px 0 0 0; font-size:12px; color:var(--text-muted);">Select a location to join</p>
+                <h1 style="margin:0; font-size: 28px; font-weight: 800;">Facilities</h1>
+                <p style="margin:5px 0 0 0; font-size:13px; color:var(--text-muted);">Select a location to join</p>
             </div>
-            <div id="profile-bubble" onclick="openProfileEdit()" style="width: 40px; height: 40px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer;"></div>
+            <div id="profile-bubble" onclick="openProfileEdit()" style="width: 45px; height: 45px; background: #333; border-radius: 50%; background-size: cover; border: 2px solid var(--primary); cursor: pointer; box-shadow: 0 0 15px var(--primary-glow);"></div>
         </div>
         
-        <div class="glass-card" style="padding: 20px; display:flex; align-items:center; gap:15px; margin-bottom:30px; border-left: 4px solid var(--primary);">
-            <i data-lucide="brain-circuit" style="color: var(--primary);"></i>
+        <div class="glass-card" style="padding: 20px; display:flex; align-items:center; gap:20px; margin-bottom:30px; border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);">
+            <div style="background: rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 50%;">
+                <i data-lucide="brain-circuit" style="color: var(--primary); width: 24px; height: 24px;"></i>
+            </div>
             <div>
-                <div style="font-size:11px; color:var(--primary); font-weight:800; letter-spacing:1px;">NEURAL NETWORK</div>
-                <div style="color: #fff; font-size: 14px;" id="ai-hub-insight">Initializing AI Analysis...</div>
+                <div style="font-size:11px; color:var(--primary); font-weight:800; letter-spacing:1px; margin-bottom: 4px;">NEURAL NETWORK INSIGHTS</div>
+                <div style="color: #fff; font-size: 14px; font-weight: 500;" id="ai-hub-insight">Initializing AI Analysis...</div>
             </div>
         </div>
 
         <div id="location-list-container">
             <div style="text-align:center; padding:40px; color:var(--text-muted);">Syncing Network...</div>
         </div>
-        <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 30px; width: 100%;">+ Register New Facility</button>
+        <button id="admin-add-loc-btn" class="btn btn-outline hidden" onclick="openAddLocModal()" style="margin-top: 30px; width: 100%; border-style: dashed;">+ Register New Facility</button>
     </div>
 
     <div id="view-dashboard" class="hidden">
-        <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; margin-bottom:15px; font-size: 11px;">← BACK</button>
+        <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:10px 20px; margin-bottom:20px; font-size: 12px;">← BACK TO HUB</button>
         <div class="dashboard-grid">
             <div class="glass-card" style="display:flex; flex-direction:column;">
-                <div id="dash-banner" style="height: 140px; border-radius: 12px; background: #222; background-size: cover; background-position: center; margin-bottom: 20px; position: relative;">
-                    <div style="position: absolute; bottom:0; left:0; width:100%; padding:15px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
-                        <h2 id="dash-loc-name" style="margin:0; font-size: 20px;">Location</h2>
-                        <div id="dash-status-badge" class="badge closed" style="margin-top:6px; display:inline-block;">OFFLINE</div>
+                <div id="dash-banner" style="height: 160px; border-radius: 16px; background: #222; background-size: cover; background-position: center; margin-bottom: 25px; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+                    <div style="position: absolute; bottom:0; left:0; width:100%; padding:20px; background: linear-gradient(to top, rgba(15, 23, 42, 1), transparent);">
+                        <h2 id="dash-loc-name" style="margin:0; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Location</h2>
+                        <div id="dash-status-badge" class="badge closed" style="margin-top:8px; display:inline-block; box-shadow: 0 0 10px rgba(0,0,0,0.5);">OFFLINE</div>
                     </div>
                 </div>
                 <div id="dash-notice" class="notice-bar hidden"></div>
-                <div id="dash-desc" class="loc-description"></div>
+                <div id="dash-desc" class="loc-description" style="margin-bottom: 20px; line-height: 1.6; color: var(--text-muted);"></div>
                 
-                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:11px; padding:10px;">
+                <button onclick="window.toggleGraphDisplay()" class="btn btn-outline" style="margin-bottom:15px; font-size:12px; padding:12px;">
                     <i data-lucide="bar-chart-2"></i> View Wait Forecast
                 </button>
-                <div id="neural-container" class="glass-card hidden" style="padding:10px; margin-bottom:15px;">
+                <div id="neural-container" class="glass-card hidden" style="padding:15px; margin-bottom:20px;">
                     <div class="chart-container"><canvas id="predictionChart"></canvas></div>
-                    <div id="dash-ai-advice" style="color:var(--success); font-size:12px; margin-top:15px; text-align:center; font-weight:600;"></div>
+                    <div id="dash-ai-advice" style="color:var(--success); font-size:13px; margin-top:15px; text-align:center; font-weight:600; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;"></div>
                 </div>
                 
-                <div style="text-align: center; margin: auto 0; padding: 20px 0;">
-                    <div id="dash-main-counter" style="font-size: 80px; font-weight: 800; line-height: 1;">0</div>
-                    <p id="dash-counter-label" style="color: var(--text-muted); font-size: 11px; letter-spacing: 2px; margin-top: 5px; font-weight:700;">LIVE COUNT</p>
-                    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:15px; color:var(--primary);">
-                        <i data-lucide="clock" style="width:14px;"></i>
-                        <div id="dash-est-time" style="font-weight:700; font-size: 16px;">-- mins</div>
+                <div style="text-align: center; margin: auto 0; padding: 30px 0; background: rgba(255,255,255,0.02); border-radius: 20px; margin-bottom: 20px;">
+                    <div id="dash-main-counter" style="font-size: 90px; font-weight: 800; line-height: 1; text-shadow: 0 0 30px var(--primary-glow);">0</div>
+                    <p id="dash-counter-label" style="color: var(--text-muted); font-size: 12px; letter-spacing: 3px; margin-top: 10px; font-weight:700; text-transform: uppercase;">LIVE COUNT</p>
+                    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:20px; color:var(--primary); font-size: 18px;">
+                        <i data-lucide="clock" style="width:18px;"></i>
+                        <div id="dash-est-time" style="font-weight:700;">-- mins</div>
                     </div>
                 </div>
                 <div style="margin-top:auto;">
-                    <button onclick="window.handleJoinClick()" id="btn-join-queue" class="btn btn-primary">JOIN QUEUE</button>
-                    <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden">LEAVE QUEUE</button>
+                    <button onclick="window.handleJoinClick()" id="btn-join-queue" class="btn btn-primary" style="font-size: 16px; padding: 18px;">JOIN QUEUE</button>
+                    <button onclick="window.leaveQueue()" id="btn-leave-queue" class="btn btn-danger hidden" style="font-size: 16px; padding: 18px;">LEAVE QUEUE</button>
                 </div>
             </div>
             <div class="chat-container">
-                <div style="padding: 15px; border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:14px;">Community</h3><span style="font-size:10px; color:var(--text-muted);">LIVE</span>
+                <div style="padding: 20px; border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:16px;">Community</h3><span class="badge open" style="font-size:10px;">LIVE</span>
                 </div>
                 <div id="location-chat-box" class="chat-box"></div>
                 <div class="chat-input-area">
                     <input type="text" id="chat-input" class="input-field" placeholder="Type a message..." style="margin:0;">
-                    <button onclick="window.sendChat()" class="btn btn-primary" style="width:auto; padding:0 15px;"><i data-lucide="send" style="width:16px;"></i></button>
+                    <button onclick="window.sendChat()" class="btn btn-primary" style="width:auto; padding:0 18px;"><i data-lucide="send" style="width:18px;"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="view-god-mode" class="hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 style="color: var(--primary); margin:0; font-size:22px;">COMMAND CENTER</h2>
-            <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:8px 15px; font-size:11px;">EXIT</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 style="color: var(--primary); margin:0; font-size:28px; text-shadow: 0 0 20px var(--primary-glow);">COMMAND CENTER</h2>
+            <button onclick="goBack()" class="btn btn-outline" style="width:auto; padding:10px 20px;">EXIT</button>
         </div>
         <div class="god-grid">
-            <div class="glass-card" style="display:flex; flex-direction:column; max-height:500px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h4 style="margin:0; color:var(--text-muted); font-size:12px;">ACTIVE CITIZENS</h4>
-                    <button onclick="window.resetQueueCloud()" class="btn btn-outline" style="width:auto; padding:5px 10px; font-size:10px;">⚡ Reset</button>
+            <div class="glass-card" style="display:flex; flex-direction:column; max-height:600px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border);">
+                    <h4 style="margin:0; color:var(--text-muted); font-size:13px; letter-spacing: 1px;">ACTIVE CITIZENS</h4>
+                    <button onclick="window.resetQueueCloud()" class="btn btn-outline" style="width:auto; padding:6px 12px; font-size:11px;">⚡ Reset System</button>
                 </div>
                 <div id="god-queue-list" style="flex:1; overflow-y:auto;"></div>
             </div>
-            <div style="display:flex; flex-direction:column; gap:15px;">
-                <div class="glass-card" style="padding:15px;">
-                    <h5 style="margin:0 0 10px 0; color:var(--text-muted); font-size:11px;">CROWD PULSE (AI INSIGHTS)</h5>
-                    <div style="height:120px; width:100%;"><canvas id="adminTrendChart"></canvas></div>
+            <div style="display:flex; flex-direction:column; gap:20px;">
+                <div class="glass-card" style="padding:20px;">
+                    <h5 style="margin:0 0 15px 0; color:var(--text-muted); font-size:12px; letter-spacing: 1px;">CROWD PULSE (AI INSIGHTS)</h5>
+                    <div style="height:150px; width:100%;"><canvas id="adminTrendChart"></canvas></div>
                 </div>
-                <div id="god-alert-box" class="glass-card hidden" style="border-color: var(--danger); background: rgba(255, 71, 87, 0.1); padding:15px;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <i data-lucide="alert-triangle" style="color:var(--danger)"></i>
-                        <strong style="color:#fff; flex:1; font-size:12px;">HIGH DENSITY ALERT</strong>
-                        <button onclick="window.emergencyLock()" class="btn btn-danger" style="width:auto; padding:5px 10px; font-size:10px;">LOCK</button>
+                <div id="god-alert-box" class="glass-card hidden" style="border-color: var(--danger); background: rgba(239, 68, 68, 0.1); padding:20px;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <i data-lucide="alert-triangle" style="color:var(--danger); width: 28px; height: 28px;"></i>
+                        <div style="flex:1;">
+                            <strong style="color:#fff; display:block; font-size:14px;">HIGH DENSITY ALERT</strong>
+                            <span style="font-size: 11px; color: var(--text-muted);">Crowd levels exceeding safety threshold.</span>
+                        </div>
+                        <button onclick="window.emergencyLock()" class="btn btn-danger" style="width:auto; padding:8px 16px; font-size:11px;">LOCK</button>
                     </div>
                 </div>
                 <div class="glass-card" style="padding:0; overflow:hidden; border:1px solid var(--glass-border);">
                     <div id="cam-wrapper" class="cam-wrapper hidden">
-                        <div class="privacy-badge"><i data-lucide="shield-check" style="width:12px;"></i> Edge AI: Privacy Secure</div>
+                        <div class="privacy-badge"><i data-lucide="shield-check" style="width:14px;"></i> Edge AI: Privacy Secure</div>
                         <video id="webcam" autoplay playsinline muted></video>
                         <canvas id="cam-overlay"></canvas>
                     </div>
-                    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3);">
-                        <div style="font-size:11px;">Detected: <b id="cam-count" style="color:var(--primary); font-size:14px;">0</b></div>
-                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:6px 12px; font-size:10px;">ACTIVATE SENSOR</button>
+                    <div style="padding:20px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3);">
+                        <div style="font-size:12px;">Detected: <b id="cam-count" style="color:var(--primary); font-size:16px;">0</b></div>
+                        <button id="btn-toggle-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width:auto; padding:8px 16px; font-size:11px;">ACTIVATE SENSOR</button>
                     </div>
                 </div>
             </div>
             <div class="glass-card" style="display:flex; flex-direction:column;">
-                <h4 style="margin:0 0 15px 0; color:var(--text-muted); font-size:12px;">AUDIT LOGS</h4>
-                <div id="god-log-list" style="flex:1; overflow-y:auto; font-family:'JetBrains Mono'; font-size:10px;"></div>
+                <h4 style="margin:0 0 15px 0; color:var(--text-muted); font-size:12px; letter-spacing: 1px;">AUDIT LOGS</h4>
+                <div id="god-log-list" style="flex:1; overflow-y:auto; font-family:'JetBrains Mono'; font-size:11px;"></div>
             </div>
         </div>
     </div>
@@ -263,20 +330,20 @@
 </div>
 
 <div id="modal-add-loc" class="modal-overlay hidden">
-    <div class="glass-card" style="width: 90%; max-width: 380px;">
+    <div class="glass-card" style="width: 90%; max-width: 400px;">
         <h3>Register Facility</h3>
         <input id="new-loc-id" type="hidden">
         <input id="new-loc-name" type="text" class="input-field" placeholder="Facility Name">
         <input id="new-loc-img" type="text" class="input-field" placeholder="Image URL (Optional)">
-        <textarea id="new-loc-desc" class="input-field" placeholder="Description / Address"></textarea>
+        <textarea id="new-loc-desc" class="input-field" placeholder="Description / Address" style="min-height: 80px;"></textarea>
         <input id="new-loc-notice" type="text" class="input-field" placeholder="Public Notice">
-        <div style="display:flex; gap:10px;">
-            <div style="flex:1"><label style="font-size:10px; color:var(--text-muted)">Open</label><input id="new-loc-open" type="time" class="input-field"></div>
-            <div style="flex:1"><label style="font-size:10px; color:var(--text-muted)">Close</label><input id="new-loc-close" type="time" class="input-field"></div>
+        <div style="display:flex; gap:15px; margin-bottom: 15px;">
+            <div style="flex:1"><label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:5px;">Open</label><input id="new-loc-open" type="time" class="input-field" style="margin:0;"></div>
+            <div style="flex:1"><label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:5px;">Close</label><input id="new-loc-close" type="time" class="input-field" style="margin:0;"></div>
         </div>
         
-        <div style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-            <label style="font-size:11px; color:var(--primary); font-weight:bold; display:block; margin-bottom:5px;">QUEUE SETTINGS</label>
+        <div style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:15px;">
+            <label style="font-size:11px; color:var(--primary); font-weight:bold; display:block; margin-bottom:10px; letter-spacing: 1px;">QUEUE SETTINGS</label>
             <select id="new-loc-mode" class="input-field">
                 <option value="ahead">Counting: People Ahead</option>
                 <option value="total">Counting: Total Headcount</option>
@@ -285,58 +352,62 @@
                 <option value="free">Entry: Free (Standard)</option>
                 <option value="paid">Entry: Paid (UPI Reservation)</option>
             </select>
-            <div id="payment-fields" class="hidden" style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; margin-bottom:10px;">
-                <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)" style="margin-bottom:5px;">
-                <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)">
+            <div id="payment-fields" class="hidden" style="background:rgba(0,0,0,0.2); padding:15px; border-radius:12px; margin-bottom:15px; border: 1px solid var(--glass-border);">
+                <input id="new-loc-upi" type="text" class="input-field" placeholder="UPI ID (e.g. merchant@oksbi)" style="margin-bottom:10px;">
+                <input id="new-loc-price" type="number" class="input-field" placeholder="Price (₹)" style="margin-bottom:0;">
             </div>
         </div>
-        <button onclick="createLocation()" class="btn btn-primary" style="margin-top:10px;">SAVE CONFIG</button>
-        <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">CANCEL</button>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button onclick="createLocation()" class="btn btn-primary">SAVE CONFIG</button>
+            <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
+        </div>
     </div>
 </div>
 
 <div id="modal-payment" class="modal-overlay hidden">
-    <div class="glass-card" style="width: 90%; max-width: 350px; text-align: center;">
-        <h3 style="color:var(--primary);">Confirm Reservation</h3>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:15px;">Booking Fee: <b style="color:#fff; font-size:16px;" id="pay-amount">₹0</b></p>
+    <div class="glass-card" style="width: 90%; max-width: 380px; text-align: center;">
+        <h3 style="color:var(--primary); font-size: 22px;">Confirm Reservation</h3>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom:25px;">Booking Fee: <b style="color:#fff; font-size:20px;" id="pay-amount">₹0</b></p>
         
-        <button id="btn-pay-app" class="btn btn-upi" style="width:100%; margin-bottom:15px; display:flex; justify-content:center; align-items:center; gap:10px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" style="height:20px;"> PAY WITH UPI APP
+        <button id="btn-pay-app" class="btn btn-upi" style="width:100%; margin-bottom:20px; font-size: 14px; padding: 16px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg"> PAY WITH UPI APP
         </button>
 
-        <div style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">OR SCAN QR CODE</div>
-        <div id="pay-qr-display" style="transform: scale(0.9);"></div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px; text-transform: uppercase; letter-spacing: 1px;">OR SCAN QR CODE</div>
+        <div id="pay-qr-display" style="transform: scale(1.1); margin: 25px auto;"></div>
         
-        <div style="margin-top:20px; text-align:left;">
-            <label style="font-size:10px; color:var(--text-muted);">Verify Payment</label>
+        <div style="margin-top:25px; text-align:left;">
+            <label style="font-size:11px; color:var(--text-muted); margin-bottom: 5px; display: block;">Verify Payment</label>
             <input id="user-txn-id" type="text" class="input-field" placeholder="Enter last 4 digits of Transaction ID">
         </div>
         
-        <button onclick="confirmPayment()" class="btn btn-primary" style="margin-top:10px;">VERIFY & JOIN</button>
-        <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">CANCEL</button>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button onclick="confirmPayment()" class="btn btn-primary">VERIFY & JOIN</button>
+            <button onclick="closeModals()" class="btn btn-outline">CANCEL</button>
+        </div>
     </div>
 </div>
 
 <div id="modal-qr" class="modal-overlay hidden" onclick="closeModals()">
-    <div class="glass-card" style="width: auto; max-width: 300px; text-align: center;" onclick="event.stopPropagation()">
+    <div class="glass-card" style="width: auto; max-width: 320px; text-align: center;" onclick="event.stopPropagation()">
         <h3>Scan to Join</h3>
-        <div id="qr-display" style="margin:15px auto;"></div>
-        <p style="font-size:11px; color:var(--text-muted);">DPI Ready Code</p>
-        <button onclick="closeModals()" class="btn btn-primary" style="margin-top:10px;">DONE</button>
+        <div id="qr-display" style="margin:20px auto; transform: scale(1.1);"></div>
+        <p style="font-size:12px; color:var(--text-muted); margin-top: 10px;">DPI Ready Code</p>
+        <button onclick="closeModals()" class="btn btn-primary" style="margin-top:20px;">DONE</button>
     </div>
 </div>
 
 <div id="modal-profile" class="modal-overlay hidden">
-    <div class="glass-card" style="width: 280px; text-align:center;">
+    <div class="glass-card" style="width: 320px; text-align:center;">
         <h3>Edit Profile</h3>
         <label class="profile-uploader">
             <img id="edit-preview" src="">
             <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'edit-preview')">
         </label>
-        <input id="edit-profile-name" type="text" class="input-field" style="margin-bottom:15px;">
+        <input id="edit-profile-name" type="text" class="input-field" style="margin-bottom:20px;">
         <button onclick="updateProfile()" class="btn btn-primary">Save Changes</button>
         <button onclick="closeModals()" class="btn btn-outline" style="margin-top:10px;">Cancel</button>
-        <button onclick="logout()" style="margin-top:20px; background:transparent; border:1px solid var(--danger); color:var(--danger); width:100%; padding:10px; border-radius:10px; cursor:pointer;">Log Out</button>
+        <button onclick="logout()" style="margin-top:25px; background:rgba(239, 68, 68, 0.1); border:1px solid var(--danger); color:var(--danger); width:100%; padding:12px; border-radius:12px; cursor:pointer;">Log Out</button>
     </div>
 </div>
 
@@ -366,12 +437,13 @@
     let currentLocId = null;
     let currentLocData = null; 
     let isAdmin = false;
-    let locUnsub = null, queueUnsub = null, logsUnsub = null, chatUnsub = null;
+    let locUnsub = null, queueUnsub = null;
     let predChart = null, adminChart = null;
     let aiModel = null, camInterval = null, isCamActive = false;
     let tempProfileBase64 = null;
     let previousPosition = -1;
     let currentCountMode = 'ahead'; 
+    let statusInterval = null;
 
     // --- UTILS ---
     function safeText(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
@@ -390,8 +462,10 @@
         el.classList.toggle('hidden');
     };
 
-    // --- DEMO LOGIN ---
+    // --- AUTHENTICATION ---
     window.demoLogin = async (role) => {
+        if ("Notification" in window) Notification.requestPermission(); // Fix Sound
+
         if (role === 'admin') {
             const pwd = prompt("Enter Admin Password:");
             if (pwd !== "queuesmart90") return alert("Wrong Password");
@@ -408,6 +482,11 @@
             });
             location.reload();
         } catch(e) { alert("Enable 'Anonymous' in Firebase Auth Console first!\n\n" + e.message); }
+    };
+
+    document.getElementById('btn-login').onclick = async () => { 
+        if ("Notification" in window) Notification.requestPermission(); // Fix Sound
+        await signInWithPopup(auth, provider); 
     };
 
     window.handleImageUpload = (input, previewId) => {
@@ -438,6 +517,7 @@
         const originalText = btn.innerText;
         btn.innerText = "⏳ Processing...";
         btn.disabled = true;
+        
         setTimeout(async () => {
             const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
             const snap = await getDocs(q);
@@ -449,12 +529,10 @@
         }, 800);
     };
 
-    // --- CHART FUNCTIONS (User & Admin) ---
+    // --- CHART FUNCTIONS ---
     function renderAdminChart(data) {
         if(adminChart) adminChart.destroy();
         const ctx = document.getElementById('adminTrendChart').getContext('2d');
-        
-        // Use dummy data if real data is empty
         let displayData = data;
         let isSimulated = false;
         if (!data || data.length === 0 || data.reduce((a,b)=>a+b,0) === 0) {
@@ -467,30 +545,11 @@
             data: {
                 labels: ['9AM', '11AM', '1PM', '3PM', '5PM', '7PM'],
                 datasets: [
-                    { 
-                        label: isSimulated ? 'Simulated Actual' : 'Actual', 
-                        data: displayData, 
-                        borderColor: '#00d4ff', 
-                        backgroundColor: 'rgba(0, 212, 255, 0.1)', 
-                        tension: 0.4,
-                        fill: true 
-                    },
-                    { 
-                        label: 'Predicted (Vertex AI)', 
-                        data: displayData.map(v => v * 1.1 + 2), 
-                        borderColor: '#7000ff', 
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        fill: false
-                    }
+                    { label: isSimulated ? 'Simulated Actual' : 'Actual', data: displayData, borderColor: '#00d4ff', backgroundColor: 'rgba(0, 212, 255, 0.1)', tension: 0.4, fill: true },
+                    { label: 'Predicted (Vertex AI)', data: displayData.map(v => v * 1.1 + 2), borderColor: '#7000ff', borderDash: [5, 5], tension: 0.4, fill: false }
                 ]
             },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, 
-                scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } 
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { color: '#999', font:{size:10} } } }, scales: { x: { display: true, grid: { display:false }, ticks:{color:'#666', font:{size:9}} }, y: { display:false } } }
         });
     }
 
@@ -533,32 +592,33 @@
             if(id) { await updateDoc(doc(db, "locations", id), data); alert("Updated!"); } 
             else { data.status = 'open'; data.totalServed = 0; await addDoc(collection(db, "locations"), data); alert("Created!"); }
             window.closeModals();
-        } catch(e) { alert("Error saving location: " + e.message); }
+        } catch(e) { alert("Error: " + e.message); }
     };
 
     // --- PAYMENT & JOIN LOGIC ---
     window.handleJoinClick = () => {
-        // Data Check
-        if(!currentLocData) return alert("System loading... please wait.");
-        
-        // Status Check
         const status = checkTimeStatus(currentLocData);
-        if(!status.isOpen) return alert("Facility is CLOSED.");
+        if(!status.isOpen) {
+            return alert("Facility is currently CLOSED (" + status.reason + ").");
+        }
 
-        // Payment Check
         if (currentLocData.bookingType === 'paid') {
             const modal = document.getElementById('modal-payment');
             safeText('pay-amount', `₹${currentLocData.ticketPrice}`);
             
-            // Link
+            // Payment Link
             const amt = parseFloat(currentLocData.ticketPrice).toFixed(2);
             const txnId = "T" + Date.now();
             const upiLink = `upi://pay?pa=${currentLocData.upiId}&pn=${encodeURIComponent(currentLocData.name)}&am=${amt}&tr=${txnId}&tn=QueueBooking&cu=INR&mc=0000&mode=02`;
             
+            // App Button
             document.getElementById('btn-pay-app').onclick = () => window.location.href = upiLink;
+
+            // QR Code
             const qrDiv = document.getElementById('pay-qr-display');
             qrDiv.innerHTML = "";
-            new QRCode(qrDiv, { text: upiLink, width: 120, height: 120 });
+            new QRCode(qrDiv, { text: upiLink, width: 150, height: 150 });
+            
             modal.classList.remove('hidden');
         } else {
             window.joinQueue();
@@ -567,28 +627,28 @@
 
     window.confirmPayment = async () => {
         const txnId = document.getElementById('user-txn-id').value;
-        if (!txnId || txnId.length < 4) return alert("Enter valid Transaction ID");
+        if (!txnId || txnId.length < 4) return alert("Please enter valid Transaction ID digits.");
         const btn = document.querySelector('#modal-payment .btn-primary');
+        const originalText = btn.innerText;
         btn.innerText = "Verifying..."; btn.disabled = true;
         setTimeout(async () => {
             await window.joinQueue(txnId);
             window.closeModals();
-            btn.innerText = "VERIFY & JOIN"; btn.disabled = false;
+            btn.innerText = originalText; btn.disabled = false;
         }, 1000);
     };
 
     window.joinQueue = async (txnId = null) => {
         const btn = document.getElementById('btn-join-queue');
         if(btn) { btn.innerText = "Processing..."; btn.disabled = true; }
-        
         try {
             await addDoc(collection(db, "queue"), { 
                 uid: currentUser.uid, 
                 name: currentUser.displayName || "User", 
                 locationId: currentLocId, 
-                timestamp: serverTimestamp(), 
-                allocatedTime: null, 
-                paymentStatus: txnId ? 'verified' : 'free', 
+                timestamp: serverTimestamp(),
+                allocatedTime: null,
+                paymentStatus: txnId ? 'verified' : 'free',
                 txnId: txnId || 'N/A'
             });
             await addDoc(collection(db, "logs"), { locationId: currentLocId, action: 'JOINED', details: currentUser.displayName, timestamp: serverTimestamp() });
@@ -610,8 +670,7 @@
     window.sendChat = async () => {
         const input = document.getElementById('chat-input');
         const text = input.value.trim(); if(!text) return;
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        const pfp = userDoc.exists() ? userDoc.data().photoURL : "";
+        const pfp = currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}`;
         await addDoc(collection(db, "comments"), { locationId: currentLocId, text, uid: currentUser.uid, userName: currentUser.displayName || "User", userPhoto: pfp, timestamp: serverTimestamp() });
         input.value = "";
     };
@@ -649,23 +708,17 @@
             if (!snap.exists()) { showView('view-setup'); } else {
                 const userData = snap.data();
                 isAdmin = (userData.role === 'admin');
-                safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
-                if (isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
+                if(isAdmin) { document.body.classList.add('god-mode'); safeClass('admin-add-loc-btn', 'hidden', 'remove'); }
                 else { document.body.classList.remove('god-mode'); }
-                
+
+                safeStyle('profile-bubble', 'backgroundImage', `url('${userData.photoURL}')`);
                 const params = new URLSearchParams(window.location.search);
                 if (params.get('join')) handleDeepLink(user);
                 else { showView('view-select'); loadLocationsList(); }
             }
         } else { showView('view-login'); }
     });
-document.getElementById('btn-login').onclick = async () => {
-    // Request notification permission immediately on user click
-    if ("Notification" in window) {
-        Notification.requestPermission();
-    }
-    await signInWithPopup(auth, provider);
-};
+
     document.getElementById('btn-save-profile').onclick = async () => {
         const name = document.getElementById('setup-name').value;
         const photoURL = tempProfileBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`;
@@ -684,6 +737,7 @@ document.getElementById('btn-login').onclick = async () => {
                 const loc = docSnap.data();
                 const status = checkTimeStatus(loc); 
                 if(status.isOpen) openCount++;
+                
                 const bgImage = loc.imageURL || `https://source.unsplash.com/random/400x300/?architecture,${docSnap.id}`;
                 const el = document.createElement('div');
                 el.className = 'loc-card';
@@ -701,30 +755,36 @@ document.getElementById('btn-login').onclick = async () => {
                 `;
                 listDiv.appendChild(el);
             });
-            // AI Network Insight
-            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. Waiting for activity.");
+            safeText('ai-hub-insight', openCount > 0 ? `${openCount} facilities active. Low congestion detected.` : "Network idle. All facilities closed.");
             if(window.lucide) lucide.createIcons();
         });
     }
 
+    // --- ROBUST TIME CHECKER (FIXED) ---
     function checkTimeStatus(locData) {
         if (locData.status === 'closed') return { isOpen: false, reason: "ADMIN" };
-        if (!locData.openTime || !locData.closeTime) return { isOpen: true, reason: "" }; 
+        if (!locData.openTime || !locData.closeTime) return { isOpen: true, reason: "" }; // Always open if no time
+        
         const now = new Date();
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [openH, openM] = locData.openTime.split(':').map(Number);
         const [closeH, closeM] = locData.closeTime.split(':').map(Number);
-        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" }; 
+        
+        if (isNaN(openH) || isNaN(closeH)) return { isOpen: true, reason: "" };
         
         const startMins = openH * 60 + openM;
         const endMins = closeH * 60 + closeM;
-        let isOpen = false;
-        if (endMins < startMins) isOpen = currentMins >= startMins || currentMins < endMins;
-        else isOpen = currentMins >= startMins && currentMins < endMins;
         
+        let isOpen = false;
+        if (endMins < startMins) { // Overnight
+            isOpen = currentMins >= startMins || currentMins < endMins;
+        } else {
+            isOpen = currentMins >= startMins && currentMins < endMins;
+        }
         return { isOpen: isOpen, reason: isOpen ? "" : "TIME" };
     }
 
+    // --- ANALYTICS & AI ---
     async function analyzeTrends(locId) {
         const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(100));
         const snapshot = await getDocs(q);
@@ -734,7 +794,7 @@ document.getElementById('btn-login').onclick = async () => {
         for(let i=0; i<6; i++) { const h = (nowHour + i) % 24; labels.push(h + ":00"); data.push(hourCounts[h]); }
         renderChart(labels, data);
         
-        // AI Suggestion
+        // AI Advice
         let minVal = 999; let bestH = -1;
         for(let i=9; i<=17; i++) { if(hourCounts[i] < minVal) { minVal = hourCounts[i]; bestH = i; } }
         const advice = bestH > -1 ? `✨ AI Suggestion: Visit around ${bestH}:00 for minimum wait.` : "✨ AI Suggestion: Analyzing patterns...";
@@ -753,7 +813,7 @@ document.getElementById('btn-login').onclick = async () => {
             for(let i=0; i<times.length-1; i++) {
                 if(times[i] > 0 && times[i+1] > 0) {
                     const diff = times[i] - times[i+1];
-                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore large gaps
+                    if (diff < 1200000) { totalDiff += diff; count++; } // Ignore >20min gaps
                 }
             }
             if(count === 0) return 5;
@@ -762,23 +822,15 @@ document.getElementById('btn-login').onclick = async () => {
         } catch (e) { return 5; }
     }
 
+    // --- DASHBOARD LOGIC (REFRESH LOOP ADDED) ---
     function initUserDashboard(locId) {
         if(locUnsub) locUnsub();
+        if(statusInterval) clearInterval(statusInterval);
+        
         analyzeTrends(locId); 
-        locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
-            if(!doc.exists()) return;
-            const data = doc.data();
-            currentCountMode = data.countingMode || 'ahead'; 
-            currentLocData = data; 
-            
-            loadChat(locId, data.purgeSetting);
-            safeText('dash-loc-name', data.name);
-            safeText('dash-desc', data.description || "");
-            if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
-            else { safeClass('dash-notice', 'hidden', 'add'); }
-            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
-            
-            const status = checkTimeStatus(data); 
+        
+        const updateUI = (data) => {
+            const status = checkTimeStatus(data);
             const badge = document.getElementById('dash-status-badge');
             const btn = document.getElementById('btn-join-queue');
             
@@ -792,10 +844,28 @@ document.getElementById('btn-login').onclick = async () => {
                     btn.disabled = true; btn.style.opacity = "0.5"; btn.innerText = "CLOSED"; 
                 } else { 
                     btn.disabled = false; btn.style.opacity = "1"; 
-                    // Dynamic Button
-                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE";
+                    btn.innerText = data.bookingType === 'paid' ? `PAY ₹${data.ticketPrice} TO JOIN` : "JOIN QUEUE"; 
                 }
             }
+        };
+
+        locUnsub = onSnapshot(doc(db, "locations", locId), async (doc) => {
+            if(!doc.exists()) return;
+            const data = doc.data();
+            currentCountMode = data.countingMode || 'ahead';
+            currentLocData = data; 
+            
+            loadChat(locId, data.purgeSetting);
+            safeText('dash-loc-name', data.name);
+            safeText('dash-desc', data.description || "");
+            if(data.notice) { safeText('dash-notice', "📢 " + data.notice); safeClass('dash-notice', 'hidden', 'remove'); } 
+            else { safeClass('dash-notice', 'hidden', 'add'); }
+            if(data.imageURL) safeStyle('dash-banner', 'backgroundImage', `url('${data.imageURL}')`);
+            
+            updateUI(data); // Initial update
+            
+            // Re-check status every minute (in case time closes it)
+            statusInterval = setInterval(() => updateUI(data), 60000);
         });
 
         if(queueUnsub) queueUnsub();
@@ -809,20 +879,13 @@ document.getElementById('btn-login').onclick = async () => {
             let myPos = -1; let allocated = null;
             docs.forEach((d, index) => { if(d.uid === currentUser.uid) { myPos = index; allocated = d.allocatedTime; } });
             
-           if (myPos === 0 && previousPosition > 0) {
-    // 1. Play the Sound
-    const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-    alertSound.play().catch(e => console.log("Audio blocked: Needs user interaction."));
+            if(myPos === 0 && previousPosition > 0) {
+                 const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                 alertSound.play().catch(e=>{});
+                 if("Notification" in window && Notification.permission === "granted") new Notification("It's your turn!");
+            }
+            previousPosition = myPos;
 
-    // 2. Send the Pro-Level Notification
-    if ("Notification" in window && Notification.permission === "granted") {
-        new Notification("QueueSmart: Your Turn!", {
-            body: `Please proceed to the counter at ${currentLocData?.name || 'the facility'}.`,
-            icon: "0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png", 
-            vibrate: [200, 100, 200]
-        });
-    }
-}
             if (myPos !== -1) {
                 safeClass('btn-join-queue', 'hidden', 'add');
                 safeClass('btn-leave-queue', 'hidden', 'remove');
@@ -834,6 +897,7 @@ document.getElementById('btn-login').onclick = async () => {
                 } else {
                     const velocity = await calculateVelocity(locId);
                     const estTime = Math.ceil((myPos * velocity) + velocity);
+                    
                     if (currentCountMode === 'total') {
                         safeText('dash-main-counter', docs.length);
                         safeText('dash-counter-label', "TOTAL IN QUEUE");
@@ -850,69 +914,18 @@ document.getElementById('btn-login').onclick = async () => {
                 safeClass('btn-join-queue', 'hidden', 'remove');
                 safeClass('btn-leave-queue', 'hidden', 'add');
                 const btn = document.getElementById('btn-join-queue'); 
+                // Re-apply disabled state in case queue update overrides it
                 if(btn && currentLocData) { 
                     const status = checkTimeStatus(currentLocData);
                     btn.disabled = !status.isOpen;
-                    if(status.isOpen) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
+                    if (!btn.disabled) btn.innerText = currentLocData.bookingType === 'paid' ? `PAY ₹${currentLocData.ticketPrice}` : "JOIN QUEUE";
+                    else btn.innerText = "CLOSED";
                 }
             }
         });
     }
 
-    function loadChat(locId, purgePolicy = 'week') {
-        if(chatUnsub) chatUnsub();
-        const now = new Date(); let cutoff = new Date();
-        if(purgePolicy === 'day') cutoff.setDate(now.getDate() - 1);
-        else if(purgePolicy === 'week') cutoff.setDate(now.getDate() - 7);
-        else cutoff.setMonth(now.getMonth() - 1);
-        const oldQ = query(collection(db, "comments"), where("locationId", "==", locId), where("timestamp", "<", cutoff));
-        getDocs(oldQ).then(snap => { if(!snap.empty) { const batch = writeBatch(db); snap.forEach(d => batch.delete(d.ref)); batch.commit(); }});
-
-        const q = query(collection(db, "comments"), where("locationId", "==", locId));
-        chatUnsub = onSnapshot(q, (snap) => {
-            const box = document.getElementById('location-chat-box'); if(!box) return;
-            box.innerHTML = "";
-            const msgs = snap.docs.map(d => d.data()).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            msgs.forEach(c => {
-                const div = document.createElement('div'); div.className = 'chat-msg';
-                div.innerHTML = `<img src="${c.userPhoto}" class="chat-pfp"><div class="chat-bubble"><div class="chat-header"><span>${c.userName}</span></div><div class="chat-text">${c.text}</div></div>`;
-                box.appendChild(div);
-            });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
-
-    function initGodMode(locId) {
-        const q = query(collection(db, "queue"), where("locationId", "==", locId));
-        onSnapshot(q, (snap) => {
-            const list = document.getElementById('god-queue-list'); if(!list) return;
-            list.innerHTML = "";
-            const docs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-            safeText('god-waiting', docs.length);
-            docs.forEach(data => {
-                const div = document.createElement('div');
-                div.style.padding = "10px"; div.style.borderBottom = "1px solid var(--glass-border)";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><div style="font-weight:700; font-size:13px;">${data.name}</div></div><div style="display:flex; gap:5px;"><button onclick="window.godAction('${data.id}', 'done', '${data.name}')" style="background:var(--success); border:none; padding:6px; border-radius:4px; cursor:pointer;">✓</button><button onclick="window.godAction('${data.id}', 'remove', '${data.name}')" style="background:var(--danger); border:none; padding:6px; border-radius:4px; cursor:pointer;">✕</button></div></div>`;
-                list.appendChild(div);
-            });
-        });
-        
-        if(logsUnsub) logsUnsub();
-        const logQ = query(collection(db, "logs"), where("locationId", "==", locId), limit(20));
-        logsUnsub = onSnapshot(logQ, (snap) => {
-            const logDiv = document.getElementById('god-log-list'); if(!logDiv) return;
-            logDiv.innerHTML = "";
-            const logs = snap.docs.map(d => d.data()).sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-            logs.forEach(l => {
-                const div = document.createElement('div');
-                div.style.borderBottom = "1px solid rgba(255,255,255,0.05)"; div.style.padding = "8px 0";
-                div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b style="color:${l.action==='JOINED'?'var(--primary)':'var(--text-muted)'}">${l.action}</b></div><div style="color:var(--text-muted);">${l.details}</div>`;
-                logDiv.appendChild(div);
-            });
-        });
-        analyzeTrends(locId); 
-    }
-
+    // --- OTHER HELPERS ---
     window.godAction = async (docId, type, name) => {
         const docRef = doc(db, "queue", docId);
         await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type === 'done' ? 'SERVED' : 'REMOVED', details: name, timestamp: serverTimestamp() });
@@ -945,31 +958,6 @@ document.getElementById('btn-login').onclick = async () => {
 
     window.emergencyLock = async () => { await updateDoc(doc(db, "locations", currentLocId), { status: "closed" }); alert("LOCKED."); };
 
-    window.createLocation = async () => {
-        const id = document.getElementById('new-loc-id').value;
-        const name = document.getElementById('new-loc-name').value;
-        const img = document.getElementById('new-loc-img').value;
-        const desc = document.getElementById('new-loc-desc').value;
-        const notice = document.getElementById('new-loc-notice').value;
-        const open = document.getElementById('new-loc-open').value;
-        const close = document.getElementById('new-loc-close').value;
-        // NEW FIELDS
-        const mode = document.getElementById('new-loc-mode').value;
-        const type = document.getElementById('new-loc-type').value;
-        const upi = document.getElementById('new-loc-upi').value;
-        const price = document.getElementById('new-loc-price').value;
-
-        if(!name) return;
-        const locData = { 
-            name, imageURL: img, description: desc, notice: notice, openTime: open, closeTime: close, 
-            countingMode: mode, bookingType: type, upiId: upi, ticketPrice: price 
-        };
-        
-        if(id) { await updateDoc(doc(db, "locations", id), locData); } 
-        else { locData.status = 'open'; locData.totalServed = 0; await addDoc(collection(db, "locations"), locData); }
-        window.closeModals();
-    };
-
     window.deleteLocation = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "locations", id)); };
     
     window.openAddLocModal = () => {
@@ -985,7 +973,6 @@ document.getElementById('btn-login').onclick = async () => {
         document.getElementById('new-loc-name').value = data.name; document.getElementById('new-loc-img').value = data.imageURL || "";
         document.getElementById('new-loc-desc').value = data.description || ""; document.getElementById('new-loc-notice').value = data.notice || "";
         document.getElementById('new-loc-open').value = data.openTime; document.getElementById('new-loc-close').value = data.closeTime;
-        // LOAD NEW FIELDS
         document.getElementById('new-loc-mode').value = data.countingMode || 'ahead';
         document.getElementById('new-loc-type').value = data.bookingType || 'free';
         document.getElementById('new-loc-upi').value = data.upiId || '';
