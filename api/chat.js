@@ -1,41 +1,31 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Helper to parse body manually if Vercel doesn't do it
-async function getRawBody(readable) {
-  const chunks = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks).toString('utf-8');
-}
-
-export default async function handler(request, response) {
+export default async function handler(req, res) {
   // 1. CORS Headers
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (request.method === 'OPTIONS') {
-    return response.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // 2. FORCE PARSE BODY
-    let body;
-    if (typeof request.body === 'object') {
-      body = request.body;
-    } else {
-      const rawBody = await getRawBody(request);
-      body = JSON.parse(rawBody);
+    // 2. PARSE BODY (Handles both Vercel's helper and raw streams)
+    let body = req.body;
+    if (typeof body === 'string') {
+      body = JSON.parse(body);
+    } else if (req.readable) {
+      // Manual stream parsing if req.body is empty/unparsed
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+      }
+      body = JSON.parse(Buffer.concat(chunks).toString());
     }
 
     const { message, openLocs, closedLocs, time } = body;
 
-    if (!message) {
-      return response.status(400).json({ error: "Message is required" });
-    }
-
-    // 3. INITIALIZE GEMINI 2.0 FLASH
+    // 3. INITIALIZE GEMINI
+    // We use gemini-2.0-flash because it appeared in your 'listModels' check
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
@@ -43,21 +33,21 @@ export default async function handler(request, response) {
       You are "QueueSmart AI". Time: ${time || 'unknown'}. 
       OPEN: ${openLocs || "None"}. CLOSED: ${closedLocs || "None"}.
       User: "${message}"
-      Reply in friendly Indian English, max 2 sentences. No symbols.
+      Instructions: Answer in 1-2 friendly sentences. Indian English accent style. No special symbols.
     `;
 
     // 4. EXECUTE
     const result = await model.generateContent(prompt);
-    const aiResponse = await result.response;
-    const aiText = aiResponse.text();
+    const response = await result.response;
+    const text = response.text();
 
-    return response.status(200).json({ text: aiText });
+    return res.status(200).json({ text });
 
   } catch (error) {
-    console.error("Vercel Backend Crash:", error);
-    return response.status(500).json({ 
-      error: "Backend Logic Error", 
-      details: error.message 
+    console.error("CRASH LOG:", error);
+    return res.status(500).json({ 
+      error: "Backend Error", 
+      message: error.message 
     });
   }
 }
