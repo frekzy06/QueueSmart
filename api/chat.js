@@ -1,64 +1,62 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export default async function handler(request, response) {
-  // 1. Setup headers for CORS (allows your frontend to talk to this backend)
-  response.setHeader('Access-Control-Allow-Credentials', true);
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  response.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+// Helper to parse body manually if Vercel doesn't do it
+async function getRawBody(readable) {
+  const chunks = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks).toString('utf-8');
+}
 
-  // 2. Handle Options (Pre-flight check for browser safety)
+export default async function handler(request, response) {
+  // 1. CORS Headers
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (request.method === 'OPTIONS') {
-    response.status(200).end();
-    return;
+    return response.status(200).end();
   }
 
   try {
-    // 3. Parse Body Safely (Vercel can send strings or objects)
-    const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
-    
-    if (!body || !body.message) {
-      return response.status(400).json({ error: "No message provided" });
+    // 2. FORCE PARSE BODY
+    let body;
+    if (typeof request.body === 'object') {
+      body = request.body;
+    } else {
+      const rawBody = await getRawBody(request);
+      body = JSON.parse(rawBody);
     }
 
     const { message, openLocs, closedLocs, time } = body;
 
-    // 4. Initialize Gemini with your SECRET key (Ensure GEMINI_API_KEY is in Vercel Settings)
+    if (!message) {
+      return response.status(400).json({ error: "Message is required" });
+    }
+
+    // 3. INITIALIZE GEMINI 2.0 FLASH
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    
-    // Using 'gemini-2.0-flash' - Stable and Free-Tier Friendly in 2026
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // 5. Build the system prompt
     const prompt = `
-      You are "QueueSmart AI". Current Time: ${time || 'Unknown'}
-      OPEN Facilities: ${openLocs || "None"}
-      CLOSED Facilities: ${closedLocs || "None"}
-      User said: "${message}"
-      
-      Instructions:
-      1. Answer in a friendly, helpful Indian tone (Indian English).
-      2. If asking for recommendation, suggest an OPEN facility.
-      3. If asking about a CLOSED facility, suggest an open alternative.
-      4. Keep response under 2 sentences. Spoken style.
-      5. Do not use emojis, asterisks, or bold text.
+      You are "QueueSmart AI". Time: ${time || 'unknown'}. 
+      OPEN: ${openLocs || "None"}. CLOSED: ${closedLocs || "None"}.
+      User: "${message}"
+      Reply in friendly Indian English, max 2 sentences. No symbols.
     `;
 
-    // 6. Generate Content
+    // 4. EXECUTE
     const result = await model.generateContent(prompt);
-    const resultResponse = await result.response;
-    const responseText = resultResponse.text();
-    
-    // 7. Send back the clean JSON
-    return response.status(200).json({ text: responseText });
+    const aiResponse = await result.response;
+    const aiText = aiResponse.text();
+
+    return response.status(200).json({ text: aiText });
 
   } catch (error) {
-    console.error("Backend Error:", error);
+    console.error("Vercel Backend Crash:", error);
     return response.status(500).json({ 
-      error: "AI failed to respond", 
+      error: "Backend Logic Error", 
       details: error.message 
     });
   }
