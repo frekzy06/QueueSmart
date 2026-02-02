@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>QueueSmart | Digital Public Infrastructure</title>
+    <title>QueueSmart</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     
@@ -249,7 +250,7 @@
 
             <div id="panel-signup" class="hidden">
                 <div style="text-align: center; font-size: 11px; color: var(--text-muted); margin-bottom: 20px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
-                    <i data-lucide="info" style="width: 12px; vertical-align: middle;"></i> One Mobile Number = One Identity
+                    <i data-lucide="info" style="width: 12px; vertical-align: middle;"></i> One Account = One Identity
                 </div>
                 <div class="input-group"><input type="email" id="reg-email" class="input-field" placeholder="Email Address"></div>
                 <div class="input-group"><input type="text" id="reg-phone" class="input-field" placeholder="Mobile Number (Unique ID)"></div>
@@ -561,7 +562,15 @@
             </div>
         </div>
         
-        <div class="input-group"><span class="dpi-label">Verification ID (Read Only)</span><input type="text" id="edit-vid" class="input-field" disabled style="opacity:0.5; cursor:not-allowed;"></div>
+        <div class="input-group">
+            <span class="dpi-label">Mobile Number</span>
+            <input type="text" id="edit-phone" class="input-field">
+        </div>
+
+        <div class="input-group">
+            <span class="dpi-label">Verification ID (Read Only)</span>
+            <input type="text" id="edit-vid" class="input-field" disabled style="opacity:0.5; cursor:not-allowed;">
+        </div>
 
         <button onclick="window.profileHandler.update()" class="btn btn-primary">Save Changes</button>
         <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
@@ -831,35 +840,22 @@
         logout: () => signOut(auth).then(()=>location.reload())
     };
 
-   // 6. PROFILE HANDLER
+  // 6. PROFILE HANDLER
     window.profileHandler = {
-        // Preview for Registration Screen
         preview: (inp) => {
             if(inp.files[0]) {
                 const r = new FileReader();
-                r.onload = (e) => {
-                    window.profileHandler.compress(e.target.result, (res) => {
-                        tempImg = res;
-                        document.getElementById('setup-preview').src = res;
-                    });
-                };
+                r.onload = (e) => { window.profileHandler.compress(e.target.result, (res) => { tempImg = res; document.getElementById('setup-preview').src = res; }); };
                 r.readAsDataURL(inp.files[0]);
             }
         },
-        // Preview for Edit Modal
         previewEdit: (inp) => {
             if(inp.files[0]) {
                 const r = new FileReader();
-                r.onload = (e) => {
-                    window.profileHandler.compress(e.target.result, (res) => {
-                        tempImg = res; // Store new image in temp
-                        document.getElementById('edit-profile-preview').src = res;
-                    });
-                };
+                r.onload = (e) => { window.profileHandler.compress(e.target.result, (res) => { tempImg = res; document.getElementById('edit-profile-preview').src = res; }); };
                 r.readAsDataURL(inp.files[0]);
             }
         },
-        // Helper to keep images small
         compress: (src, cb) => {
             const img = new Image(); img.src = src;
             img.onload = () => {
@@ -868,8 +864,6 @@
                 cb(c.toDataURL('image/jpeg', 0.8));
             }
         },
-        
-        // Save New Account
         save: async () => {
             const n = document.getElementById('setup-name').value;
             const v = document.getElementById('setup-vid').value;
@@ -884,43 +878,46 @@
             }, { merge: true });
             location.reload();
         },
-
-        // Open Edit Modal
         openEdit: async () => {
-            window.ui.closeModals(); // Close ID card
+            window.ui.closeModals();
             const snap = await getDoc(doc(db, "users", currentUser.uid));
             if(!snap.exists()) return;
             const d = snap.data();
             
-            // Pre-fill Data
+            // Pre-fill existing data
             document.getElementById('edit-name').value = d.name;
             document.getElementById('edit-age').value = d.age || "";
             document.getElementById('edit-gender').value = d.gender || "Male";
-            document.getElementById('edit-vid').value = d.vid || "MASKED";
+            
+            // --- NEW: Load Phone Number ---
+            document.getElementById('edit-phone').value = d.phone || "";
+            // -----------------------------
+            
+            document.getElementById('edit-vid').value = d.vid || "MASKED"; // Read only
             document.getElementById('edit-profile-preview').src = d.photoURL;
-            tempImg = d.photoURL; // Reset tempImg to current photo
-
+            tempImg = d.photoURL;
+            
             document.getElementById('modal-edit-profile').classList.remove('hidden');
         },
-
-        // Save Edits
         update: async () => {
             const btn = document.querySelector('#modal-edit-profile .btn-primary');
             btn.innerText = "Saving...";
             
             const n = document.getElementById('edit-name').value;
+            const p = document.getElementById('edit-phone').value;
             
-            await updateDoc(doc(db, "users", currentUser.uid), {
-                name: n,
-                age: document.getElementById('edit-age').value,
-                gender: document.getElementById('edit-gender').value,
-                photoURL: tempImg // Uses new image if uploaded, or old if not changed
+            await updateDoc(doc(db, "users", currentUser.uid), { 
+                name: n, 
+                age: document.getElementById('edit-age').value, 
+                gender: document.getElementById('edit-gender').value, 
+                phone: p, // Save new phone number
+                photoURL: tempImg 
             });
             
             location.reload();
         }
     };
-
+    
 // 7. QUEUE & DASHBOARD HANDLER
     window.queueHandler = {
         loadList: () => {
