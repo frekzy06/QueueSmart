@@ -676,43 +676,39 @@
         }
     };
 
-    // 7. QUEUE & DASHBOARD HANDLER
+   // 7. QUEUE & DASHBOARD HANDLER
     window.queueHandler = {
         loadList: () => {
             const l = document.getElementById('location-list');
             const spinner = document.getElementById('loading-spinner');
             
-            // 1. Subscribe to database
             onSnapshot(collection(db, "locations"), (snap) => {
-                // 2. Clear list & Hide spinner
                 l.innerHTML = ""; 
                 if(spinner) spinner.classList.add('hidden');
                 
                 let openCount = 0;
 
-                // 3. Check if empty
                 if(snap.empty) {
-                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.<br>Admin can register one below.</div>";
+                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.</div>";
                     return;
                 }
 
-                // 4. Loop through results
                 snap.forEach(d => {
                     const loc = d.data();
                     
-                    // Safety check for logic engine
-                    const status = window.logic ? window.logic.checkTimeStatus(loc) : {isOpen: true};
+                    // --- FIX: Explicit Status Calculation ---
+                    const status = window.logic.checkTimeStatus(loc);
                     if(status.isOpen) openCount++;
+                    
+                    const statusText = status.isOpen ? "OPEN" : "CLOSED";
+                    const statusClass = status.isOpen ? "open" : "closed";
+                    // ----------------------------------------
 
-                    // Create Card Element
                     const div = document.createElement('div'); 
                     div.className = 'loc-card';
-                    
-                    // Bind Click Event
                     div.onclick = function() { window.queueHandler.selectLoc(d.id); };
                     
-                    // Fallback Image
-                    const bgImg = loc.imageURL && loc.imageURL.length > 5 ? loc.imageURL : 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                    const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
 
                     div.innerHTML = `
                         <div class="loc-img-box">
@@ -722,22 +718,17 @@
                             <h3 style="margin:0; text-shadow:0 2px 4px #000; color:#fff;">${loc.name}</h3>
                         </div>
                         <div class="loc-footer">
-                            <span class="badge ${status.isOpen?'open':'closed'}">${status.isOpen?'OPEN':'CLOSED'}</span>
+                            <span class="badge ${statusClass}">${statusText}</span>
                             <span style="font-size:10px; color:#aaa;">${loc.bookingType ? loc.bookingType.toUpperCase() : 'FREE'}</span>
                         </div>
                     `;
                     l.appendChild(div);
                 });
                 
-                // Update AI Insight Text
                 const insight = document.getElementById('ai-hub-insight');
                 if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
 
-            }, (error) => {
-                // Error Handling
-                console.error("Database Error:", error);
-                if(spinner) spinner.innerHTML = "<span style='color:red'>Connection Failed. Check Console.</span>";
-            });
+            }, (error) => { console.error("List Error:", error); });
         },
 
         selectLoc: (id) => {
@@ -747,7 +738,6 @@
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
-                // Pre-fill modal for editing
                 getDoc(doc(db, "locations", id)).then(s => {
                     if(!s.exists()) return;
                     const d = s.data();
@@ -772,39 +762,25 @@
 
         initDash: (id) => {
             if(locUnsub) locUnsub();
-            // Listen to Location Data
             locUnsub = onSnapshot(doc(db, "locations", id), (s) => {
                 if(!s.exists()) return;
                 const d = s.data(); currentLocData = d;
                 
-                // Update DOM
-                const nameEl = document.getElementById('dash-name');
-                if(nameEl) nameEl.innerText = d.name;
-                
-                const descEl = document.getElementById('dash-desc');
-                if(descEl) descEl.innerText = d.description || "";
-                
-                const imgEl = document.getElementById('dash-img');
-                if(imgEl && d.imageURL) imgEl.style.backgroundImage = `url('${d.imageURL}')`;
+                document.getElementById('dash-name').innerText = d.name;
+                document.getElementById('dash-desc').innerText = d.description || "";
+                if(d.imageURL) document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
                 
                 const status = window.logic.checkTimeStatus(d);
                 const statusEl = document.getElementById('dash-status');
-                if(statusEl) {
-                    statusEl.innerText = status.isOpen ? "ONLINE" : "OFFLINE";
-                    statusEl.className = `badge ${status.isOpen ? 'open' : 'closed'}`;
-                }
+                statusEl.innerText = status.isOpen ? "ONLINE" : "OFFLINE";
+                statusEl.className = `badge ${status.isOpen ? 'open' : 'closed'}`;
 
                 const btn = document.getElementById('btn-join');
-                if(btn) {
-                    if(!status.isOpen) { 
-                        btn.disabled = true; 
-                        btn.innerText = "CLOSED"; 
-                        btn.style.opacity = 0.5; 
-                    } else { 
-                        btn.disabled = false; 
-                        btn.style.opacity = 1; 
-                        btn.innerText = d.bookingType === 'paid' ? `BOOK (₹${d.ticketPrice})` : "JOIN QUEUE"; 
-                    }
+                if(!status.isOpen) { 
+                    btn.disabled = true; btn.innerText = "CLOSED"; btn.style.opacity = 0.5; 
+                } else { 
+                    btn.disabled = false; btn.style.opacity = 1; 
+                    btn.innerText = d.bookingType === 'paid' ? `BOOK (₹${d.ticketPrice})` : "JOIN QUEUE"; 
                 }
                 
                 if(d.notice) {
@@ -814,37 +790,28 @@
             });
 
             if(qUnsub) qUnsub();
-            // Listen to Queue Data
             qUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
                 const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
                 const pos = docs.findIndex(x => x.uid === currentUser.uid);
                 
                 if(pos !== -1) {
-                    // User is IN queue
                     document.getElementById('dash-count').innerText = pos;
                     document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
                     const velocity = await window.logic.calculateVelocity(id);
                     document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
-                    
                     document.getElementById('btn-join').classList.add('hidden');
                     document.getElementById('btn-leave').classList.remove('hidden');
-                    
-                    // Notification Trigger
-                    if (pos === 0 && "Notification" in window && Notification.permission === "granted") {
-                         new Notification("QueueSmart: Your Turn!", { body: `Proceed to counter at ${currentLocData?.name}` });
-                    }
                 } else {
-                    // User is NOT in queue
                     document.getElementById('dash-count').innerText = docs.length;
                     document.getElementById('dash-count-label').innerText = "TOTAL QUEUE";
                     document.getElementById('dash-time').innerText = "--";
-                    
                     document.getElementById('btn-join').classList.remove('hidden');
                     document.getElementById('btn-leave').classList.add('hidden');
                 }
                 window.queueHandler.updateChart(docs.length);
             });
             
+            // --- FIX: Ensure Chat Init is called ---
             window.chatHandler.init(id);
         },
 
@@ -870,43 +837,23 @@
             try {
                 const btn = document.getElementById('btn-join');
                 if(btn) btn.innerText = "Processing...";
-                
-                await addDoc(collection(db, "queue"), { 
-                    uid: currentUser.uid, 
-                    locationId: currentLocId, 
-                    timestamp: serverTimestamp(), 
-                    txn: txn || 'free' 
-                });
-                
-                await addDoc(collection(db, "logs"), { 
-                    locationId: currentLocId, 
-                    action: "JOIN", 
-                    user: currentUser.uid, 
-                    timestamp: serverTimestamp() 
-                });
-            } catch(e) { 
-                console.error("Join Error:", e); 
-                alert("Failed to join queue. Try again.");
-            }
+                await addDoc(collection(db, "queue"), { uid: currentUser.uid, locationId: currentLocId, timestamp: serverTimestamp(), txn: txn || 'free' });
+                await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "JOIN", user: currentUser.uid, timestamp: serverTimestamp() });
+            } catch(e) { console.error("Join Error:", e); alert("Failed to join."); }
         },
 
         leave: async () => {
-            if(!confirm("Are you sure you want to leave the queue?")) return;
+            if(!confirm("Leave queue?")) return;
             const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
             const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref));
         },
 
         updateChart: (count) => {
-            // Simulate future data for visualization
             const hourData = Array(6).fill(0).map(() => Math.floor(Math.random() * 20) + 5); 
             if (userChart) userChart.destroy();
             const ctx = document.getElementById('userChart').getContext('2d');
             userChart = new Chart(ctx, {
-                type: 'line', 
-                data: { 
-                    labels: ['Now', '+1h', '+2h', '+3h', '+4h', '+5h'], 
-                    datasets: [{ label: 'Predicted Traffic', data: hourData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true }] 
-                },
+                type: 'line', data: { labels: ['Now', '+1h', '+2h', '+3h', '+4h', '+5h'], datasets: [{ label: 'Predicted Traffic', data: hourData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true }] },
                 options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
             });
             const minIdx = hourData.indexOf(Math.min(...hourData));
@@ -918,23 +865,66 @@
     window.chatHandler = {
         init: (id) => {
             if(chatUnsub) chatUnsub();
-            chatUnsub = onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc")), (s) => {
-                const f = document.getElementById('location-chat-box'); if(!f) return;
+            // Use 'asc' to show oldest messages at top, scrolling down to newest
+            const q = query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc"));
+            
+            chatUnsub = onSnapshot(q, (s) => {
+                const f = document.getElementById('location-chat-box'); 
+                if(!f) return;
+                
                 f.innerHTML = "";
+                if(s.empty) {
+                    f.innerHTML = "<div style='text-align:center; color:#555; padding:20px; font-size:12px;'>No messages yet. Start the conversation!</div>";
+                }
+
                 s.forEach(d => {
                     const m = d.data();
-                    const el = document.createElement('div'); el.className = 'chat-msg';
-                    el.innerHTML = `<img src="${m.userPhoto}" class="chat-avatar"><div class="chat-bubble"><div class="chat-header">${m.userName}</div>${m.text}</div>`;
+                    const el = document.createElement('div'); 
+                    el.className = 'chat-msg';
+                    // Fallback for avatar
+                    const avatar = m.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.userName||'User')}`;
+                    
+                    el.innerHTML = `
+                        <img src="${avatar}" class="chat-avatar">
+                        <div class="chat-bubble">
+                            <div class="chat-header">${m.userName || 'Anonymous'}</div>
+                            ${m.text}
+                        </div>`;
                     f.appendChild(el);
                 });
-                f.scrollTop = f.scrollHeight;
+                // Scroll to bottom
+                setTimeout(() => f.scrollTop = f.scrollHeight, 100);
+            }, (error) => {
+                console.error("Chat Error:", error);
             });
         },
         send: async () => {
-            const t = document.getElementById('chat-input').value; if(!t) return;
-            const u = (await getDoc(doc(db, "users", currentUser.uid))).data();
-            await addDoc(collection(db, "comments"), { locationId: currentLocId, text: t, uid: currentUser.uid, userName: u.name, userPhoto: u.photoURL, timestamp: serverTimestamp() });
-            document.getElementById('chat-input').value = "";
+            const input = document.getElementById('chat-input');
+            const t = input.value.trim(); 
+            if(!t) return;
+            
+            if(!currentUser) return alert("Please sign in.");
+            
+            // Clear input immediately for better UI feel
+            input.value = "";
+
+            try {
+                // Get fresh user data
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+                
+                await addDoc(collection(db, "comments"), { 
+                    locationId: currentLocId, 
+                    text: t, 
+                    uid: currentUser.uid, 
+                    userName: userData.name || "User", 
+                    userPhoto: userData.photoURL || "", 
+                    timestamp: serverTimestamp() 
+                });
+            } catch(e) {
+                console.error("Send failed", e);
+                alert("Message failed to send.");
+            }
         }
     };
 
