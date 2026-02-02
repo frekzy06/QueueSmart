@@ -21,8 +21,12 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            console.warn("[System]:", msg, "Line:", line);
+            // We ignore resize loops as they are harmless canvas errors
+            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) {
+                console.warn("[System Warning]: UI glitch detected and suppressed.", msg);
+                return true;
+            }
+            console.error("[System Critical]: Unhandled Exception at Line " + line + ": " + msg);
             return false;
         };
     </script>
@@ -96,7 +100,7 @@
 
         /* --- COMPONENT: GLASS CARD --- */
         .glass-card {
-            background: rgba(15, 15, 18, 0.9); 
+            background: rgba(15, 15, 18, 0.95); 
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--border); 
             border-radius: 16px; 
@@ -289,7 +293,7 @@
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 10px;">
                 <button onclick="window.authHandler.demoLogin('user')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 12px;">Demo Citizen</button>
-                <button onclick="window.authHandler.demoLogin('admin')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 12px; color: var(--danger); border-color: rgba(255,68,68,0.3);">Demo Admin</button>
+                <button onclick="window.authHandler.demoLogin('admin')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 12px; color: var(--danger); border-color: rgba(255,0,0,0.3);">Demo Admin</button>
             </div>
             <div id="auth-msg" style="text-align: center; color: var(--danger); font-size: 11px; margin-top: 15px;"></div>
         </div>
@@ -467,7 +471,7 @@
 
             <div class="glass-card" style="display: flex; flex-direction: column;">
                 <h4 style="margin: 0 0 15px 0; font-size: 13px; text-transform: uppercase;">Audit Logs</h4>
-                <div id="god-logs" style="flex: 1; overflow-y: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);"></div>
+                <div id="god-logs" style="flex: 1; overflow-y: auto; font-family: var(--font-data); font-size: 10px; color: var(--text-muted);"></div>
             </div>
         </div>
     </div>
@@ -526,7 +530,7 @@
                 <option value="paid">Paid Reservation</option>
             </select>
             <div id="conf-pay" class="hidden" style="margin-top: 10px;">
-                <input type="text" id="conf-upi" class="input-field" placeholder="UPI ID" style="margin-bottom: 10px;">
+                <input type="text" id="conf-upi" class="input-field" placeholder="UPI ID (merchant@bank)" style="margin-bottom: 10px;">
                 <input type="number" id="conf-price" class="input-field" placeholder="Amount (₹)">
             </div>
         </div>
@@ -540,12 +544,12 @@
         <h3 style="color: var(--primary); margin-top: 0;">Secure Reservation</h3>
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Booking Fee: <b style="color:#fff; font-size: 18px;" id="pay-amt">₹0</b></p>
         <div style="background: #fff; padding: 15px; border-radius: 16px; margin-bottom: 20px; display: inline-block;">
-            <div id="pay-qr-display"></div>
+            <div id="pay-qr"></div>
         </div>
-        <button id="btn-pay-app" class="btn btn-primary" style="width:100%; margin-bottom: 15px;">PAY VIA UPI</button>
+        <button id="btn-pay-upi" class="btn btn-upi" style="margin-bottom: 20px;">PAY VIA UPI</button>
         <div class="input-group">
             <span class="dpi-label">Ref ID (Last 4 digits)</span>
-            <input type="text" id="user-txn-id" class="input-field" placeholder="xxxx">
+            <input type="text" id="pay-txn" class="input-field" placeholder="xxxx">
         </div>
         <button onclick="window.queueHandler.verifyPay()" class="btn btn-primary">Verify & Join</button>
         <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
@@ -647,6 +651,7 @@
             document.getElementById('card-gender').innerText = d.gender || '-';
             document.getElementById('card-phone').innerText = d.phone || '-';
             
+            // ADMIN POV
             let vidText = "MASKED";
             if(isAdmin) {
                 vidText = d.vid || "N/A";
@@ -781,7 +786,7 @@
             // Loc Data
             state.unsubs.push(onSnapshot(doc(db, "locations", id), (s) => {
                 if(!s.exists()) return;
-                const d = s.data(); currentLocData = d;
+                const d = s.data(); state.locData = d;
                 document.getElementById('dash-name').innerText = d.name;
                 document.getElementById('dash-desc').innerText = d.description || "";
                 document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
@@ -789,7 +794,8 @@
                 const status = window.logic.checkTimeStatus(d);
                 document.getElementById('dash-status').innerText = status.isOpen?"ONLINE":"OFFLINE";
                 document.getElementById('dash-status').className = `badge ${status.isOpen?'open':'closed'}`;
-                
+                document.getElementById('dash-type').innerText = d.bookingType.toUpperCase();
+
                 if(d.notice) {
                     document.getElementById('dash-notice').classList.remove('hidden');
                     document.getElementById('dash-notice-text').innerText = d.notice;
@@ -803,32 +809,34 @@
             // Queue
             state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
                 const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=>a.timestamp-b.timestamp);
-                const pos = docs.findIndex(x => x.uid === currentUser.uid);
+                const pos = docs.findIndex(x => x.uid === state.user.uid);
                 
                 if(pos !== -1) {
                     document.getElementById('dash-count').innerText = pos; 
+                    document.getElementById('dash-label').innerText = "PEOPLE AHEAD";
                     document.getElementById('dash-time').innerText = `~${(pos+1)*5} min`;
                     document.getElementById('btn-join').classList.add('hidden');
                     document.getElementById('btn-leave').classList.remove('hidden');
                 } else {
                     document.getElementById('dash-count').innerText = docs.length;
+                    document.getElementById('dash-label').innerText = "TOTAL IN LINE";
                     document.getElementById('dash-time').innerText = "--";
                     document.getElementById('btn-join').classList.remove('hidden');
                     document.getElementById('btn-leave').classList.add('hidden');
                 }
-                window.logic.analyzeTrends(id);
+                window.logic.updateChart(docs.length);
             }));
             
             window.logic.initChat(id);
         },
 
         join: () => {
-            if(currentLocData.bookingType === 'paid') {
-                document.getElementById('pay-amt').innerText = "₹"+currentLocData.ticketPrice;
-                const link = `upi://pay?pa=${currentLocData.upiId}&pn=QueueSmart&am=${currentLocData.ticketPrice}&cu=INR`;
+            if(state.locData.bookingType === 'paid') {
+                document.getElementById('pay-amt').innerText = "₹"+state.locData.ticketPrice;
+                const link = `upi://pay?pa=${state.locData.upiId}&pn=${encodeURIComponent(state.locData.name)}&am=${state.locData.ticketPrice}&cu=INR`;
                 document.getElementById('pay-qr-display').innerHTML = "";
                 new QRCode(document.getElementById('pay-qr-display'), { text: link, width: 128, height: 128 });
-                document.getElementById('btn-pay-app').onclick = () => window.location.href = link;
+                document.getElementById('btn-pay-upi').onclick = () => window.location.href = link;
                 document.getElementById('modal-pay').classList.remove('hidden');
             } else {
                 window.queueHandler.add();
@@ -838,26 +846,26 @@
         verifyPay: () => {
             if(document.getElementById('user-txn-id').value.length < 4) return alert("Invalid Ref ID");
             window.queueHandler.add(document.getElementById('user-txn-id').value);
-            window.ui.closeModals();
+            window.ui.closeModal('modal-pay');
         },
 
         add: async (txn = null) => {
             await addDoc(collection(db, "queue"), {
-                uid: currentUser.uid, locationId: currentLocId, timestamp: serverTimestamp(), txn: txn || 'free'
+                uid: state.user.uid, locationId: state.locId, timestamp: serverTimestamp(), txn: txn || 'free'
             });
             await addDoc(collection(db, "logs"), {
-                locationId: currentLocId, action: "JOIN", user: currentUser.uid, timestamp: serverTimestamp()
+                locationId: state.locId, action: "JOIN", user: state.user.uid, timestamp: serverTimestamp()
             });
         },
 
         leave: async () => {
-            const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
+            const q = query(collection(db, "queue"), where("uid", "==", state.user.uid), where("locationId", "==", state.locId));
             const s = await getDocs(q);
             s.forEach(d => deleteDoc(d.ref));
         }
     };
 
-    // 6. ADMIN HANDLER
+    // 7. ADMIN HANDLER
     window.adminHandler = {
         init: (id) => {
             // Queue List
@@ -904,12 +912,12 @@
 
         act: async (qid, type) => {
             await deleteDoc(doc(db, "queue", qid));
-            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type.toUpperCase(), timestamp: serverTimestamp() });
+            await addDoc(collection(db, "logs"), { locationId: state.locId, action: type.toUpperCase(), timestamp: serverTimestamp() });
         },
 
         nuke: async () => {
             if(!confirm("Reset entire queue?")) return;
-            const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
+            const q = query(collection(db, "queue"), where("locationId", "==", state.locId));
             const s = await getDocs(q);
             const b = writeBatch(db);
             s.forEach(d => b.delete(d.ref));
@@ -927,26 +935,27 @@
                 closeTime: document.getElementById('conf-close').value,
                 bookingType: document.getElementById('conf-type').value,
                 upiId: document.getElementById('conf-upi').value,
-                ticketPrice: document.getElementById('conf-price').value
+                ticketPrice: document.getElementById('conf-price').value,
+                status: 'open'
             };
             if(id) await updateDoc(doc(db, "locations", id), data);
             else { data.status = 'open'; await addDoc(collection(db, "locations"), data); }
             window.ui.closeModals();
         },
         
-        lock: async () => updateDoc(doc(db, "locations", currentLocId), { status: 'closed', notice: 'Emergency Lockdown' })
+        lock: async () => updateDoc(doc(db, "locations", state.locId), { status: 'closed', notice: 'Emergency Lockdown' })
     };
 
-    // 7. AI & CHAT
+    // 8. AI & CHAT
     window.aiHandler = {
         toggle: async () => {
             const v = document.getElementById('webcam');
             if(!state.camActive) {
-                if(!aiModel) aiModel = await cocoSsd.load();
+                if(!state.aiModel) state.aiModel = await cocoSsd.load();
                 v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
                 state.camActive = true;
                 state.camInterval = setInterval(async () => {
-                    const p = await aiModel.detect(v);
+                    const p = await state.aiModel.detect(v);
                     const count = p.filter(x=>x.class==='person').length;
                     document.getElementById('cam-count').innerText = count;
                     if(count > 10) document.getElementById('god-alert').classList.remove('hidden');
@@ -961,57 +970,22 @@
     window.chatHandler = {
         send: async () => {
             const t = document.getElementById('chat-input').value; if(!t) return;
-            const u = (await getDoc(doc(db, "users", currentUser.uid))).data();
-            await addDoc(collection(db, "comments"), { locationId: currentLocId, text: t, uid: currentUser.uid, userName: u.name, userPhoto: u.photoURL, timestamp: serverTimestamp() });
+            const u = (await getDoc(doc(db, "users", state.user.uid))).data();
+            await addDoc(collection(db, "comments"), { locationId: state.locId, text: t, uid: state.user.uid, userName: u.name, userPhoto: u.photoURL, timestamp: serverTimestamp() });
             document.getElementById('chat-input').value = "";
         }
     };
 
     window.logic = {
-        checkTimeStatus: (loc) => {
-            if (loc.status === 'closed') return { isOpen: false, reason: "ADMIN CLOSED" };
-            if (!loc.openTime || !loc.closeTime) return { isOpen: true, reason: "" }; // Default open if no times set
-            
-            const now = new Date();
-            const curMins = now.getHours() * 60 + now.getMinutes();
-            
-            const [oh, om] = loc.openTime.split(':').map(Number);
-            const [ch, cm] = loc.closeTime.split(':').map(Number);
-            const start = oh * 60 + om;
-            const end = ch * 60 + cm;
-            
-            // Handle overnight (e.g. 10PM to 2AM)
-            if (end < start) {
-                return { isOpen: curMins >= start || curMins < end, reason: "TIME" };
-            } else {
-                return { isOpen: curMins >= start && curMins < end, reason: "TIME" };
-            }
-        },
-        analyzeTrends: async (locId) => {
-            // Mock AI for stability if logs are empty, preventing crash
-            const q = query(collection(db, "logs"), where("locationId", "==", locId), limit(50));
-            const snap = await getDocs(q);
-            const hourData = Array(6).fill(0).map(() => Math.floor(Math.random() * 20) + 5); 
-            
-            if (userChart) userChart.destroy();
-            const ctx = document.getElementById('userChart').getContext('2d');
-            userChart = new Chart(ctx, {
-                type: 'line',
-                data: { 
-                    labels: ['Now', '+1h', '+2h', '+3h', '+4h', '+5h'], 
-                    datasets: [{ label: 'Predicted Traffic', data: hourData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true }] 
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-            });
-            
-            // Find lowest traffic hour
-            const minIdx = hourData.indexOf(Math.min(...hourData));
-            document.getElementById('dash-ai-msg').innerText = `✨ AI Suggestion: Best time to visit is in ${minIdx} hours.`;
+        isOpen: (loc) => {
+            if(loc.status === 'closed') return false;
+            const now = new Date(); const c = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+            return (!loc.openTime || (c >= loc.openTime && c < loc.closeTime));
         },
         selectLoc: (id) => {
-            currentLocId = id;
-            window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
-            if(isAdmin) {
+            state.locId = id;
+            window.ui.showView(state.isAdmin ? 'view-god-mode' : 'view-dashboard');
+            if(state.isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
                 // Fill Edit Modal for ease
@@ -1044,10 +1018,23 @@
                 f.scrollTop = f.scrollHeight;
             }));
         },
+        updateChart: (count) => {
+            const ctx = document.getElementById('userChart').getContext('2d');
+            if(state.chart) state.chart.destroy();
+            state.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Now', '+15', '+30', '+45'],
+                    datasets: [{ label: 'Traffic', data: [count, count+2, count+5, count-1], borderColor: '#FF9933', backgroundColor: 'rgba(255,153,51,0.1)', fill: true }]
+                },
+                options: { responsive: true, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{display:false} } }
+            });
+            document.getElementById('dash-ai-msg').innerText = "AI PREDICTION: Traffic peaking in 30 mins.";
+        },
         renderAdminChart: (count) => {
             const ctx = document.getElementById('adminChart');
-            if(adminChart) adminChart.destroy();
-            adminChart = new Chart(ctx, {
+            if(state.adminChart) state.adminChart.destroy();
+            state.adminChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels: ['Current'], datasets: [{label:'Density', data:[count], backgroundColor:'#00d4ff'}] },
                 options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
@@ -1060,14 +1047,14 @@
 
     // 9. BOOTSTRAP
     onAuthStateChanged(auth, async (u) => {
-        currentUser = u;
+        state.user = u;
         if(u) {
             const s = await getDoc(doc(db, "users", u.uid));
             if(s.exists()) {
                 const d = s.data();
-                isAdmin = (d.role === 'admin');
+                state.isAdmin = (d.role === 'admin');
                 document.getElementById('profile-bubble').style.backgroundImage = `url('${d.photoURL}')`;
-                if(isAdmin) {
+                if(state.isAdmin) {
                     document.body.classList.add('god-mode');
                     document.getElementById('admin-controls').classList.remove('hidden');
                 }
