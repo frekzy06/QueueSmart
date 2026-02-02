@@ -1580,7 +1580,7 @@
         }
     };
     
-// 11. AI RECOMMENDATION ENGINE (STABLE FREE MODEL + VOICE)
+// 11. AI RECOMMENDATION ENGINE (SMART TIME-AWARE + VOICE)
     window.aiAssistant = {
         apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
         
@@ -1589,12 +1589,14 @@
         // Voice Feature
         speak: (text) => {
             if ('speechSynthesis' in window) {
+                // Cancel any previous speech
                 window.speechSynthesis.cancel(); 
+                
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 1.0; 
                 utterance.pitch = 1.0;
                 
-                // Try to find a good US English voice
+                // Try to find a Google US English voice (usually better quality)
                 const voices = window.speechSynthesis.getVoices();
                 const preferredVoice = voices.find(v => v.name.includes("Google US English")) || voices[0];
                 if(preferredVoice) utterance.voice = preferredVoice;
@@ -1626,36 +1628,52 @@
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // 3. Fetch Location Data
+                // 3. Fetch Data & FILTER CLOSED LOCATIONS
                 const snap = await getDocs(collection(db, "locations"));
-                const locations = snap.docs.map(d => {
+                
+                // --- THE FIX: FILTER BY TIME STATUS ---
+                const activeLocations = [];
+                snap.forEach(d => {
                     const data = d.data();
-                    return `- ${data.name}: ${data.description}. Status: ${data.status}.`;
-                }).join("\n");
+                    // Run the exact same logic the dashboard uses
+                    const status = window.logic.checkTimeStatus(data);
+                    
+                    if(status.isOpen) {
+                        activeLocations.push(`- ${data.name} (OPEN): ${data.description}.`);
+                    }
+                });
+                
+                let locationsText = "";
+                if(activeLocations.length === 0) {
+                    locationsText = "There are NO facilities open right now. Everything is closed.";
+                } else {
+                    locationsText = activeLocations.join("\n");
+                }
+                // -------------------------------------
 
                 // 4. Build Prompt
                 const prompt = `
                     You are "QueueSmart AI".
-                    Here are the facilities:
-                    ${locations}
+                    Here is the list of CURRENTLY OPEN facilities:
+                    ${locationsText}
 
                     User Request: "${userText}"
 
-                    Task: Recommend a facility. Keep it very short (max 2 sentences) so it is easy to speak out loud.
-                    If nothing matches, say "I couldn't find a match."
+                    Task: Recommend an OPEN facility from the list above. 
+                    - If the list says everything is closed, tell the user "Sorry, everything is closed right now."
+                    - Keep your answer very short (max 2 sentences) so it is easy to speak out loud.
+                    - Do NOT apologize if you find a match, just recommend it energetically.
                 `;
 
                 // 5. Call Gemini
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
-                
-                // CHANGED: Using the exact name found in your list
                 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
                 
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
-                const aiText = response.text().replace(/[*#]/g, '');
+                const aiText = response.text().replace(/[*#]/g, ''); // Clean text for voice
 
-                // 6. Display & SPEAK Response
+                // 6. Display Response
                 document.getElementById(loadingId).remove();
                 msgBox.innerHTML += `
                     <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
@@ -1663,6 +1681,7 @@
                     </div>`;
                 msgBox.scrollTop = msgBox.scrollHeight;
                 
+                // 7. SPEAK AUTOMATICALLY
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
