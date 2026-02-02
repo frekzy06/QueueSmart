@@ -542,24 +542,28 @@
             <div style="flex:1"><span class="dpi-label">Close Time</span><input type="time" id="conf-close" class="input-field"></div>
         </div>
         
-        <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
-            
-            <span class="dpi-label" style="color: var(--primary); margin-bottom: 10px;">Display Settings</span>
-            <select id="conf-mode" class="input-field" style="margin-bottom: 15px;">
-                <option value="ahead">Show "People Ahead" (Privacy Focused)</option>
-                <option value="total">Show "Total Headcount" (Transparency)</option>
-            </select>
+      <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
+    
+    <span class="dpi-label" style="color: var(--primary); margin-bottom: 10px;">Queue Limits</span>
+    <div class="input-group" style="margin-bottom: 15px;">
+        <input type="number" id="conf-cap" class="input-field" placeholder="Max Capacity (0 = Unlimited)">
+    </div>
+    <span class="dpi-label" style="color: var(--primary); margin-bottom: 10px;">Display Settings</span>
+    <select id="conf-mode" class="input-field" style="margin-bottom: 15px;">
+        <option value="ahead">Show "People Ahead" (Privacy Focused)</option>
+        <option value="total">Show "Total Headcount" (Transparency)</option>
+    </select>
 
-            <span class="dpi-label" style="color: var(--primary); margin-bottom: 10px;">Access Control</span>
-            <select id="conf-type" class="input-field" onchange="window.ui.togglePay()">
-                <option value="free">Free Entry (Standard)</option>
-                <option value="paid">Paid Reservation</option>
-            </select>
-            <div id="conf-pay" class="hidden" style="margin-top: 15px;">
-                <input type="text" id="conf-upi" class="input-field" placeholder="UPI ID (merchant@bank)" style="margin-bottom: 10px;">
-                <input type="number" id="conf-price" class="input-field" placeholder="Amount (₹)">
-            </div>
-        </div>
+    <span class="dpi-label" style="color: var(--primary); margin-bottom: 10px;">Access Control</span>
+    <select id="conf-type" class="input-field" onchange="window.ui.togglePay()">
+        <option value="free">Free Entry (Standard)</option>
+        <option value="paid">Paid Reservation</option>
+    </select>
+    <div id="conf-pay" class="hidden" style="margin-top: 15px;">
+        <input type="text" id="conf-upi" class="input-field" placeholder="UPI ID (merchant@bank)" style="margin-bottom: 10px;">
+        <input type="number" id="conf-price" class="input-field" placeholder="Amount (₹)">
+    </div>
+</div>
 
         <button onclick="window.adminHandler.saveLoc()" class="btn btn-primary">Save Changes</button>
         <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
@@ -905,17 +909,10 @@
             const spinner = document.getElementById('loading-spinner');
             
             onSnapshot(collection(db, "locations"), (snap) => {
-                l.innerHTML = ""; 
-                if(spinner) spinner.classList.add('hidden');
-                
-                if(snap.empty) {
-                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#666;'>No active facilities found.</div>";
-                    return;
-                }
+                l.innerHTML = ""; if(spinner) spinner.classList.add('hidden');
+                if(snap.empty) { l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#666;'>No active facilities found.</div>"; return; }
 
-                let locations = [];
-                let openCount = 0;
-
+                let locations = []; let openCount = 0;
                 snap.forEach(d => {
                     const loc = d.data();
                     const status = window.logic.checkTimeStatus(loc);
@@ -930,46 +927,25 @@
                 });
 
                 locations.forEach(loc => {
-                    const div = document.createElement('div'); 
-                    div.className = 'loc-card';
+                    const div = document.createElement('div'); div.className = 'loc-card';
                     div.onclick = function() { window.queueHandler.selectLoc(loc.id); };
-                    
-                    if (!loc.status.isOpen) {
-                        div.style.filter = "grayscale(100%) brightness(0.7)";
-                    }
-
+                    if (!loc.status.isOpen) div.style.filter = "grayscale(100%) brightness(0.7)";
                     const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
                     const timeDisplay = (loc.openTime && loc.closeTime) ? `${loc.openTime} - ${loc.closeTime}` : "24 Hours";
                     const isPaid = loc.bookingType === 'paid';
 
-                    div.innerHTML = `
-                        <img src="${bgImg}" class="loc-img-bg" onerror="this.style.display='none'">
-                        <div class="loc-gradient"></div>
-                        <div class="loc-info">
-                            <div style="display:flex; justify-content:space-between; align-items:start;">
-                                <h3 class="loc-title">${loc.name}</h3>
-                                <span class="type-badge ${isPaid ? 'paid' : 'free'}">${isPaid ? '₹ PAID' : 'FREE'}</span>
-                            </div>
-                            <div class="loc-meta">
-                                <span class="status-badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen ? '● OPEN' : 'CLOSED'}</span>
-                                <span class="loc-time"><i data-lucide="clock" style="width:12px;"></i> ${timeDisplay}</span>
-                            </div>
-                        </div>
-                    `;
+                    div.innerHTML = `<img src="${bgImg}" class="loc-img-bg" onerror="this.style.display='none'"><div class="loc-gradient"></div><div class="loc-info"><div style="display:flex; justify-content:space-between; align-items:start;"><h3 class="loc-title">${loc.name}</h3><span class="type-badge ${isPaid ? 'paid' : 'free'}">${isPaid ? '₹ PAID' : 'FREE'}</span></div><div class="loc-meta"><span class="status-badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen ? '● OPEN' : 'CLOSED'}</span><span class="loc-time"><i data-lucide="clock" style="width:12px;"></i> ${timeDisplay}</span></div></div>`;
                     l.appendChild(div);
                 });
                 
                 if(window.lucide) lucide.createIcons();
-                const insight = document.getElementById('ai-hub-insight');
-                if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
-
+                document.getElementById('ai-hub-insight').innerText = `${openCount} facilities active. Network synced.`;
             }, (error) => { console.error("List Error:", error); });
         },
 
         selectLoc: (id) => {
             currentLocId = id;
             window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
-            
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
@@ -983,28 +959,23 @@
                     document.getElementById('conf-notice').value = d.notice;
                     document.getElementById('conf-open').value = d.openTime;
                     document.getElementById('conf-close').value = d.closeTime;
+                    // --- LOAD CAPACITY ---
+                    document.getElementById('conf-cap').value = d.maxCapacity || ""; 
+                    // ---------------------
                     document.getElementById('conf-mode').value = d.countingMode || 'ahead';
                     document.getElementById('conf-type').value = d.bookingType;
                     window.ui.togglePay();
-                    if(d.bookingType==='paid') { 
-                        document.getElementById('conf-upi').value = d.upiId; 
-                        document.getElementById('conf-price').value = d.ticketPrice; 
-                    }
+                    if(d.bookingType==='paid') { document.getElementById('conf-upi').value = d.upiId; document.getElementById('conf-price').value = d.ticketPrice; }
                 });
-            } else {
-                window.queueHandler.initDash(id);
-            }
+            } else { window.queueHandler.initDash(id); }
         },
 
         initDash: (id) => {
             if(locUnsub) locUnsub();
-            // Reset Notification Flag when entering dashboard
-            window.hasNotifiedTurn = false; 
-
+            window.hasNotifiedTurn = false;
             locUnsub = onSnapshot(doc(db, "locations", id), (s) => {
                 if(!s.exists()) return;
                 const d = s.data(); currentLocData = d;
-                
                 document.getElementById('dash-name').innerText = d.name;
                 document.getElementById('dash-desc').innerText = d.description || "";
                 if(d.imageURL) document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
@@ -1013,19 +984,8 @@
                 const statusEl = document.getElementById('dash-status');
                 statusEl.innerText = status.isOpen ? "ONLINE" : "OFFLINE";
                 statusEl.className = `badge ${status.isOpen ? 'open' : 'closed'}`;
-
-                const btn = document.getElementById('btn-join');
-                if(!status.isOpen) { 
-                    btn.disabled = true; btn.innerText = "CLOSED"; btn.style.opacity = 0.5; 
-                } else { 
-                    btn.disabled = false; btn.style.opacity = 1; 
-                    btn.innerText = d.bookingType === 'paid' ? `BOOK (₹${d.ticketPrice})` : "JOIN QUEUE"; 
-                }
                 
-                if(d.notice) {
-                    document.getElementById('dash-notice').classList.remove('hidden');
-                    document.getElementById('dash-notice-text').innerText = d.notice;
-                }
+                if(d.notice) { document.getElementById('dash-notice').classList.remove('hidden'); document.getElementById('dash-notice-text').innerText = d.notice; }
             });
 
             if(qUnsub) qUnsub();
@@ -1034,73 +994,60 @@
                 const pos = docs.findIndex(x => x.uid === currentUser.uid);
                 const mode = currentLocData?.countingMode || 'ahead';
                 
+                // --- CAPACITY CHECK ---
+                const maxCap = currentLocData?.maxCapacity || 0;
+                const isFull = (maxCap > 0 && docs.length >= maxCap);
+                // ---------------------
+
                 if(pos !== -1) {
-                    // --- USER IS IN QUEUE ---
-                    
                     if(pos === 0) {
-                        // === IT'S YOUR TURN LOGIC ===
                         document.getElementById('dash-count').innerText = "NOW";
                         document.getElementById('dash-count-label').innerText = "IT'S YOUR TURN";
-                        
-                        // Turn Text Green
                         document.getElementById('dash-count').style.color = "var(--success)";
                         document.getElementById('dash-count-label').style.color = "var(--success)";
                         document.getElementById('dash-time').innerText = "PROCEED TO COUNTER";
-
-                        // Trigger Sound & Notification (Only once)
                         if(!window.hasNotifiedTurn) {
-                            // 1. Play Sound
                             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                            audio.play().catch(e => console.log("Audio play failed (user interaction needed first)"));
-
-                            // 2. Send Notification
-                            if ("Notification" in window) {
-                                if (Notification.permission === "granted") {
-                                    new Notification("QueueSmart: It's Your Turn!", { 
-                                        body: `Please proceed to the counter at ${currentLocData?.name}`,
-                                        icon: "0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png"
-                                    });
-                                } else if (Notification.permission !== "denied") {
-                                    Notification.requestPermission();
-                                }
-                            }
+                            audio.play().catch(e => console.log("Audio play failed"));
+                            if ("Notification" in window && Notification.permission === "granted") new Notification("QueueSmart: It's Your Turn!", { body: `Proceed to counter` });
                             window.hasNotifiedTurn = true;
                         }
                     } else {
-                        // === STILL WAITING LOGIC ===
-                        window.hasNotifiedTurn = false; // Reset if bumped back
-                        
-                        // Reset Text Color
+                        window.hasNotifiedTurn = false;
                         document.getElementById('dash-count').style.color = "#fff";
                         document.getElementById('dash-count-label').style.color = "var(--primary)";
-
-                        if(mode === 'total') {
-                            document.getElementById('dash-count').innerText = docs.length;
-                            document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT";
-                        } else {
-                            document.getElementById('dash-count').innerText = pos;
-                            document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
-                        }
-                        
+                        if(mode === 'total') { document.getElementById('dash-count').innerText = docs.length; document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT"; }
+                        else { document.getElementById('dash-count').innerText = pos; document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD"; }
                         const velocity = await window.logic.calculateVelocity(id);
                         document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
                     }
-
                     document.getElementById('btn-join').classList.add('hidden');
                     document.getElementById('btn-leave').classList.remove('hidden');
-
                 } else {
-                    // --- USER NOT IN QUEUE ---
                     window.hasNotifiedTurn = false;
                     document.getElementById('dash-count').style.color = "#fff";
                     document.getElementById('dash-count-label').style.color = "var(--primary)";
-
                     document.getElementById('dash-count').innerText = docs.length;
-                    document.getElementById('dash-count-label').innerText = "TOTAL QUEUE";
+                    document.getElementById('dash-count-label').innerText = "CURRENT QUEUE SIZE";
                     document.getElementById('dash-time').innerText = "--";
                     
                     document.getElementById('btn-join').classList.remove('hidden');
                     document.getElementById('btn-leave').classList.add('hidden');
+
+                    // --- BUTTON STATE LOGIC ---
+                    const btn = document.getElementById('btn-join');
+                    const status = window.logic.checkTimeStatus(currentLocData);
+                    
+                    if(!status.isOpen) {
+                        btn.disabled = true; btn.innerText = "CLOSED"; btn.className = "btn btn-outline";
+                    } 
+                    else if(isFull) {
+                        btn.disabled = true; btn.innerText = "⛔ QUEUE FULL"; btn.className = "btn btn-danger"; btn.style.opacity = "0.5";
+                    } 
+                    else {
+                        btn.disabled = false; btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE"; btn.className = "btn btn-primary"; btn.style.opacity = "1";
+                    }
+                    // --------------------------
                 }
                 
                 window.queueHandler.updateChart(docs.length);
@@ -1110,10 +1057,16 @@
 
         join: () => {
             if(!currentLocData) return;
-            // Request Notification Permission on Join
-            if ("Notification" in window && Notification.permission !== "granted") {
-                Notification.requestPermission();
+            // Double Check Capacity on Click
+            const maxCap = currentLocData.maxCapacity || 0;
+            const currentCount = parseInt(document.getElementById('dash-count').innerText) || 0;
+            const isQueueView = document.getElementById('dash-count-label').innerText === "CURRENT QUEUE SIZE";
+            
+            if(isQueueView && maxCap > 0 && currentCount >= maxCap) {
+                return alert("Sorry, the queue has just reached maximum capacity.");
             }
+
+            if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
 
             if(currentLocData.bookingType === 'paid') {
                 document.getElementById('pay-amt').innerText = "₹"+currentLocData.ticketPrice;
@@ -1352,6 +1305,11 @@
                 name: document.getElementById('conf-name').value, imageURL: document.getElementById('conf-img').value,
                 description: document.getElementById('conf-desc').value, notice: document.getElementById('conf-notice').value,
                 openTime: document.getElementById('conf-open').value, closeTime: document.getElementById('conf-close').value,
+                
+                // --- SAVE CAPACITY ---
+                maxCapacity: parseInt(document.getElementById('conf-cap').value) || 0,
+                // ---------------------
+                
                 countingMode: document.getElementById('conf-mode').value,
                 bookingType: document.getElementById('conf-type').value, upiId: document.getElementById('conf-upi').value,
                 ticketPrice: document.getElementById('conf-price').value, status: 'open'
