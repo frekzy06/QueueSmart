@@ -1579,16 +1579,17 @@
             }
         }
     };
-// 11. AI RECOMMENDATION ENGINE (STABLE + VOICE)
+    
+// 11. AI RECOMMENDATION ENGINE (STABLE FREE MODEL + VOICE)
     window.aiAssistant = {
-        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI",
+        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
         
         // Voice Feature
         speak: (text) => {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop previous
+                window.speechSynthesis.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 1.0; 
                 utterance.pitch = 1.0;
@@ -1644,15 +1645,15 @@
                     If nothing matches, say "I couldn't find a match."
                 `;
 
-                // 5. Call Gemini (SWITCHED TO STABLE MODEL)
+                // 5. Call Gemini
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
                 
-                // CHANGED: Using 1.5-flash for better free-tier reliability
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                // CHANGED: Using the exact name found in your list
+                const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
                 
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
-                const aiText = response.text().replace(/[*#]/g, ''); // Clean text for voice
+                const aiText = response.text().replace(/[*#]/g, '');
 
                 // 6. Display & SPEAK Response
                 document.getElementById(loadingId).remove();
@@ -1662,16 +1663,14 @@
                     </div>`;
                 msgBox.scrollTop = msgBox.scrollHeight;
                 
-                // TRIGGER VOICE
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
                 document.getElementById(loadingId).remove();
-                // Handle Quota Error specifically
                 if(e.message.includes("429")) {
-                    msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">System overloaded. Please wait a moment.</div>`;
+                     msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Traffic high. Please wait a moment.</div>`;
                 } else {
-                    msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
+                     msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
                 }
             }
         }
