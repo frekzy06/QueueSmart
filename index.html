@@ -521,10 +521,12 @@
                 <span id="card-phone" class="dpi-val">--</span>
             </div>
         </div>
-        <div style="padding: 20px; background: rgba(0,0,0,0.5); display: flex; gap: 15px; justify-content: flex-end;">
-            <button onclick="window.authHandler.logout()" class="btn btn-danger" style="width: auto; font-size: 11px; padding: 10px 20px;">Sign Out</button>
-            <button onclick="window.ui.closeModals()" class="btn btn-outline" style="width: auto; font-size: 11px; padding: 10px 20px;">Close</button>
-        </div>
+       <div style="padding: 20px; background: rgba(0,0,0,0.5); display: flex; gap: 15px; justify-content: flex-end;">
+    <button onclick="window.profileHandler.openEdit()" class="btn btn-primary" style="width: auto; font-size: 11px; padding: 10px 20px;">Edit Profile</button>
+    
+    <button onclick="window.authHandler.logout()" class="btn btn-danger" style="width: auto; font-size: 11px; padding: 10px 20px;">Sign Out</button>
+    <button onclick="window.ui.closeModals()" class="btn btn-outline" style="width: auto; font-size: 11px; padding: 10px 20px;">Close</button>
+</div>
     </div>
 </div>
 
@@ -578,7 +580,36 @@
         <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
+<div id="modal-edit-profile" class="modal-overlay hidden">
+    <div class="glass-card" style="max-width: 450px; text-align: center;">
+        <h3 style="margin-top: 0; color: var(--primary);">Update Identity</h3>
+        
+        <label class="profile-uploader" style="width: 100px; height: 100px;">
+            <img id="edit-profile-preview" src="" style="width:100%; height:100%; object-fit:cover;">
+            <input type="file" hidden accept="image/*" onchange="window.profileHandler.previewEdit(this)">
+        </label>
 
+        <div class="input-group"><span class="dpi-label">Full Name</span><input type="text" id="edit-name" class="input-field"></div>
+        
+        <div style="display: flex; gap: 15px;">
+            <div class="input-group" style="flex:1;"><span class="dpi-label">Age</span><input type="number" id="edit-age" class="input-field"></div>
+            <div class="input-group" style="flex:1;">
+                <span class="dpi-label">Gender</span>
+                <select id="edit-gender" class="input-field">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="input-group"><span class="dpi-label">Verification ID (Read Only)</span><input type="text" id="edit-vid" class="input-field" disabled style="opacity:0.5; cursor:not-allowed;"></div>
+
+        <button onclick="window.profileHandler.update()" class="btn btn-primary">Save Changes</button>
+        <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+    </div>
+</div>
+    
 <div id="modal-info" class="modal-overlay hidden">
     <div class="glass-card" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
         <h3 id="info-title" style="color: var(--primary); margin-top: 0; font-family: var(--font-tech); text-transform: uppercase; letter-spacing: 1px;"></h3>
@@ -760,23 +791,45 @@
         logout: () => signOut(auth).then(()=>location.reload())
     };
 
-    // 6. PROFILE HANDLER
+   // 6. PROFILE HANDLER
     window.profileHandler = {
+        // Preview for Registration Screen
         preview: (inp) => {
             if(inp.files[0]) {
                 const r = new FileReader();
                 r.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-                        c.width = 150; c.height = 150; ctx.drawImage(img,0,0,150,150);
-                        tempImg = c.toDataURL('image/jpeg', 0.8);
-                        document.getElementById('setup-preview').src = tempImg;
-                    }
+                    window.profileHandler.compress(e.target.result, (res) => {
+                        tempImg = res;
+                        document.getElementById('setup-preview').src = res;
+                    });
                 };
                 r.readAsDataURL(inp.files[0]);
             }
         },
+        // Preview for Edit Modal
+        previewEdit: (inp) => {
+            if(inp.files[0]) {
+                const r = new FileReader();
+                r.onload = (e) => {
+                    window.profileHandler.compress(e.target.result, (res) => {
+                        tempImg = res; // Store new image in temp
+                        document.getElementById('edit-profile-preview').src = res;
+                    });
+                };
+                r.readAsDataURL(inp.files[0]);
+            }
+        },
+        // Helper to keep images small
+        compress: (src, cb) => {
+            const img = new Image(); img.src = src;
+            img.onload = () => {
+                const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+                c.width = 150; c.height = 150; ctx.drawImage(img,0,0,150,150);
+                cb(c.toDataURL('image/jpeg', 0.8));
+            }
+        },
+        
+        // Save New Account
         save: async () => {
             const n = document.getElementById('setup-name').value;
             const v = document.getElementById('setup-vid').value;
@@ -789,6 +842,41 @@
                 photoURL: tempImg || `https://ui-avatars.com/api/?name=${n}`,
                 role: 'user', createdAt: serverTimestamp()
             }, { merge: true });
+            location.reload();
+        },
+
+        // Open Edit Modal
+        openEdit: async () => {
+            window.ui.closeModals(); // Close ID card
+            const snap = await getDoc(doc(db, "users", currentUser.uid));
+            if(!snap.exists()) return;
+            const d = snap.data();
+            
+            // Pre-fill Data
+            document.getElementById('edit-name').value = d.name;
+            document.getElementById('edit-age').value = d.age || "";
+            document.getElementById('edit-gender').value = d.gender || "Male";
+            document.getElementById('edit-vid').value = d.vid || "MASKED";
+            document.getElementById('edit-profile-preview').src = d.photoURL;
+            tempImg = d.photoURL; // Reset tempImg to current photo
+
+            document.getElementById('modal-edit-profile').classList.remove('hidden');
+        },
+
+        // Save Edits
+        update: async () => {
+            const btn = document.querySelector('#modal-edit-profile .btn-primary');
+            btn.innerText = "Saving...";
+            
+            const n = document.getElementById('edit-name').value;
+            
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                name: n,
+                age: document.getElementById('edit-age').value,
+                gender: document.getElementById('edit-gender').value,
+                photoURL: tempImg // Uses new image if uploaded, or old if not changed
+            });
+            
             location.reload();
         }
     };
