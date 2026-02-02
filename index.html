@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#000000">
-    <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
+    <meta name="theme-color" content="#050505">
     <meta name="description" content="QueueSmart: The Digital Public Infrastructure for India's Queues. Viksit Bharat Network.">
     <title>QueueSmart | Digital Public Infrastructure</title>
     
@@ -100,7 +99,7 @@
 
         /* --- COMPONENT: GLASS CARD --- */
         .glass-card {
-            background: rgba(15, 15, 18, 0.95); 
+            background: rgba(15, 15, 18, 0.9); 
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--border); 
             border-radius: 16px; 
@@ -300,7 +299,7 @@
     </div>
 
     <div id="view-setup" class="glass-card hidden" style="max-width: 500px; margin: 40px auto; text-align: center;">
-        <h2 style="margin-bottom: 5px;">Citizen Registration</h2>
+        <h2 style="margin-bottom: 10px;">Citizen Registration</h2>
         <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 30px;">Complete your digital profile to access services.</p>
         
         <label class="profile-uploader">
@@ -390,7 +389,7 @@
                     <div style="text-align: center; margin-bottom: 30px;">
                         <div class="stat-ring">
                             <span id="dash-count" style="font-size: 64px; font-weight: 900; color: #fff; line-height: 1;">0</span>
-                            <span style="font-size: 10px; font-weight: 700; color: var(--primary); letter-spacing: 1.5px; margin-top: 5px;">AHEAD OF YOU</span>
+                            <span style="font-size: 10px; color: var(--primary); letter-spacing: 1.5px; margin-top: 5px;">AHEAD OF YOU</span>
                         </div>
                         <div style="margin-top: 20px; text-align: center;">
                             <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Est. Wait</span>
@@ -549,7 +548,7 @@
         <button id="btn-pay-upi" class="btn btn-upi" style="margin-bottom: 20px;">PAY VIA UPI</button>
         <div class="input-group">
             <span class="dpi-label">Ref ID (Last 4 digits)</span>
-            <input type="text" id="pay-txn" class="input-field" placeholder="xxxx">
+            <input type="text" id="user-txn-id" class="input-field" placeholder="xxxx">
         </div>
         <button onclick="window.queueHandler.verifyPay()" class="btn btn-primary">Verify & Join</button>
         <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
@@ -726,8 +725,8 @@
                     img.onload = () => {
                         const c = document.createElement('canvas'); const ctx = c.getContext('2d');
                         c.width = 150; c.height = 150; ctx.drawImage(img,0,0,150,150);
-                        tempImg = c.toDataURL('image/jpeg', 0.8);
-                        document.getElementById('setup-preview').src = tempImg;
+                        state.tempImg = c.toDataURL('image/jpeg', 0.8);
+                        document.getElementById('setup-preview').src = state.tempImg;
                     }
                 };
                 r.readAsDataURL(inp.files[0]);
@@ -743,7 +742,7 @@
                 uid: currentUser.uid, name: n, vid: v, phone: p,
                 age: document.getElementById('setup-age').value,
                 gender: document.getElementById('setup-gender').value,
-                photoURL: tempImg || `https://ui-avatars.com/api/?name=${n}`,
+                photoURL: state.tempImg || `https://ui-avatars.com/api/?name=${n}`,
                 role: 'user', createdAt: serverTimestamp()
             }, { merge: true });
             location.reload(); 
@@ -836,7 +835,7 @@
                 const link = `upi://pay?pa=${state.locData.upiId}&pn=${encodeURIComponent(state.locData.name)}&am=${state.locData.ticketPrice}&cu=INR`;
                 document.getElementById('pay-qr-display').innerHTML = "";
                 new QRCode(document.getElementById('pay-qr-display'), { text: link, width: 128, height: 128 });
-                document.getElementById('btn-pay-upi').onclick = () => window.location.href = link;
+                document.getElementById('btn-pay-app').onclick = () => window.location.href = link;
                 document.getElementById('modal-pay').classList.remove('hidden');
             } else {
                 window.queueHandler.add();
