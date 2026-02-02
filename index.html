@@ -676,7 +676,7 @@
         }
     };
 
-   // 7. QUEUE & DASHBOARD HANDLER
+ // 7. QUEUE & DASHBOARD HANDLER
     window.queueHandler = {
         loadList: () => {
             const l = document.getElementById('location-list');
@@ -686,28 +686,33 @@
                 l.innerHTML = ""; 
                 if(spinner) spinner.classList.add('hidden');
                 
-                let openCount = 0;
-
                 if(snap.empty) {
                     l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.</div>";
                     return;
                 }
 
+                let openCount = 0;
+
                 snap.forEach(d => {
                     const loc = d.data();
-                    
-                    // --- FIX: Explicit Status Calculation ---
                     const status = window.logic.checkTimeStatus(loc);
                     if(status.isOpen) openCount++;
-                    
-                    const statusText = status.isOpen ? "OPEN" : "CLOSED";
-                    const statusClass = status.isOpen ? "open" : "closed";
-                    // ----------------------------------------
 
                     const div = document.createElement('div'); 
                     div.className = 'loc-card';
                     div.onclick = function() { window.queueHandler.selectLoc(d.id); };
                     
+                    // --- NEW: Visual Differentiation for Closed Facilities ---
+                    if (!status.isOpen) {
+                        div.style.opacity = "0.5";
+                        div.style.filter = "grayscale(100%)";
+                        div.style.borderColor = "#333";
+                    } else {
+                        div.style.borderColor = "var(--primary)";
+                        div.style.boxShadow = "0 4px 20px rgba(0,0,0,0.5)";
+                    }
+                    // -------------------------------------------------------
+
                     const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
 
                     div.innerHTML = `
@@ -718,7 +723,7 @@
                             <h3 style="margin:0; text-shadow:0 2px 4px #000; color:#fff;">${loc.name}</h3>
                         </div>
                         <div class="loc-footer">
-                            <span class="badge ${statusClass}">${statusText}</span>
+                            <span class="badge ${status.isOpen?'open':'closed'}">${status.isOpen?'OPEN':'CLOSED'}</span>
                             <span style="font-size:10px; color:#aaa;">${loc.bookingType ? loc.bookingType.toUpperCase() : 'FREE'}</span>
                         </div>
                     `;
@@ -726,7 +731,7 @@
                 });
                 
                 const insight = document.getElementById('ai-hub-insight');
-                if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
+                if(insight) insight.innerText = `${openCount} facilities active.`;
 
             }, (error) => { console.error("List Error:", error); });
         },
@@ -734,10 +739,10 @@
         selectLoc: (id) => {
             currentLocId = id;
             window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
-            
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
+                // Pre-fill modal logic (simplified for brevity, assumes standard implementation)
                 getDoc(doc(db, "locations", id)).then(s => {
                     if(!s.exists()) return;
                     const d = s.data();
@@ -765,7 +770,6 @@
             locUnsub = onSnapshot(doc(db, "locations", id), (s) => {
                 if(!s.exists()) return;
                 const d = s.data(); currentLocData = d;
-                
                 document.getElementById('dash-name').innerText = d.name;
                 document.getElementById('dash-desc').innerText = d.description || "";
                 if(d.imageURL) document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
@@ -810,8 +814,6 @@
                 }
                 window.queueHandler.updateChart(docs.length);
             });
-            
-            // --- FIX: Ensure Chat Init is called ---
             window.chatHandler.init(id);
         },
 
@@ -837,15 +839,44 @@
             try {
                 const btn = document.getElementById('btn-join');
                 if(btn) btn.innerText = "Processing...";
-                await addDoc(collection(db, "queue"), { uid: currentUser.uid, locationId: currentLocId, timestamp: serverTimestamp(), txn: txn || 'free' });
-                await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "JOIN", user: currentUser.uid, timestamp: serverTimestamp() });
+                
+                // --- FIX: Fetch Name for Logs ---
+                const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
+
+                await addDoc(collection(db, "queue"), { 
+                    uid: currentUser.uid, 
+                    locationId: currentLocId, 
+                    timestamp: serverTimestamp(), 
+                    txn: txn || 'free' 
+                });
+                
+                await addDoc(collection(db, "logs"), { 
+                    locationId: currentLocId, 
+                    action: "JOINED", 
+                    userName: uName, // Saving name directly
+                    timestamp: serverTimestamp() 
+                });
             } catch(e) { console.error("Join Error:", e); alert("Failed to join."); }
         },
 
         leave: async () => {
             if(!confirm("Leave queue?")) return;
+            
+            // --- FIX: Fetch Name for Logs ---
+            const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+            const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
+
             const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
-            const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref));
+            const s = await getDocs(q); 
+            s.forEach(d => deleteDoc(d.ref));
+
+            await addDoc(collection(db, "logs"), { 
+                locationId: currentLocId, 
+                action: "LEFT", 
+                userName: uName, // Saving name directly
+                timestamp: serverTimestamp() 
+            });
         },
 
         updateChart: (count) => {
@@ -927,10 +958,10 @@
             }
         }
     };
-
-    // 9. ADMIN HANDLER (GOD MODE)
+// 9. ADMIN HANDLER (GOD MODE)
     window.adminHandler = {
         init: (id) => {
+            // Queue List Listener
             onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
                 const l = document.getElementById('god-list'); if(!l) return;
                 l.innerHTML = "";
@@ -940,6 +971,8 @@
                     try { const us = await getDoc(doc(db, "users", q.uid)); if(us.exists()) u = us.data(); } catch(e){}
                     const div = document.createElement('div');
                     div.style.cssText = "padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;";
+                    
+                    // Passing Name to the act function
                     div.innerHTML = `
                         <div style="display:flex; align-items:center; gap:10px;">
                             <img src="${u.photoURL}" style="width:30px; height:30px; border-radius:50%;">
@@ -947,35 +980,58 @@
                         </div>
                         <div style="display:flex; gap:5px;">
                             <button onclick="window.ui.showProfile('${q.uid}')" class="btn btn-outline" style="padding:5px;"><i data-lucide="eye" style="width:12px;"></i></button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'serve')" style="background:var(--success); border:none; border-radius:4px; padding:5px;">✓</button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'kick')" style="background:var(--danger); border:none; border-radius:4px; padding:5px;">✕</button>
+                            <button onclick="window.adminHandler.act('${d.id}', 'served', '${u.name}')" style="background:var(--success); border:none; border-radius:4px; padding:5px;">✓</button>
+                            <button onclick="window.adminHandler.act('${d.id}', 'kicked', '${u.name}')" style="background:var(--danger); border:none; border-radius:4px; padding:5px;">✕</button>
                         </div>
                     `;
                     l.appendChild(div);
                 }
                 window.adminHandler.renderChart(s.size);
             });
+
+            // Audit Logs Listener
             onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp","desc"), limit(20)), (s) => {
                 const gl = document.getElementById('god-logs'); if(!gl) return;
                 gl.innerHTML = "";
                 s.forEach(d => {
                     const l = d.data();
                     const div = document.createElement('div');
-                    div.style.cssText = "padding:5px 0; border-bottom:1px dashed rgba(255,255,255,0.1); font-family:var(--font-mono); font-size:10px; color:#aaa;";
-                    div.innerText = `[${l.timestamp?.toDate().toLocaleTimeString()}] ${l.action}`;
+                    div.style.cssText = "padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.1); font-family:var(--font-mono); font-size:11px; color:#aaa;";
+                    
+                    // --- NEW: Display Name in Logs ---
+                    const timeStr = l.timestamp ? l.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "--:--";
+                    const color = l.action.includes("JOIN") ? "var(--success)" : "var(--danger)";
+                    
+                    div.innerHTML = `
+                        <span style="color:#666">[${timeStr}]</span> 
+                        <b style="color:#fff">${l.userName || 'Unknown'}</b> 
+                        <span style="color:${color}">${l.action}</span>
+                    `;
+                    // ---------------------------------
+                    
                     gl.appendChild(div);
                 });
             });
         },
-        act: async (qid, type) => {
+
+        // Updated Act function to accept Name
+        act: async (qid, type, userName) => {
             await deleteDoc(doc(db, "queue", qid));
-            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: type.toUpperCase(), timestamp: serverTimestamp() });
+            await addDoc(collection(db, "logs"), { 
+                locationId: currentLocId, 
+                action: type.toUpperCase(), 
+                userName: userName || "Unknown",
+                timestamp: serverTimestamp() 
+            });
         },
+
         nuke: async () => {
             if(!confirm("Reset entire queue?")) return;
             const q = query(collection(db, "queue"), where("locationId", "==", currentLocId));
             const s = await getDocs(q); const b = writeBatch(db); s.forEach(d => b.delete(d.ref)); await b.commit();
+            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "QUEUE_RESET", userName: "Admin", timestamp: serverTimestamp() });
         },
+
         saveLoc: async () => {
             const id = document.getElementById('conf-id').value;
             const data = {
@@ -989,7 +1045,12 @@
             else { data.status = 'open'; await addDoc(collection(db, "locations"), data); }
             window.ui.closeModals();
         },
-        lock: async () => updateDoc(doc(db, "locations", currentLocId), { status: 'closed', notice: 'Emergency Lockdown' }),
+
+        lock: async () => {
+            await updateDoc(doc(db, "locations", currentLocId), { status: 'closed', notice: 'Emergency Lockdown' });
+            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "LOCKDOWN", userName: "Admin", timestamp: serverTimestamp() });
+        },
+
         renderChart: (count) => {
             const ctx = document.getElementById('adminChart');
             if(adminChart) adminChart.destroy();
