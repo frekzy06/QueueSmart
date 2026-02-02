@@ -642,7 +642,7 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 2. GLOBAL STATE
+   // 2. GLOBAL STATE
     let currentUser = null;
     let isAdmin = false;
     let currentLocId = null;
@@ -650,13 +650,19 @@
     let locUnsub = null;
     let qUnsub = null;
     let chatUnsub = null;
+    
+    // --- NEW: Admin Listener Trackers (Prevents Duplicates) ---
+    let adminQUnsub = null; 
+    let adminLUnsub = null;
+    // ---------------------------------------------------------
+
     let aiModel = null;
     let camInterval = null;
     let isCamActive = false;
     let tempImg = null;
     let adminChart = null;
     let userChart = null;
-
+    
     // 3. UI CONTROLLER (Handles UI toggles and Modals)
     window.ui = {
         showView: (vid) => {
@@ -909,10 +915,17 @@
             const spinner = document.getElementById('loading-spinner');
             
             onSnapshot(collection(db, "locations"), (snap) => {
-                l.innerHTML = ""; if(spinner) spinner.classList.add('hidden');
-                if(snap.empty) { l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#666;'>No active facilities found.</div>"; return; }
+                l.innerHTML = ""; 
+                if(spinner) spinner.classList.add('hidden');
+                
+                if(snap.empty) {
+                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#666;'>No active facilities found.</div>";
+                    return;
+                }
 
-                let locations = []; let openCount = 0;
+                let locations = [];
+                let openCount = 0;
+
                 snap.forEach(d => {
                     const loc = d.data();
                     const status = window.logic.checkTimeStatus(loc);
@@ -927,25 +940,45 @@
                 });
 
                 locations.forEach(loc => {
-                    const div = document.createElement('div'); div.className = 'loc-card';
+                    const div = document.createElement('div'); 
+                    div.className = 'loc-card';
                     div.onclick = function() { window.queueHandler.selectLoc(loc.id); };
-                    if (!loc.status.isOpen) div.style.filter = "grayscale(100%) brightness(0.7)";
+                    
+                    if (!loc.status.isOpen) {
+                        div.style.filter = "grayscale(100%) brightness(0.7)";
+                    }
+
                     const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
                     const timeDisplay = (loc.openTime && loc.closeTime) ? `${loc.openTime} - ${loc.closeTime}` : "24 Hours";
                     const isPaid = loc.bookingType === 'paid';
 
-                    div.innerHTML = `<img src="${bgImg}" class="loc-img-bg" onerror="this.style.display='none'"><div class="loc-gradient"></div><div class="loc-info"><div style="display:flex; justify-content:space-between; align-items:start;"><h3 class="loc-title">${loc.name}</h3><span class="type-badge ${isPaid ? 'paid' : 'free'}">${isPaid ? '₹ PAID' : 'FREE'}</span></div><div class="loc-meta"><span class="status-badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen ? '● OPEN' : 'CLOSED'}</span><span class="loc-time"><i data-lucide="clock" style="width:12px;"></i> ${timeDisplay}</span></div></div>`;
+                    div.innerHTML = `
+                        <img src="${bgImg}" class="loc-img-bg" onerror="this.style.display='none'">
+                        <div class="loc-gradient"></div>
+                        <div class="loc-info">
+                            <div style="display:flex; justify-content:space-between; align-items:start;">
+                                <h3 class="loc-title">${loc.name}</h3>
+                                <span class="type-badge ${isPaid ? 'paid' : 'free'}">${isPaid ? '₹ PAID' : 'FREE'}</span>
+                            </div>
+                            <div class="loc-meta">
+                                <span class="status-badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen ? '● OPEN' : 'CLOSED'}</span>
+                                <span class="loc-time"><i data-lucide="clock" style="width:12px;"></i> ${timeDisplay}</span>
+                            </div>
+                        </div>
+                    `;
                     l.appendChild(div);
                 });
                 
                 if(window.lucide) lucide.createIcons();
-                document.getElementById('ai-hub-insight').innerText = `${openCount} facilities active. Network synced.`;
+                document.getElementById('ai-hub-insight').innerText = `${openCount} facilities active.`;
+
             }, (error) => { console.error("List Error:", error); });
         },
 
         selectLoc: (id) => {
             currentLocId = id;
             window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
+            
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
@@ -959,23 +992,28 @@
                     document.getElementById('conf-notice').value = d.notice;
                     document.getElementById('conf-open').value = d.openTime;
                     document.getElementById('conf-close').value = d.closeTime;
-                    // --- LOAD CAPACITY ---
-                    document.getElementById('conf-cap').value = d.maxCapacity || ""; 
-                    // ---------------------
+                    document.getElementById('conf-cap').value = d.maxCapacity || "";
                     document.getElementById('conf-mode').value = d.countingMode || 'ahead';
                     document.getElementById('conf-type').value = d.bookingType;
                     window.ui.togglePay();
-                    if(d.bookingType==='paid') { document.getElementById('conf-upi').value = d.upiId; document.getElementById('conf-price').value = d.ticketPrice; }
+                    if(d.bookingType==='paid') { 
+                        document.getElementById('conf-upi').value = d.upiId; 
+                        document.getElementById('conf-price').value = d.ticketPrice; 
+                    }
                 });
-            } else { window.queueHandler.initDash(id); }
+            } else {
+                window.queueHandler.initDash(id);
+            }
         },
 
         initDash: (id) => {
             if(locUnsub) locUnsub();
             window.hasNotifiedTurn = false;
+
             locUnsub = onSnapshot(doc(db, "locations", id), (s) => {
                 if(!s.exists()) return;
                 const d = s.data(); currentLocData = d;
+                
                 document.getElementById('dash-name').innerText = d.name;
                 document.getElementById('dash-desc').innerText = d.description || "";
                 if(d.imageURL) document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
@@ -985,7 +1023,10 @@
                 statusEl.innerText = status.isOpen ? "ONLINE" : "OFFLINE";
                 statusEl.className = `badge ${status.isOpen ? 'open' : 'closed'}`;
                 
-                if(d.notice) { document.getElementById('dash-notice').classList.remove('hidden'); document.getElementById('dash-notice-text').innerText = d.notice; }
+                if(d.notice) {
+                    document.getElementById('dash-notice').classList.remove('hidden');
+                    document.getElementById('dash-notice-text').innerText = d.notice;
+                }
             });
 
             if(qUnsub) qUnsub();
@@ -993,37 +1034,47 @@
                 const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
                 const pos = docs.findIndex(x => x.uid === currentUser.uid);
                 const mode = currentLocData?.countingMode || 'ahead';
-                
-                // --- CAPACITY CHECK ---
                 const maxCap = currentLocData?.maxCapacity || 0;
                 const isFull = (maxCap > 0 && docs.length >= maxCap);
-                // ---------------------
 
                 if(pos !== -1) {
+                    // IN QUEUE
                     if(pos === 0) {
                         document.getElementById('dash-count').innerText = "NOW";
                         document.getElementById('dash-count-label').innerText = "IT'S YOUR TURN";
                         document.getElementById('dash-count').style.color = "var(--success)";
                         document.getElementById('dash-count-label').style.color = "var(--success)";
                         document.getElementById('dash-time').innerText = "PROCEED TO COUNTER";
+
                         if(!window.hasNotifiedTurn) {
                             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                             audio.play().catch(e => console.log("Audio play failed"));
-                            if ("Notification" in window && Notification.permission === "granted") new Notification("QueueSmart: It's Your Turn!", { body: `Proceed to counter` });
+                            if ("Notification" in window && Notification.permission === "granted") {
+                                new Notification("QueueSmart: It's Your Turn!", { body: `Proceed to counter at ${currentLocData?.name}` });
+                            }
                             window.hasNotifiedTurn = true;
                         }
                     } else {
                         window.hasNotifiedTurn = false;
                         document.getElementById('dash-count').style.color = "#fff";
                         document.getElementById('dash-count-label').style.color = "var(--primary)";
-                        if(mode === 'total') { document.getElementById('dash-count').innerText = docs.length; document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT"; }
-                        else { document.getElementById('dash-count').innerText = pos; document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD"; }
+
+                        if(mode === 'total') {
+                            document.getElementById('dash-count').innerText = docs.length;
+                            document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT";
+                        } else {
+                            document.getElementById('dash-count').innerText = pos;
+                            document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
+                        }
+                        
                         const velocity = await window.logic.calculateVelocity(id);
                         document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
                     }
                     document.getElementById('btn-join').classList.add('hidden');
                     document.getElementById('btn-leave').classList.remove('hidden');
+
                 } else {
+                    // NOT IN QUEUE
                     window.hasNotifiedTurn = false;
                     document.getElementById('dash-count').style.color = "#fff";
                     document.getElementById('dash-count-label').style.color = "var(--primary)";
@@ -1034,20 +1085,19 @@
                     document.getElementById('btn-join').classList.remove('hidden');
                     document.getElementById('btn-leave').classList.add('hidden');
 
-                    // --- BUTTON STATE LOGIC ---
                     const btn = document.getElementById('btn-join');
                     const status = window.logic.checkTimeStatus(currentLocData);
                     
                     if(!status.isOpen) {
                         btn.disabled = true; btn.innerText = "CLOSED"; btn.className = "btn btn-outline";
                     } 
-                    else if(isFull) {
+                    else if (isFull) {
                         btn.disabled = true; btn.innerText = "⛔ QUEUE FULL"; btn.className = "btn btn-danger"; btn.style.opacity = "0.5";
                     } 
                     else {
-                        btn.disabled = false; btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE"; btn.className = "btn btn-primary"; btn.style.opacity = "1";
+                        btn.disabled = false; btn.style.opacity = "1"; btn.className = "btn btn-primary";
+                        btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
                     }
-                    // --------------------------
                 }
                 
                 window.queueHandler.updateChart(docs.length);
@@ -1057,7 +1107,7 @@
 
         join: () => {
             if(!currentLocData) return;
-            // Double Check Capacity on Click
+            // UI Capacity Check
             const maxCap = currentLocData.maxCapacity || 0;
             const currentCount = parseInt(document.getElementById('dash-count').innerText) || 0;
             const isQueueView = document.getElementById('dash-count-label').innerText === "CURRENT QUEUE SIZE";
@@ -1090,8 +1140,23 @@
                 if(btn) btn.innerText = "Processing...";
                 const uDoc = await getDoc(doc(db, "users", currentUser.uid));
                 const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
-                await addDoc(collection(db, "queue"), { uid: currentUser.uid, locationId: currentLocId, timestamp: serverTimestamp(), txn: txn || 'free' });
-                await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "JOINED", userName: uName, timestamp: serverTimestamp() });
+                
+                await addDoc(collection(db, "queue"), { 
+                    uid: currentUser.uid, 
+                    locationId: currentLocId, 
+                    timestamp: serverTimestamp(), 
+                    txn: txn || 'free' 
+                });
+                
+                // --- CRITICAL: Saving User ID for Admin Click ---
+                await addDoc(collection(db, "logs"), { 
+                    locationId: currentLocId, 
+                    action: "JOINED", 
+                    userName: uName, 
+                    user: currentUser.uid, // <--- This enables the profile click
+                    timestamp: serverTimestamp() 
+                });
+                // ------------------------------------------------
             } catch(e) { console.error("Join Error:", e); alert("Failed to join."); }
         },
 
@@ -1099,9 +1164,20 @@
             if(!confirm("Leave queue?")) return;
             const uDoc = await getDoc(doc(db, "users", currentUser.uid));
             const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
+            
             const q = query(collection(db, "queue"), where("uid", "==", currentUser.uid), where("locationId", "==", currentLocId));
-            const s = await getDocs(q); s.forEach(d => deleteDoc(d.ref));
-            await addDoc(collection(db, "logs"), { locationId: currentLocId, action: "LEFT", userName: uName, timestamp: serverTimestamp() });
+            const s = await getDocs(q); 
+            s.forEach(d => deleteDoc(d.ref));
+
+            // --- CRITICAL: Saving User ID for Admin Click ---
+            await addDoc(collection(db, "logs"), { 
+                locationId: currentLocId, 
+                action: "LEFT", 
+                userName: uName, 
+                user: currentUser.uid, // <--- This enables the profile click
+                timestamp: serverTimestamp() 
+            });
+            // ------------------------------------------------
         },
 
         updateChart: (count) => {
