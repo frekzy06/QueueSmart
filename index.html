@@ -14,6 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="config.js"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
@@ -618,6 +619,15 @@
     </div>
 </div>
 
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        // Access the key from the global CONFIG object
+        const genAI = new GoogleGenerativeAI(CONFIG.API_KEY);
+
+        // ... rest of your code ...
+    </script>
+    
 <script type="module">
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -1559,30 +1569,11 @@
         }
     };
 
-    // 10. AI CAM HANDLER
-    window.aiHandler = {
-        toggle: async () => {
-            const v = document.getElementById('webcam');
-            if(!isCamActive) {
-                if(!aiModel) aiModel = await cocoSsd.load();
-                v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
-                isCamActive = true;
-                camInterval = setInterval(async () => {
-                    const p = await aiModel.detect(v);
-                    const count = p.filter(x=>x.class==='person').length;
-                    const el = document.getElementById('cam-count'); if(el) el.innerText = count;
-                    const alertBox = document.getElementById('god-alert');
-                    if(alertBox) { if(count > 10) alertBox.classList.remove('hidden'); else alertBox.classList.add('hidden'); }
-                }, 500);
-            } else {
-                clearInterval(camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); isCamActive=false;
-            }
-        }
-    };
-    
 // 11. AI ENGINE
     window.aiAssistant = {
-        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
+        // SECURE CHANGE: Use the variable from config.js instead of the hardcoded string
+        apiKey: CONFIG.API_KEY, 
+        
         isMuted: false, 
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
@@ -1598,9 +1589,10 @@
 
                 const u = new SpeechSynthesisUtterance(text);
                 u.volume = 1; 
-                u.rate = 1;  // Normal speed
-                u.pitch = 1; // Natural pitch
+                u.rate = 1;  
+                u.pitch = 1; 
 
+                // Try to find an Indian English voice for local context
                 const voice = voices.find(v => v.name.includes("English India") && v.name.includes("Google")) || 
                               voices.find(v => v.lang === "en-IN") || 
                               voices.find(v => v.lang === "hi-IN") || 
@@ -1610,7 +1602,6 @@
                 
                 if (voice) {
                     u.voice = voice;
-                    console.log("Selected Voice:", voice.name, voice.lang);
                 }
                 
                 window.speechSynthesis.speak(u);
@@ -1635,7 +1626,6 @@
                 btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
             } else {
                 btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
-                // Test the new voice immediately
                 window.aiAssistant.speak("Namaste! Voice activated."); 
             }
             if(window.lucide) lucide.createIcons();
@@ -1658,11 +1648,14 @@
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
+                // Ensure 'getDocs', 'collection', and 'db' are imported/available in this scope
+                // If they are not working, you might need to use window.db, window.getDocs etc.
                 const snap = await getDocs(collection(db, "locations"));
                 let openLocs = [], closedLocs = [];
+                
                 snap.forEach(d => {
                     const data = d.data();
-                    const status = window.logic.checkTimeStatus(data);
+                    const status = window.logic.checkTimeStatus(data); // Ensure logic is available
                     const info = `${data.name} (${data.description})`;
                     if(status.isOpen) openLocs.push(info); else closedLocs.push(info);
                 });
@@ -1682,8 +1675,9 @@
                     4. Max 2 sentences.
                 `;
 
+                // Uses the key from the top of this object, which now comes from config.js
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name to standard
                 const result = await model.generateContent(prompt);
                 const aiText = result.response.text().replace(/[*#]/g, '').trim(); 
 
@@ -1706,8 +1700,9 @@
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
-                document.getElementById(loadingId).remove();
+                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
                 msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
+                console.error(e);
             }
         }
     };
