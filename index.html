@@ -300,6 +300,34 @@
             <div id="profile-bubble" class="profile-pic" onclick="window.ui.openProfile()"></div>
         </div>
 
+        <button onclick="window.aiAssistant.open()" style="position:fixed; bottom:30px; right:30px; width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #00d4ff, #005bea); border:none; box-shadow:0 10px 30px rgba(0, 212, 255, 0.4); z-index:999; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+    <i data-lucide="bot" style="color:#fff; width:32px; height:32px;"></i>
+</button>
+
+<div id="modal-ai-chat" class="modal-overlay hidden">
+    <div class="glass-card" style="width: 100%; max-width: 400px; height: 600px; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+        <div style="padding:15px; background:rgba(255,255,255,0.05); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i data-lucide="sparkles" style="color:#00d4ff;"></i>
+                <h3 style="margin:0; font-size:16px;">QueueSmart AI</h3>
+            </div>
+            <button onclick="document.getElementById('modal-ai-chat').classList.add('hidden')" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
+        </div>
+        
+        <div id="ai-messages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px;">
+            <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
+                Hello! I can help you find the perfect facility. Try asking: "Where can I play basketball?" or "I need a quiet place to study."
+            </div>
+        </div>
+
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input id="ai-input" type="text" class="input-field" placeholder="Ask for a recommendation..." style="margin:0;">
+            <button onclick="window.aiAssistant.send()" class="btn btn-primary" style="width:auto; padding:0 15px; background: #00d4ff;"><i data-lucide="send" style="width:18px;"></i></button>
+        </div>
+    </div>
+</div>
+        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 40px;">
             <button onclick="window.ui.showInfo('about')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="info" style="width: 14px;"></i> ABOUT</button>
             <button onclick="window.ui.showInfo('manual')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="book-open" style="width: 14px;"></i> MANUAL</button>
@@ -586,6 +614,7 @@
 </div>
 
 <script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1545,8 +1574,82 @@
             }
         }
     };
+    // 11. AI RECOMMENDATION ENGINE
+    window.aiAssistant = {
+        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
+        
+        open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
+        
+        send: async () => {
+            const inputEl = document.getElementById('ai-input');
+            const msgBox = document.getElementById('ai-messages');
+            const userText = inputEl.value.trim();
+            if (!userText) return;
 
-   // 11. BOOTSTRAP & HISTORY HANDLING
+            // 1. Show User Message
+            inputEl.value = "";
+            msgBox.innerHTML += `
+                <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
+                    ${userText}
+                </div>`;
+            msgBox.scrollTop = msgBox.scrollHeight;
+
+            // 2. Show Loading Bubble
+            const loadingId = "loading-" + Date.now();
+            msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
+
+            try {
+                // 3. Fetch Live Location Data for Context
+                const snap = await getDocs(collection(db, "locations"));
+                const locations = snap.docs.map(d => {
+                    const data = d.data();
+                    return `- ${data.name} (ID: ${d.id}): ${data.description}. Status: ${data.status}. Type: ${data.bookingType}.`;
+                }).join("\n");
+
+                // 4. Build the Prompt
+                const prompt = `
+                    You are the AI assistant for QueueSmart.
+                    Here is the list of available facilities right now:
+                    ${locations}
+
+                    User Request: "${userText}"
+
+                    Task: Recommend the best facility from the list above based on their request.
+                    If they want sports, look for stadiums or courts. If they want food, look for cafeterias.
+                    
+                    Important:
+                    1. Be short and friendly.
+                    2. If you find a match, tell them "You should join [Facility Name]".
+                    3. If nothing matches, apologize and suggest browsing the list.
+                `;
+
+                // 5. Call Gemini API
+                const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const aiText = response.text();
+
+                // 6. Display AI Response
+                document.getElementById(loadingId).remove();
+                msgBox.innerHTML += `
+                    <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
+                        ${aiText.replace(/\*\*/g, '')} </div>`;
+                msgBox.scrollTop = msgBox.scrollHeight;
+
+            } catch (e) {
+                document.getElementById(loadingId).remove();
+                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">AI Error: ${e.message}</div>`;
+            }
+        }
+    };
+    
+    // Add Enter Key Support for AI Chat
+    document.getElementById('ai-input').addEventListener("keydown", (e) => {
+        if(e.key === "Enter") window.aiAssistant.send();
+    });
+
+   // 12. BOOTSTRAP & HISTORY HANDLING
     
     // Handle Browser Back Button
     window.addEventListener('popstate', (event) => {
