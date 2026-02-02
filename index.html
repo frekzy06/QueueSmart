@@ -913,51 +913,66 @@
     window.chatHandler = {
         init: (id) => {
             if(chatUnsub) chatUnsub();
-            // Use 'asc' to show oldest messages at top, scrolling down to newest
-            const q = query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc"));
+            
+            // FIX: Removed 'orderBy' from query to prevent Firebase Index errors.
+            // We will sort the messages in the code instead.
+            const q = query(collection(db, "comments"), where("locationId", "==", id));
             
             chatUnsub = onSnapshot(q, (s) => {
                 const f = document.getElementById('location-chat-box'); 
                 if(!f) return;
                 
                 f.innerHTML = "";
+                
                 if(s.empty) {
-                    f.innerHTML = "<div style='text-align:center; color:#555; padding:20px; font-size:12px;'>No messages yet. Start the conversation!</div>";
+                    f.innerHTML = "<div style='text-align:center; color:#555; padding:20px; font-size:12px; margin-top:50px;'>No messages yet.<br>Be the first to say hello!</div>";
+                    return;
                 }
 
-                s.forEach(d => {
-                    const m = d.data();
+                // 1. Extract Data
+                const messages = [];
+                s.forEach(d => messages.push(d.data()));
+
+                // 2. Sort Data Client-Side (Oldest to Newest)
+                messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                // 3. Render
+                messages.forEach(m => {
                     const el = document.createElement('div'); 
                     el.className = 'chat-msg';
-                    // Fallback for avatar
-                    const avatar = m.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.userName||'User')}`;
+                    
+                    // Fallback for missing avatar
+                    const avatar = m.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.userName||'User')}&background=random`;
                     
                     el.innerHTML = `
-                        <img src="${avatar}" class="chat-avatar">
+                        <img src="${avatar}" class="chat-avatar" onerror="this.src='https://ui-avatars.com/api/?name=U'">
                         <div class="chat-bubble">
                             <div class="chat-header">${m.userName || 'Anonymous'}</div>
-                            ${m.text}
+                            <div style="word-break: break-word;">${m.text}</div>
                         </div>`;
                     f.appendChild(el);
                 });
-                // Scroll to bottom
+                
+                // 4. Auto-Scroll to bottom
                 setTimeout(() => f.scrollTop = f.scrollHeight, 100);
+
             }, (error) => {
                 console.error("Chat Error:", error);
             });
         },
+
         send: async () => {
             const input = document.getElementById('chat-input');
             const t = input.value.trim(); 
             if(!t) return;
             
-            if(!currentUser) return alert("Please sign in.");
+            if(!currentUser) return alert("Please sign in to chat.");
             
-            // Clear input immediately for better UI feel
+            // Clear input immediately for better UI response
             input.value = "";
 
             try {
-                // Get fresh user data
+                // Fetch fresh user details to ensure name/photo are current
                 const userDoc = await getDoc(doc(db, "users", currentUser.uid));
                 const userData = userDoc.exists() ? userDoc.data() : {};
                 
@@ -971,10 +986,11 @@
                 });
             } catch(e) {
                 console.error("Send failed", e);
-                alert("Message failed to send.");
+                alert("Message failed to send. Check console.");
             }
         }
     };
+    
 // 9. ADMIN HANDLER (GOD MODE)
     window.adminHandler = {
         init: (id) => {
