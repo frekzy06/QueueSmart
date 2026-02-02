@@ -1580,58 +1580,51 @@
         }
     };
     
-// 11. AI RECOMMENDATION ENGINE
+// 11. AI RECOMMENDATION ENGINE 
     window.aiAssistant = {
-       
         apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
-        
         isMuted: false, 
+        currentUtterance: null, // Global variable to prevent garbage collection
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
         
-        // 2. NEW: AUDIO UNLOCKER (Tricks browser into allowing sound)
-        unlockAudio: () => {
-            if (!('speechSynthesis' in window)) return;
-            // Speak an empty string instantly to "wake up" the engine
-            const dummy = new SpeechSynthesisUtterance(" ");
-            window.speechSynthesis.speak(dummy);
-        },
-
+        // 1. ROBUST SPEAK FUNCTION
         speak: (text) => {
             if (window.aiAssistant.isMuted) return;
             if (!('speechSynthesis' in window)) return;
 
-            window.speechSynthesis.cancel(); 
+            // Stop previous
+            window.speechSynthesis.cancel();
             
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0; 
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
+            // Create utterance
+            const u = new SpeechSynthesisUtterance(text);
+            u.rate = 1.0; 
+            u.pitch = 1.0;
+            u.volume = 1.0;
+            
+            // Save to global to prevent browser deleting it
+            window.aiAssistant.currentUtterance = u;
 
+            // Simple Voice Loader
             const voices = window.speechSynthesis.getVoices();
-            const play = () => {
-                const preferred = voices.find(v => v.name.includes("Google US English")) || 
-                                  voices.find(v => v.lang === "en-US") || 
-                                  voices[0];
-                if(preferred) utterance.voice = preferred;
-                window.speechSynthesis.speak(utterance);
-            };
-
-            if (voices.length === 0) window.speechSynthesis.onvoiceschanged = play;
-            else play();
+            const voice = voices.find(v => v.lang.includes('en')) || voices[0];
+            if (voice) u.voice = voice;
+            
+            console.log("Attempting to speak:", text); // Debug log
+            window.speechSynthesis.speak(u);
         },
 
         toggleMute: () => {
             window.aiAssistant.isMuted = !window.aiAssistant.isMuted;
             const btn = document.getElementById('btn-ai-mute');
+            const icon = window.aiAssistant.isMuted ? 'volume-x' : 'volume-2';
+            const color = window.aiAssistant.isMuted ? 'var(--danger)' : 'var(--success)';
             
-            if(window.aiAssistant.isMuted) {
-                window.speechSynthesis.cancel();
-                btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
-            } else {
-                btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
-                window.aiAssistant.speak("Voice activated.");
-            }
+            btn.innerHTML = `<i data-lucide="${icon}" style="width:20px; color:${color};"></i>`;
+            
+            if(window.aiAssistant.isMuted) window.speechSynthesis.cancel();
+            else window.aiAssistant.speak("Voice enabled.");
+            
             if(window.lucide) lucide.createIcons();
         },
         
@@ -1641,10 +1634,7 @@
             const userText = inputEl.value.trim();
             if (!userText) return;
 
-            // --- CRITICAL FIX: Unlock Audio NOW (Before the delay) ---
-            window.aiAssistant.unlockAudio(); 
-            // --------------------------------------------------------
-
+            // Clear Input & Show User Msg
             inputEl.value = "";
             msgBox.innerHTML += `
                 <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
@@ -1652,53 +1642,57 @@
                 </div>`;
             msgBox.scrollTop = msgBox.scrollHeight;
 
+            // Loading
             const loadingId = "loading-" + Date.now();
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
+                // Fetch Data
                 const snap = await getDocs(collection(db, "locations"));
-                let openLocs = [];
-                let closedLocs = [];
-                
+                let openLocs = [], closedLocs = [];
                 snap.forEach(d => {
                     const data = d.data();
                     const status = window.logic.checkTimeStatus(data);
                     const info = `${data.name} (${data.description})`;
-                    if(status.isOpen) openLocs.push(info);
-                    else closedLocs.push(info);
+                    if(status.isOpen) openLocs.push(info); else closedLocs.push(info);
                 });
 
                 const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 const prompt = `
-                    You are "QueueSmart AI". Current Time: ${now}.
-                    OPEN Facilities: ${openLocs.join(", ") || "None"}
-                    CLOSED Facilities: ${closedLocs.join(", ") || "None"}
-
-                    User said: "${userText}"
-
-                    Instructions:
-                    1. If user greets, welcome them briefly.
-                    2. If user asks general info, answer briefly.
-                    3. If user asks for a recommendation, suggest an OPEN facility.
-                    4. Keep response under 2 sentences. Spoken style. No emojis.
+                    You are "QueueSmart AI". Time: ${now}.
+                    OPEN: ${openLocs.join(", ") || "None"}
+                    CLOSED: ${closedLocs.join(", ") || "None"}
+                    User: "${userText}"
+                    Task: Answer in 1-2 short sentences. Spoken style. No emojis.
                 `;
 
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-                
                 const result = await model.generateContent(prompt);
-                const response = await result.response;
-                const aiText = response.text().replace(/[*#]/g, '').trim(); 
+                const aiText = result.response.text().replace(/[*#]/g, '').trim(); 
 
+                // Remove Loading
                 document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `
-                    <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
-                        ${aiText}
-                    </div>`;
-                msgBox.scrollTop = msgBox.scrollHeight;
                 
-                // Speak Result
+                // --- 2. FAIL-SAFE UI: Add a Play Button to the Message ---
+                // We escape the text so it fits inside the onclick function
+                const safeText = aiText.replace(/'/g, "\\'"); 
+                
+                msgBox.innerHTML += `
+                    <div style="align-self:flex-start; display:flex; gap:8px; align-items:flex-end; max-width:85%;">
+                        <div style="background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; font-size:13px; line-height:1.5;">
+                            ${aiText}
+                        </div>
+                        <button onclick="window.aiAssistant.speak('${safeText}')" style="background:rgba(255,255,255,0.1); border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#00d4ff;">
+                            <i data-lucide="play" style="width:14px; height:14px;"></i>
+                        </button>
+                    </div>`;
+                
+                msgBox.scrollTop = msgBox.scrollHeight;
+                if(window.lucide) lucide.createIcons();
+
+                // 3. Try to Auto-Speak
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
