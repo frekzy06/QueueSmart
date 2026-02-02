@@ -22,7 +22,7 @@ export default async function handler(request, response) {
 
     // 4. Initialize Gemini with the SECRET key (from Vercel Settings)
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // 5. Build the prompt here (Backend side)
     const prompt = `
