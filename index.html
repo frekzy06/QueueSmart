@@ -687,29 +687,86 @@
 
 // 7. QUEUE & DASHBOARD HANDLER
     window.queueHandler = {
-        // ... (loadList remains the same) ...
         loadList: () => {
-             // ... paste your existing loadList code here ...
-             // (No changes needed in loadList itself)
-             const l = document.getElementById('location-list');
-             const spinner = document.getElementById('loading-spinner');
-             onSnapshot(collection(db, "locations"), (snap) => {
-                 l.innerHTML = ""; if(spinner) spinner.classList.add('hidden');
-                 let openCount = 0;
-                 if(snap.empty) { l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.</div>"; return; }
-                 snap.forEach(d => {
-                     const loc = d.data();
-                     const status = window.logic.checkTimeStatus(loc);
-                     if(status.isOpen) openCount++;
-                     const div = document.createElement('div'); div.className = 'loc-card';
-                     div.onclick = function() { window.queueHandler.selectLoc(d.id); };
-                     if (!status.isOpen) { div.style.opacity = "0.5"; div.style.filter = "grayscale(100%)"; div.style.borderColor = "#333"; } 
-                     else { div.style.borderColor = "var(--primary)"; div.style.boxShadow = "0 4px 20px rgba(0,0,0,0.5)"; }
-                     const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
-                     div.innerHTML = `<div class="loc-img-box"><img src="${bgImg}" class="loc-img" onerror="this.style.display='none'"></div><div class="loc-overlay"><h3 style="margin:0; text-shadow:0 2px 4px #000; color:#fff;">${loc.name}</h3></div><div class="loc-footer"><span class="badge ${status.isOpen?'open':'closed'}">${status.isOpen?'OPEN':'CLOSED'}</span><span style="font-size:10px; color:#aaa;">${loc.bookingType ? loc.bookingType.toUpperCase() : 'FREE'}</span></div>`;
-                     l.appendChild(div);
-                 });
-             }, (e)=>console.error(e));
+            const l = document.getElementById('location-list');
+            const spinner = document.getElementById('loading-spinner');
+            
+            onSnapshot(collection(db, "locations"), (snap) => {
+                l.innerHTML = ""; 
+                if(spinner) spinner.classList.add('hidden');
+                
+                if(snap.empty) {
+                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.</div>";
+                    return;
+                }
+
+                // 1. Collect Data & Calculate Status First
+                let locations = [];
+                let openCount = 0;
+
+                snap.forEach(d => {
+                    const loc = d.data();
+                    const status = window.logic.checkTimeStatus(loc);
+                    if(status.isOpen) openCount++;
+                    locations.push({ id: d.id, ...loc, status });
+                });
+
+                // 2. SORT: Open facilities first, Closed facilities last
+                locations.sort((a, b) => {
+                    // If A is open and B is closed, A comes first (-1)
+                    if (a.status.isOpen && !b.status.isOpen) return -1;
+                    // If A is closed and B is open, B comes first (1)
+                    if (!a.status.isOpen && b.status.isOpen) return 1;
+                    return 0; // Keep original order if status is same
+                });
+
+                // 3. Render Sorted List
+                locations.forEach(loc => {
+                    const div = document.createElement('div'); 
+                    div.className = 'loc-card';
+                    div.onclick = function() { window.queueHandler.selectLoc(loc.id); };
+                    
+                    // Visual Style for Closed
+                    if (!loc.status.isOpen) {
+                        div.style.opacity = "0.6";
+                        div.style.filter = "grayscale(100%)";
+                        div.style.borderColor = "#333";
+                    } else {
+                        div.style.borderColor = "var(--primary)";
+                        div.style.boxShadow = "0 4px 20px rgba(0,0,0,0.5)";
+                    }
+
+                    const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
+                    
+                    // Format Time String (e.g. "09:00 - 17:00")
+                    const timeDisplay = (loc.openTime && loc.closeTime) 
+                        ? `${loc.openTime} - ${loc.closeTime}` 
+                        : "24 Hours";
+
+                    div.innerHTML = `
+                        <div class="loc-img-box">
+                            <img src="${bgImg}" class="loc-img" onerror="this.style.display='none'">
+                        </div>
+                        <div class="loc-overlay">
+                            <h3 style="margin:0; text-shadow:0 2px 4px #000; color:#fff;">${loc.name}</h3>
+                        </div>
+                        <div class="loc-footer" style="display:block;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                <span class="badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen?'OPEN':'CLOSED'}</span>
+                                <span style="font-size:11px; color:#fff; font-weight:700; font-family:var(--font-mono);">${timeDisplay}</span>
+                            </div>
+                            <div style="font-size:10px; color:#aaa; text-align:right;">
+                                ${loc.bookingType ? loc.bookingType.toUpperCase() : 'FREE'} ENTRY
+                            </div>
+                        </div>
+                    `;
+                    l.appendChild(div);
+                });
+                
+                const insight = document.getElementById('ai-hub-insight');
+                if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
+
+            }, (error) => { console.error("List Error:", error); });
         },
 
         selectLoc: (id) => {
@@ -729,11 +786,7 @@
                     document.getElementById('conf-notice').value = d.notice;
                     document.getElementById('conf-open').value = d.openTime;
                     document.getElementById('conf-close').value = d.closeTime;
-                    
-                    // --- NEW: Load the Saved Mode ---
                     document.getElementById('conf-mode').value = d.countingMode || 'ahead';
-                    // --------------------------------
-                    
                     document.getElementById('conf-type').value = d.bookingType;
                     window.ui.togglePay();
                     if(d.bookingType==='paid') { 
@@ -768,19 +821,20 @@
                     btn.disabled = false; btn.style.opacity = 1; 
                     btn.innerText = d.bookingType === 'paid' ? `BOOK (₹${d.ticketPrice})` : "JOIN QUEUE"; 
                 }
-                if(d.notice) { document.getElementById('dash-notice').classList.remove('hidden'); document.getElementById('dash-notice-text').innerText = d.notice; }
+                
+                if(d.notice) {
+                    document.getElementById('dash-notice').classList.remove('hidden');
+                    document.getElementById('dash-notice-text').innerText = d.notice;
+                }
             });
 
             if(qUnsub) qUnsub();
             qUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
                 const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
                 const pos = docs.findIndex(x => x.uid === currentUser.uid);
-                
-                // --- NEW: Counting Mode Logic ---
                 const mode = currentLocData?.countingMode || 'ahead';
-
+                
                 if(pos !== -1) {
-                    // User is IN queue
                     if(mode === 'total') {
                         document.getElementById('dash-count').innerText = docs.length;
                         document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT";
@@ -788,27 +842,17 @@
                         document.getElementById('dash-count').innerText = pos;
                         document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
                     }
-
                     const velocity = await window.logic.calculateVelocity(id);
                     document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
-                    
                     document.getElementById('btn-join').classList.add('hidden');
                     document.getElementById('btn-leave').classList.remove('hidden');
-                    
-                    if (pos === 0 && "Notification" in window && Notification.permission === "granted") {
-                         new Notification("QueueSmart: Your Turn!", { body: `Proceed to counter at ${currentLocData?.name}` });
-                    }
                 } else {
-                    // User is NOT in queue
                     document.getElementById('dash-count').innerText = docs.length;
-                    document.getElementById('dash-count-label').innerText = "CURRENT QUEUE SIZE";
+                    document.getElementById('dash-count-label').innerText = "TOTAL QUEUE";
                     document.getElementById('dash-time').innerText = "--";
-                    
                     document.getElementById('btn-join').classList.remove('hidden');
                     document.getElementById('btn-leave').classList.add('hidden');
                 }
-                // --------------------------------
-                
                 window.queueHandler.updateChart(docs.length);
             });
             window.chatHandler.init(id);
@@ -864,7 +908,7 @@
             document.getElementById('dash-ai-msg').innerText = `✨ AI Suggestion: Best time to visit is in ${minIdx} hours.`;
         }
     };
-
+    
     // 8. CHAT HANDLER
     window.chatHandler = {
         init: (id) => {
