@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
-    <meta name="description" content="QueueSmart: Digital Public Infrastructure for Time Management.">
+    <meta name="description" content="QueueSmart: Time Infrastructure for India.">
     <title>QueueSmart | Digital Public Infrastructure</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
@@ -18,8 +18,8 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            console.warn(`System: ${msg} @ ${line}`);
+            if(msg.includes("ResizeObserver") || msg.includes("null")) return true;
+            console.error(`System Error: ${msg} @ ${line}`);
             return false;
         };
     </script>
@@ -32,8 +32,8 @@
             --secondary: #138808;
             --bg-deep: #050505;
             --bg-card: #0a0a0a;
-            --border: #222;
-            --text-main: #fff;
+            --border: #333;
+            --text-main: #ffffff;
             --text-muted: #888;
             --success: #00ff9d;
             --danger: #ff4444;
@@ -121,18 +121,30 @@
             content:""; position: absolute; inset: -10px; border-radius: 50%; border: 1px dashed var(--primary); opacity: 0.3; animation: spin 20s linear infinite;
         }
         
+        .chat-panel { height: 500px; display: flex; flex-direction: column; background: #0e0e10; border-radius: 16px; border: 1px solid var(--border); }
+        .chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .profile-uploader {
+            width: 100px; height: 100px; border-radius: 50%; background: #151515; 
+            margin: 0 auto 20px; border: 2px dashed var(--primary); 
+            display: flex; align-items: center; justify-content: center; overflow: hidden; 
+            cursor: pointer; transition: 0.3s;
+        }
+        .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     
-    <div id="view-login" class="glass-card" style="max-width: 420px; margin: 40px auto; padding: 0;">
-        <div style="text-align: center; padding: 40px 30px 20px;">
-            <img src="0ecaa7fa-5fe4-48e5-b3b8-64cf88e5.png" style="width: 60px; margin-bottom: 15px; border-radius: 12px;">
-            <h1 style="font-size: 24px; font-weight: 800; margin: 0;">QueueSmart</h1>
-            <p style="color: var(--text-muted); font-size: 11px; margin-top: 5px; letter-spacing: 1px;">TIME INFRASTRUCTURE FOR INDIA</p>
+    <div id="view-login" class="glass-card" style="max-width: 420px; margin: 40px auto; padding: 40px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; margin: 0; font-weight: 800;">QueueSmart</h1>
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px; letter-spacing: 1px;">TIME INFRASTRUCTURE FOR INDIA</p>
         </div>
 
         <div class="auth-tabs">
@@ -140,74 +152,71 @@
             <div id="tab-signup" class="auth-tab" onclick="window.switchAuth('signup')">CREATE ACCOUNT</div>
         </div>
 
-        <div style="padding: 0 30px 30px;">
-            <div id="panel-signin">
-                <button onclick="window.googleLogin()" class="btn btn-primary" style="margin-bottom: 15px;"><i data-lucide="shield"></i> Google Login</button>
-                <div style="text-align: center; font-size: 10px; color: #444; margin: 15px 0;">OR</div>
-                <input id="login-email" type="email" class="input-field" placeholder="Email">
-                <input id="login-pass" type="password" class="input-field" placeholder="Password">
-                <button onclick="window.emailLogin()" class="btn btn-outline">Sign In</button>
-            </div>
+        <div id="panel-signin">
+            <button onclick="window.googleLogin()" class="btn btn-primary" style="margin-bottom: 15px;">Google Login</button>
+            <div style="text-align: center; margin: 15px 0; font-size: 10px; color: #444;">OR</div>
+            <input type="email" id="login-email" class="input-field" placeholder="Email">
+            <input type="password" id="login-pass" class="input-field" placeholder="Password">
+            <button onclick="window.emailLogin()" class="btn btn-outline">Login</button>
+        </div>
 
-            <div id="panel-signup" class="hidden">
-                <input id="reg-email" type="email" class="input-field" placeholder="Email">
-                <input id="reg-phone" type="text" class="input-field" placeholder="Mobile Number (Unique ID)">
-                <input id="reg-pass" type="password" class="input-field" placeholder="Password (Min 6 chars)">
-                <button onclick="window.emailSignup()" class="btn btn-primary">Create Account</button>
-            </div>
+        <div id="panel-signup" class="hidden">
+            <input type="email" id="reg-email" class="input-field" placeholder="Email">
+            <input type="text" id="reg-phone" class="input-field" placeholder="Mobile Number (Unique)">
+            <input type="password" id="reg-pass" class="input-field" placeholder="Password (Min 6 chars)">
+            <button onclick="window.emailSignup()" class="btn btn-primary">Create ID</button>
+        </div>
 
-            <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; display: flex; gap: 10px; justify-content: center;">
-                <button onclick="window.demoLogin('user')" class="btn btn-outline" style="width: auto; font-size: 10px;">Citizen Demo</button>
-                <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="width: auto; font-size: 10px; color: var(--danger); border-color: rgba(255,0,0,0.2);">Admin Demo</button>
-            </div>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: center;">
+            <button onclick="window.demoLogin('user')" class="btn btn-outline" style="width: auto; font-size: 10px;">Citizen Demo</button>
+            <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="width: auto; font-size: 10px; color: var(--danger); border-color: #331111;">Admin Demo</button>
         </div>
     </div>
 
     <div id="view-setup" class="glass-card hidden" style="max-width: 450px; margin: 40px auto; text-align: center;">
-        <h2>Citizen Identity</h2>
-        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 20px;">One-time Digital Verification</p>
+        <h2 style="margin-bottom: 10px;">Citizen Identity</h2>
         
-        <input id="setup-name" type="text" class="input-field" placeholder="Full Name">
+        <label class="profile-uploader">
+            <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=random">
+            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
+        </label>
+
+        <input type="text" id="setup-name" class="input-field" placeholder="Full Name">
         <div style="display: flex; gap: 10px;">
-            <input id="setup-age" type="number" class="input-field" placeholder="Age">
+            <input type="number" id="setup-age" class="input-field" placeholder="Age">
             <select id="setup-gender" class="input-field">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
             </select>
         </div>
-        <input id="setup-phone" type="text" class="input-field" placeholder="Mobile Number">
-        <input id="setup-vid" type="text" class="input-field" placeholder="Aadhar / Voter ID">
-        
-        <p style="font-size: 10px; color: var(--text-muted); text-align: left; margin-bottom: 15px;">
-            <i data-lucide="lock" style="width: 10px;"></i> Data encrypted. Visible only to Admins.
-        </p>
-        <button onclick="window.saveProfile()" class="btn btn-primary">Complete</button>
+        <input type="text" id="setup-phone" class="input-field" placeholder="Mobile Number">
+        <input type="text" id="setup-vid" class="input-field" placeholder="Aadhar / Voter ID">
+        <button onclick="window.saveProfile()" class="btn btn-primary" style="margin-top: 10px;">Complete</button>
     </div>
 
     <div id="view-select" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; font-family: var(--font-tech);">FACILITIES</h2>
+            <h2 style="margin: 0;">Facilities Hub</h2>
             <div id="profile-bubble" class="profile-bubble" onclick="window.openProfile()"></div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-            <button onclick="window.showInfo('about')" class="btn btn-outline" style="font-size: 10px;">About</button>
-            <button onclick="window.showInfo('manual')" class="btn btn-outline" style="font-size: 10px;">Manual</button>
-            <button onclick="window.showInfo('motto')" class="btn btn-outline" style="font-size: 10px;">Mission</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+            <button onclick="window.showInfo('about')" class="btn btn-outline" style="font-size: 11px;">About</button>
+            <button onclick="window.showInfo('manual')" class="btn btn-outline" style="font-size: 11px;">Manual</button>
+            <button onclick="window.showInfo('motto')" class="btn btn-outline" style="font-size: 11px;">Motto</button>
         </div>
 
-        <div id="location-list" class="loc-grid">
-            <div style="color: var(--text-muted); text-align: center; padding: 40px; grid-column: 1/-1;">Loading Infrastructure...</div>
-        </div>
+        <div id="location-list" class="loc-grid"></div>
+        <div id="loading-spinner" style="text-align:center; padding:50px; color:#666;">Loading Infrastructure...</div>
         
         <button id="btn-admin-add" class="btn btn-outline hidden" onclick="window.openLocModal(true)" style="margin-top: 30px; border-style: dashed;">
-            <i data-lucide="plus"></i> Register Facility
+            <i data-lucide="plus" style="width:14px;"></i> Register Facility
         </button>
     </div>
 
     <div id="view-dashboard" class="hidden">
-        <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 11px; margin-bottom: 15px;">Back</button>
+        <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 11px; margin-bottom: 15px;">Back to Hub</button>
         
         <div class="dash-grid">
             <div class="glass-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
@@ -228,6 +237,9 @@
                         <div style="margin-top: 15px; color: #fff; font-weight: 700; font-size: 18px;" id="dash-time">-- min wait</div>
                     </div>
 
+                    <button onclick="window.toggleGraph()" class="btn btn-outline" style="font-size: 11px; margin-bottom: 10px;">Show Forecast</button>
+                    <div id="neural-box" class="hidden" style="height: 150px; margin-bottom: 15px;"><canvas id="userChart"></canvas></div>
+
                     <div style="margin-top: auto;">
                         <button id="btn-join" onclick="window.handleJoin()" class="btn btn-primary">JOIN QUEUE</button>
                         <button id="btn-leave" onclick="window.leaveQueue()" class="btn btn-danger hidden">LEAVE QUEUE</button>
@@ -235,9 +247,9 @@
                 </div>
             </div>
             
-            <div class="glass-card" style="display: flex; flex-direction: column; height: 500px; padding: 0;">
+            <div class="chat-panel">
                 <div style="padding: 15px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700;">COMMUNITY FEED</div>
-                <div id="chat-box" style="flex: 1; overflow-y: auto; padding: 15px; font-size: 13px;"></div>
+                <div id="location-chat-box" class="chat-box"></div>
                 <div style="padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
                     <input id="chat-input" type="text" class="input-field" style="margin: 0;" placeholder="Message...">
                     <button onclick="window.sendChat()" class="btn btn-primary" style="width: auto; padding: 0 12px;"><i data-lucide="send" style="width: 14px;"></i></button>
@@ -255,19 +267,20 @@
             <div class="glass-card" style="height: 600px; display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <h4>Citizens</h4>
-                    <button onclick="window.resetQueue()" class="btn btn-outline" style="width: auto; font-size: 9px; color: var(--danger);">RESET</button>
+                    <button onclick="window.resetQueue()" class="btn btn-outline" style="width: auto; font-size: 9px; color: var(--danger); border-color: #333;">RESET</button>
                 </div>
                 <div id="god-list" style="flex: 1; overflow-y: auto;"></div>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 20px;">
-                <div class="glass-card" style="padding: 20px;">
-                    <h5 style="margin: 0 0 15px 0; font-size: 11px; color: var(--text-muted);">CROWD DENSITY</h5>
+                <div class="glass-card">
+                    <h4>Analytics</h4>
                     <div style="height: 150px;"><canvas id="adminChart"></canvas></div>
                 </div>
                 <div class="glass-card" style="padding: 0; overflow: hidden; border: 1px solid var(--primary);">
-                    <div style="position: relative; width: 100%; aspect-ratio: 16/9; background: #000;">
-                        <video id="webcam" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <div class="cam-wrapper">
+                        <video id="webcam" autoplay playsinline muted></video>
+                        <canvas id="cam-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%;"></canvas>
                         <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px; border-radius: 4px; font-size: 10px; color: var(--primary);">EDGE AI</div>
                     </div>
                     <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
@@ -295,12 +308,11 @@
         <input id="loc-name" class="input-field" placeholder="Name">
         <input id="loc-img" class="input-field" placeholder="Image URL">
         <input id="loc-desc" class="input-field" placeholder="Description">
-        <input id="loc-notice" class="input-field" placeholder="Public Notice">
         <div style="display: flex; gap: 10px;">
             <input id="loc-open" type="time" class="input-field">
             <input id="loc-close" type="time" class="input-field">
         </div>
-        <select id="loc-type" class="input-field">
+        <select id="loc-type" class="input-field" onchange="window.togglePay()">
             <option value="free">Free</option>
             <option value="paid">Paid</option>
         </select>
@@ -311,7 +323,6 @@
 
 <div id="modal-profile" class="modal-overlay hidden">
     <div class="glass-card" style="max-width: 350px; text-align: center; border: 1px solid var(--primary);">
-        <div style="width: 100%; height: 5px; background: linear-gradient(90deg, #FF9933, #fff, #138808); margin-bottom: 20px;"></div>
         <h3 id="card-name" style="margin: 0;">--</h3>
         <div style="font-size: 11px; color: var(--success); margin-bottom: 15px;">VERIFIED CITIZEN</div>
         
@@ -332,6 +343,7 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // --- FIREBASE CONFIG (WORKING) ---
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
       authDomain: "queuesmart-c3c28.firebaseapp.com",
@@ -350,13 +362,9 @@
     let currentUser = null, isAdmin = false, currentLocId = null, currentLocData = null;
     let locUnsub = null, qUnsub = null, chatUnsub = null;
     let aiModel = null, camInterval = null, isCamActive = false;
-    let adminChart = null, userChart = null;
+    let tempImg = null, adminChart = null, userChart = null;
 
-    // --- UTILS ---
-    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
-    window.goBack = () => location.reload();
-    window.toggleGraph = () => document.getElementById('neural-box').classList.toggle('hidden');
-
+    // --- GLOBAL HELPERS (Window Attached) ---
     window.switchAuth = (tab) => {
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
         document.getElementById('tab-'+tab).classList.add('active');
@@ -369,18 +377,24 @@
         }
     };
 
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    
+    window.goBack = () => location.reload();
+    
+    window.toggleGraph = () => document.getElementById('neural-box').classList.toggle('hidden');
+
     window.showInfo = (type) => {
         const title = document.getElementById('info-title');
         const body = document.getElementById('info-content');
         if(type === 'about') {
             title.innerText = "Vision: Viksit Bharat";
-            body.innerText = "India pays a massive 'Invisible Tax' daily in lost time. QueueSmart transforms manual queues into digital systems.";
+            body.innerText = "India pays a massive 'Invisible Tax' daily in lost time. QueueSmart transforms manual queues into digital systems, returning dignity to citizens.";
         } else if(type === 'manual') {
             title.innerText = "User Manual";
             body.innerHTML = "1. Sign In.<br>2. Select Facility.<br>3. Join Queue.<br>4. Wait for AI prediction.";
         } else {
             title.innerText = "Mission";
-            body.innerText = "Queuing is not a cultural inevitability - it's a solvable data problem.";
+            body.innerText = "Queuing is not inevitable. It is a solvable data problem.";
         }
         document.getElementById('modal-info').classList.remove('hidden');
     };
@@ -392,18 +406,18 @@
         try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } 
         catch(e){ alert(e.message); }
     };
-    
+
     window.emailSignup = async () => {
         const e = document.getElementById('reg-email').value;
         const p = document.getElementById('reg-pass').value;
         const ph = document.getElementById('reg-phone').value;
+        
+        if(!ph) return alert("Mobile Number Required (1 Phone = 1 Account)");
 
-        if(!ph) return alert("Mobile Number Required");
-
-        // Simple unique check
+        // 1-Phone Check
         const q = query(collection(db, "users"), where("phone", "==", ph));
         const check = await getDocs(q);
-        if(!check.empty) return alert("Mobile number registered.");
+        if(!check.empty) return alert("Mobile number already registered.");
 
         try { 
             const cred = await createUserWithEmailAndPassword(auth, e, p);
@@ -412,7 +426,7 @@
             }, { merge: true });
         } catch(err) { alert(err.message); }
     };
-
+    
     window.demoLogin = async (role) => {
         if(role==='admin' && prompt("PIN")!=="queuesmart90") return;
         const c = await signInAnonymously(auth);
@@ -427,17 +441,27 @@
     window.logout = () => signOut(auth).then(()=>location.reload());
 
     // --- PROFILE ---
+    window.handleImageUpload = (input, target) => {
+        if(input.files[0]) {
+            const r = new FileReader();
+            r.onload = (e) => { tempImg = e.target.result; document.getElementById(target).src = tempImg; };
+            r.readAsDataURL(input.files[0]);
+        }
+    };
+
     window.saveProfile = async () => {
         const name = document.getElementById('setup-name').value;
         const vid = document.getElementById('setup-vid').value;
+        // Phone comes from signup or input
         const phone = document.getElementById('setup-phone').value;
+        
         if(!name || !vid) return alert("Name and ID required");
         
         await setDoc(doc(db, "users", currentUser.uid), {
             uid: currentUser.uid, name, vid, phone: phone || "N/A",
             age: document.getElementById('setup-age').value,
             gender: document.getElementById('setup-gender').value,
-            photoURL: `https://ui-avatars.com/api/?name=${name}`,
+            photoURL: tempImg || `https://ui-avatars.com/api/?name=${name}`,
             role: 'user', createdAt: serverTimestamp()
         }, { merge: true });
         location.reload();
@@ -460,20 +484,29 @@
         document.getElementById('modal-profile').classList.remove('hidden');
     };
 
-    // --- CORE ---
+    // --- CORE LOGIC ---
     window.loadLocationsList = () => {
         const l = document.getElementById('location-list');
+        document.getElementById('loading-spinner').classList.add('hidden');
+        
         onSnapshot(collection(db, "locations"), (snap) => {
             l.innerHTML = "";
+            if(snap.empty) l.innerHTML = "<div style='grid-column:1/-1;text-align:center;'>No active facilities.</div>";
             snap.forEach(d => {
                 const loc = d.data();
                 const div = document.createElement('div'); div.className = 'loc-card';
                 div.onclick = () => window.selectLocation(d.id);
+                // Correct time check logic from working code
+                const now = new Date();
+                const cur = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+                let isOpen = false;
+                if(loc.openTime && loc.closeTime) isOpen = (cur >= loc.openTime && cur < loc.closeTime);
+
                 div.innerHTML = `
-                    <div style="height:140px; overflow:hidden;"><img src="${loc.imageURL}" style="width:100%; height:100%; object-fit:cover;"></div>
-                    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <div class="loc-img" style="background-image: url('${loc.imageURL || 'https://source.unsplash.com/random/400x300/?building'}'); background-size: cover;"></div>
+                    <div class="loc-body">
                         <strong>${loc.name}</strong>
-                        <span class="badge ${loc.status==='open'?'open':'closed'}">${loc.status.toUpperCase()}</span>
+                        <span class="badge ${isOpen?'open':'closed'}">${isOpen?'OPEN':'CLOSED'}</span>
                     </div>`;
                 l.appendChild(div);
             });
@@ -501,7 +534,10 @@
             document.getElementById('dash-desc').innerText = d.description;
             document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
             
-            const isOpen = (d.status === 'open');
+            const now = new Date();
+            const cur = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+            const isOpen = (d.openTime && d.closeTime && cur >= d.openTime && cur < d.closeTime);
+            
             const btn = document.getElementById('btn-join');
             if(!isOpen) { btn.disabled = true; btn.innerText = "CLOSED"; }
             else { btn.disabled = false; btn.innerText = "JOIN QUEUE"; }
@@ -530,6 +566,7 @@
             }
             window.renderUserChart(docs.length);
         });
+        
         window.initChat(id);
     };
 
@@ -546,12 +583,12 @@
 
     window.initChat = (id) => {
         if(chatUnsub) chatUnsub();
-        const b = document.getElementById('chat-box');
+        const b = document.getElementById('location-chat-box');
         chatUnsub = onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc")), (s) => {
             b.innerHTML = "";
             s.forEach(d => {
                 const c = d.data();
-                b.innerHTML += `<div style="margin-bottom:10px; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px;"><strong>${c.userName}</strong>: ${c.text}</div>`;
+                b.innerHTML += `<div class="chat-msg"><strong>${c.userName}</strong>: ${c.text}</div>`;
             });
             b.scrollTop = b.scrollHeight;
         });
@@ -580,11 +617,6 @@
             }
             window.renderAdminChart(s.size);
         });
-        
-        onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp", "desc"), limit(10)), (s) => {
-            const l = document.getElementById('god-logs'); l.innerHTML = "";
-            s.forEach(d => l.innerHTML += `<div>${d.data().action} at ${new Date(d.data().timestamp?.seconds*1000).toLocaleTimeString()}</div>`);
-        });
     };
 
     window.adminAct = async (qid) => {
@@ -612,7 +644,6 @@
             name: document.getElementById('loc-name').value,
             imageURL: document.getElementById('loc-img').value,
             description: document.getElementById('loc-desc').value,
-            notice: document.getElementById('loc-notice').value,
             openTime: document.getElementById('loc-open').value,
             closeTime: document.getElementById('loc-close').value,
             bookingType: document.getElementById('loc-type').value,
@@ -671,9 +702,7 @@
             } else {
                 const d = snap.data();
                 isAdmin = (d.role === 'admin');
-                const p = document.getElementById('profile-bubble');
-                if(p) p.style.backgroundImage = `url('${d.photoURL}')`;
-                
+                document.getElementById('profile-bubble').style.backgroundImage = `url('${d.photoURL}')`;
                 if(isAdmin) {
                     document.body.classList.add('god-mode');
                     document.getElementById('btn-admin-add').classList.remove('hidden');
