@@ -663,26 +663,38 @@
     let adminChart = null;
     let userChart = null;
     
-   // 3. UI CONTROLLER
+ // 3. UI CONTROLLER
     window.ui = {
-        showView: (vid) => {
+        // Updated ShowView to handle History
+        showView: (vid, addToHistory = false) => {
+            // Hide all views
             ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            
+            // Show target
             document.getElementById(vid).classList.remove('hidden');
             window.scrollTo(0,0);
+
+            // Add to browser history if requested
+            if(addToHistory) {
+                const currentUrl = new URL(window.location);
+                // We use a query param to track state cleanly
+                if(vid === 'view-dashboard' || vid === 'view-god-mode') {
+                    currentUrl.searchParams.set('view', vid);
+                    currentUrl.searchParams.set('id', currentLocId);
+                } else {
+                    currentUrl.searchParams.delete('view');
+                    currentUrl.searchParams.delete('id');
+                }
+                window.history.pushState({ view: vid, id: currentLocId }, "", currentUrl);
+            }
         },
+
         closeModals: () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')),
         
-        // --- FIXED: Simply switch views instead of reloading ---
+        // FIXED: Now uses browser history to go back
         goBack: () => {
-            // Stop listening to database updates to save data/battery
-            if(locUnsub) locUnsub(); 
-            if(qUnsub) qUnsub(); 
-            if(chatUnsub) chatUnsub(); 
-            
-            // Switch back to Hub
-            window.ui.showView('view-select');
+            window.history.back(); 
         },
-        // -----------------------------------------------------
 
         toggleGraph: () => document.getElementById('neural-box').classList.toggle('hidden'),
         
@@ -981,9 +993,12 @@
             }, (error) => { console.error("List Error:", error); });
         },
 
-        selectLoc: (id) => {
+       selectLoc: (id) => {
             currentLocId = id;
-            window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
+            // CHANGED: Added 'true' at the end to push to history
+            window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard', true);
+            
+            // ... rest of the function remains the same ...
             
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
@@ -1479,23 +1494,79 @@
         }
     };
 
-    // 11. BOOTSTRAP
+   // 11. BOOTSTRAP & HISTORY HANDLING
+    
+    // Handle Browser Back Button
+    window.addEventListener('popstate', (event) => {
+        // Close any open modals first
+        window.ui.closeModals();
+        
+        // Stop all listeners to save resources
+        if(locUnsub) locUnsub();
+        if(qUnsub) qUnsub();
+        if(chatUnsub) chatUnsub();
+        if(typeof adminQUnsub !== 'undefined' && adminQUnsub) adminQUnsub();
+        if(typeof adminLUnsub !== 'undefined' && adminLUnsub) adminLUnsub();
+
+        if (event.state && event.state.view) {
+            // Navigate to the state in history
+            currentLocId = event.state.id;
+            // Show view WITHOUT pushing to history again (avoid loops)
+            window.ui.showView(event.state.view, false);
+            
+            // Re-initialize logic if returning to dashboard
+            if(event.state.view === 'view-dashboard' && currentLocId) {
+                window.queueHandler.initDash(currentLocId);
+            } else if (event.state.view === 'view-god-mode' && currentLocId) {
+                window.adminHandler.init(currentLocId);
+            }
+        } else {
+            // Default: Go back to Hub
+            window.ui.showView('view-select', false);
+        }
+    });
+
     onAuthStateChanged(auth, async (u) => {
         currentUser = u;
         if(u) {
             const s = await getDoc(doc(db, "users", u.uid));
-            if(!s.exists()) { window.ui.showView('view-setup'); } 
-            else {
-                const d = s.data(); isAdmin = (d.role === 'admin');
-                const bubble = document.getElementById('profile-bubble'); if(bubble) bubble.style.backgroundImage = `url('${d.photoURL}')`;
+            if(!s.exists()) { 
+                window.ui.showView('view-setup', false);
+            } else {
+                const d = s.data();
+                isAdmin = (d.role === 'admin');
+                const bubble = document.getElementById('profile-bubble'); 
+                if(bubble) bubble.style.backgroundImage = `url('${d.photoURL}')`;
+                
                 if(isAdmin) {
                     document.body.classList.add('god-mode');
-                    const controls = document.getElementById('admin-controls'); if(controls) controls.classList.remove('hidden');
+                    const controls = document.getElementById('admin-controls'); 
+                    if(controls) controls.classList.remove('hidden');
                 }
-                window.ui.showView('view-select');
+                
+                // Handle Page Reload (Deep Linking)
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view');
+                const id = params.get('id');
+
+                if (view === 'view-dashboard' && id) {
+                    currentLocId = id;
+                    window.ui.showView('view-dashboard', false); // false = don't push duplicate
+                    window.queueHandler.initDash(id);
+                } else if (view === 'view-god-mode' && id && isAdmin) {
+                    currentLocId = id;
+                    window.ui.showView('view-god-mode', false);
+                    document.getElementById('god-loc-id').innerText = id;
+                    window.adminHandler.init(id);
+                } else {
+                    window.ui.showView('view-select', false);
+                }
+                
                 window.queueHandler.loadList();
             }
-        } else { window.ui.showView('view-login'); }
+        } else { 
+            window.ui.showView('view-login', false);
+        }
     });
 
     if(window.lucide) lucide.createIcons();
