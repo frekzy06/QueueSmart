@@ -3,37 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#050505">
-    
+    <meta name="theme-color" content="#000000">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
     <meta name="description" content="QueueSmart: Time Infrastructure for India. Digital Public Infrastructure.">
-    
     <title>QueueSmart | Digital Public Infrastructure</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
+        // Global Error Handler to prevent white screen crashes
         window.onerror = function(msg, url, line) {
-            // Suppress benign resize observer loops common in Charts/Tensorflow
             if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            console.error(`[System Critical]: ${msg} at line ${line}`);
+            console.error(`System Error: ${msg} at line ${line}`);
             return false;
         };
     </script>
     
     <style>
-        /* =======================
-           2. DESIGN SYSTEM
-           ======================= */
+        /* ==================================================================================
+           DESIGN SYSTEM: "OFFICIAL TECH"
+           ================================================================================== */
         :root {
-            /* Palette: "Tricolor Tech" */
             --primary: #FF9933; /* Saffron */
             --primary-dim: rgba(255, 153, 51, 0.15);
             --primary-glow: rgba(255, 153, 51, 0.4);
@@ -42,8 +38,8 @@
             --secondary-glow: rgba(19, 136, 8, 0.3);
             
             --bg-deep: #050505;
-            --bg-card: #0e0e12;
-            --bg-input: #121215;
+            --bg-card: #0a0a0a;
+            --bg-input: #111111;
             
             --border: #333;
             --border-hover: #555;
@@ -62,7 +58,7 @@
             --ease: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* Admin Mode Override */
+        /* Admin Mode Overrides */
         body.god-mode { 
             --primary: #00d4ff; 
             --primary-dim: rgba(0, 212, 255, 0.1); 
@@ -111,14 +107,13 @@
             background: linear-gradient(to top, var(--primary-dim), transparent);
         }
 
-        /* --- OFFICIAL DPI CARD (Profile) --- */
+        /* --- OFFICIAL DPI CARD --- */
         .dpi-card {
             background: linear-gradient(145deg, #121214 0%, #050505 100%);
             border: 1px solid var(--primary); border-radius: 18px;
             padding: 0; position: relative; overflow: hidden;
             box-shadow: 0 30px 60px rgba(0,0,0,0.7);
             width: 100%; max-width: 380px; margin: 0 auto;
-            transform-style: preserve-3d;
         }
         .dpi-strip { height: 6px; width: 100%; background: linear-gradient(90deg, #FF9933, #fff, #138808); }
         .dpi-body { padding: 25px; position: relative; }
@@ -336,7 +331,7 @@
                 <h1 style="font-size: 26px; font-weight: 900; margin: 0; font-family: var(--font-tech);">FACILITIES HUB</h1>
                 <p style="color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 1px; margin: 5px 0 0 0;">VIKSIT BHARAT NETWORK</p>
             </div>
-            <div onclick="window.openProfile()" id="nav-profile-pic" class="profile-uploader" style="width: 45px; height: 45px; margin:0; border: 2px solid var(--border);">
+            <div id="profile-bubble" class="profile-uploader" style="width: 45px; height: 45px; margin:0; border: 2px solid var(--border);" onclick="window.openProfile()">
                 <img id="nav-profile-img" src="" style="width:100%; height:100%; object-fit:cover;">
             </div>
         </div>
@@ -367,9 +362,9 @@
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <div class="glass-card" style="padding: 0; display: flex; flex-direction: column;">
                     <div id="dash-img" style="height: 180px; width: 100%; background: #222; background-size: cover; position: relative;">
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, #0a0a0c, transparent);">
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, #0e0e12 10%, transparent);">
                             <h2 id="dash-name" style="margin: 0; font-size: 24px; font-weight: 800;">Location</h2>
-                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                            <div style="display: flex; gap: 10px; margin-top: 8px;">
                                 <span id="dash-status" class="badge closed">OFFLINE</span>
                                 <span id="dash-type" class="badge" style="background: rgba(255,255,255,0.1); color: #fff;">STANDARD</span>
                             </div>
@@ -398,10 +393,10 @@
                             </div>
                         </div>
 
-                        <button onclick="document.getElementById('chart-wrap').classList.toggle('hidden')" class="btn btn-outline" style="margin-bottom: 15px; font-size: 11px;">
+                        <button onclick="window.toggleGraph()" class="btn btn-outline" style="margin-bottom: 15px; font-size: 11px;">
                             <i data-lucide="bar-chart-2"></i> Toggle Prediction
                         </button>
-                        <div id="chart-wrap" class="hidden" style="margin-bottom: 20px;">
+                        <div id="neural-box" class="hidden" style="margin-bottom: 20px;">
                             <div style="height: 150px;"><canvas id="userChart"></canvas></div>
                             <div id="dash-ai-msg" style="text-align: center; font-size: 11px; color: var(--success); margin-top: 10px;"></div>
                         </div>
@@ -473,14 +468,14 @@
                     </div>
                     <div style="padding: 15px; background: rgba(0,0,0,0.6); display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 11px;">Count: <b id="cam-count" style="font-size: 16px; color: var(--primary);">0</b></div>
-                        <button id="btn-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 10px;">ACTIVATE</button>
+                        <button id="btn-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px;">ACTIVATE</button>
                     </div>
                 </div>
             </div>
 
             <div class="glass-card" style="display: flex; flex-direction: column;">
                 <h4 style="margin: 0 0 15px 0; font-size: 13px; text-transform: uppercase;">Audit Logs</h4>
-                <div id="god-logs" style="flex: 1; overflow-y: auto; font-family: var(--font-data); font-size: 10px; color: var(--text-muted);"></div>
+                <div id="god-logs" style="font-family: 'JetBrains Mono'; font-size: 10px; color: var(--text-muted); overflow-y: auto; height: 100%;"></div>
             </div>
         </div>
     </div>
@@ -546,7 +541,7 @@
         </div>
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
             <span class="dpi-label" style="color: var(--primary);">Access Control</span>
-            <select id="conf-type" class="input-field" onchange="window.ui.togglePay()">
+            <select id="conf-type" class="input-field" onchange="window.togglePay()">
                 <option value="free">Free Entry</option>
                 <option value="paid">Paid Reservation</option>
             </select>
@@ -556,7 +551,7 @@
             </div>
         </div>
         <button onclick="window.adminHandler.saveLoc()" class="btn btn-primary">Save Changes</button>
-        <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
 
@@ -573,7 +568,7 @@
             <input type="text" id="pay-txn" class="input-field" placeholder="xxxx">
         </div>
         <button onclick="window.queueHandler.verifyPay()" class="btn btn-primary">Verify & Join</button>
-        <button onclick="window.ui.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
 
@@ -581,7 +576,7 @@
     <div class="glass-card" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
         <h3 id="info-head" style="color: var(--primary); margin-top: 0; font-family: var(--font-tech); text-transform: uppercase;"></h3>
         <div id="info-body" style="font-size: 14px; line-height: 1.7; color: #ccc;"></div>
-        <button onclick="window.ui.closeModals()" class="btn btn-primary" style="margin-top: 20px;">Close</button>
+        <button onclick="window.closeModals()" class="btn btn-primary" style="margin-top: 20px;">Close</button>
     </div>
 </div>
 
@@ -590,7 +585,7 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 1. FIREBASE CONFIG
+    // 1. CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
       authDomain: "queuesmart-c3c28.firebaseapp.com",
@@ -623,7 +618,8 @@
             window.scrollTo(0,0);
         },
 
-        closeModals: () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')),
+        openModal: (id) => window.ui.el(id).classList.remove('hidden'),
+        closeModal: (id) => window.ui.el(id).classList.add('hidden'),
         goBack: () => location.reload(),
 
         // Toggle Login vs Signup
@@ -651,12 +647,12 @@
                 b.innerHTML = "India pays a massive 'Invisible Tax' daily in lost time. QueueSmart transforms manual queues into digital systems, returning dignity to citizens.";
             } else if(type==='help') {
                 h.innerText = "Manual";
-                b.innerHTML = "1. Scan QR.<br>2. Choose Free/Paid entry.<br>3. Wait comfortably.<br>4. AI predicts traffic.";
+                b.innerHTML = "1. Sign In or Create Account.<br>2. Select Facility from Hub.<br>3. Join Queue (Free or Paid).<br>4. Wait remotely; AI predicts your time.<br>5. Arrive when notified.";
             } else {
                 h.innerText = "Mission";
                 b.innerHTML = "Queuing is not inevitable. It is a solvable data problem. We are the Virtual Line for India.";
             }
-            window.ui.el('modal-info').classList.remove('hidden');
+            window.ui.openModal('modal-info');
         },
 
         showProfile: async (uid = null) => {
@@ -677,12 +673,11 @@
                 vidText = d.vid || "N/A"; // Admin sees full ID
                 window.ui.el('card-vid').style.color = "#00ff9d";
             } else {
-                if(d.vid && d.vid.length > 4) vidText = "XXXX-" + d.vid.slice(-4);
-                else vidText = "HIDDEN";
+                if(d.vid && d.vid.length > 4) vidText = "XXXX-" + d.vid.slice(-4); // User sees masked
                 window.ui.el('card-vid').style.color = "var(--primary)";
             }
             window.ui.el('card-vid').innerText = vidText;
-            window.ui.el('modal-profile').classList.remove('hidden');
+            window.ui.openModal('modal-profile');
         },
 
         openLocModal: (isNew) => {
@@ -694,7 +689,7 @@
                 window.ui.el('conf-notice').value = "";
                 window.ui.el('conf-type').value = "free";
             }
-            window.ui.el('modal-edit-loc').classList.remove('hidden');
+            window.ui.openModal('modal-edit-loc');
         }
     };
 
@@ -723,12 +718,14 @@
             
             if(!ph) return alert("Mobile Number Required for One-to-One Identity");
 
+            // Check if phone exists
             const q = query(collection(db, "users"), where("phone", "==", ph));
             const check = await getDocs(q);
             if(!check.empty) return alert("Mobile number already registered.");
 
             try { 
                 const cred = await createUserWithEmailAndPassword(auth, e, p);
+                // Save initial data to bind phone
                 await setDoc(doc(db, "users", cred.user.uid), { 
                     uid: cred.user.uid, phone: ph, role: 'user', createdAt: serverTimestamp() 
                 }, { merge: true });
@@ -777,8 +774,10 @@
             const a = window.ui.el('setup-age').value;
             const g = window.ui.el('setup-gender').value;
             const v = window.ui.el('setup-vid').value;
+            // Phone comes from signup or input
             const p = window.ui.el('setup-phone').value;
-            if(!n || !v) return alert("Verification fields required");
+
+            if(!n || !v || !p) return alert("Verification fields required");
             
             await setDoc(doc(db, "users", state.user.uid), {
                 uid: state.user.uid, name: n, age: a, gender: g, vid: v, phone: p,
@@ -795,15 +794,14 @@
     // 6. QUEUE HANDLER
     window.queueHandler = {
         loadList: () => {
-            const l = window.ui.el('location-list');
+            const l = window.ui.el('location-list-container');
             state.unsubs.push(onSnapshot(collection(db, "locations"), (snap) => {
                 l.innerHTML = "";
-                if(snap.empty) { l.innerHTML = "<div style='grid-column:1/-1;text-align:center;'>No locations found.</div>"; }
                 snap.forEach(d => {
                     const loc = d.data();
                     const isOpen = window.logic.isOpen(loc);
                     const div = document.createElement('div'); div.className = 'loc-card';
-                    div.onclick = () => window.logic.selectLoc(d.id);
+                    div.onclick = () => window.selectLocation(d.id);
                     div.innerHTML = `
                         <div class="loc-img-box"><img src="${loc.imageURL}" class="loc-img"></div>
                         <div class="loc-overlay"><h3 style="margin:0; text-shadow:0 2px 4px #000;">${loc.name}</h3></div>
@@ -826,41 +824,34 @@
                 window.ui.el('dash-desc').innerText = d.description || "";
                 window.ui.el('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
                 
-                const open = window.logic.isOpen(d);
-                window.ui.el('dash-status').innerText = open?"ONLINE":"OFFLINE";
-                window.ui.el('dash-status').className = `badge ${open?'open':'closed'}`;
-                window.ui.el('dash-type').innerText = d.bookingType.toUpperCase();
-
-                if(d.notice) {
-                    window.ui.el('dash-notice').classList.remove('hidden');
-                    window.ui.el('dash-notice-text').innerText = d.notice;
-                }
-
-                // Btn Logic
+                const isOpen = (d.status === 'open');
                 const btn = window.ui.el('btn-join');
-                if(!open) { btn.disabled=true; btn.innerText="CLOSED"; btn.style.opacity=0.5; }
-                else { btn.disabled=false; btn.style.opacity=1; btn.innerText = d.bookingType==='paid'?`BOOK (₹${d.ticketPrice})`:"JOIN QUEUE"; }
+                if(!isOpen) { btn.disabled = true; btn.innerText = "CLOSED"; }
+                else { btn.disabled = false; btn.innerText = d.bookingType === 'paid' ? "BOOK SLOT" : "JOIN QUEUE"; }
+                
+                if(d.notice) { 
+                    window.ui.el('dash-notice').classList.remove('hidden'); 
+                    window.ui.el('dash-notice').innerText = d.notice; 
+                }
             }));
 
             // Queue
             state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
-                const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=>a.timestamp-b.timestamp);
-                const pos = docs.findIndex(x => x.uid === state.user.uid);
+                const docs = s.docs.map(x=>x.data());
+                const myPos = docs.findIndex(x => x.uid === state.user.uid);
                 
-                if(pos !== -1) {
-                    window.ui.el('dash-count').innerText = pos; 
-                    window.ui.el('dash-label').innerText = "PEOPLE AHEAD";
-                    window.ui.el('dash-time').innerText = `~${(pos+1)*5} min`;
+                if(myPos !== -1) {
+                    window.ui.el('dash-count').innerText = myPos; 
+                    window.ui.el('dash-time').innerText = `~${(myPos+1)*5} min`;
                     window.ui.el('btn-join').classList.add('hidden');
                     window.ui.el('btn-leave').classList.remove('hidden');
                 } else {
                     window.ui.el('dash-count').innerText = docs.length;
-                    window.ui.el('dash-label').innerText = "TOTAL IN LINE";
                     window.ui.el('dash-time').innerText = "--";
                     window.ui.el('btn-join').classList.remove('hidden');
                     window.ui.el('btn-leave').classList.add('hidden');
                 }
-                window.logic.updateChart(docs.length);
+                window.renderUserChart(docs.length);
             }));
             
             window.logic.initChat(id);
@@ -870,19 +861,19 @@
             if(state.locData.bookingType === 'paid') {
                 window.ui.el('pay-amt').innerText = "₹"+state.locData.ticketPrice;
                 const link = `upi://pay?pa=${state.locData.upiId}&pn=QueueSmart&am=${state.locData.ticketPrice}&cu=INR`;
-                window.ui.el('pay-qr').innerHTML = "";
-                new QRCode(window.ui.el('pay-qr'), { text: link, width: 128, height: 128 });
-                window.ui.el('btn-pay-upi').onclick = () => window.location.href = link;
-                window.ui.el('modal-pay').classList.remove('hidden');
+                window.ui.el('pay-qr-display').innerHTML = "";
+                new QRCode(window.ui.el('pay-qr-display'), { text: link, width: 128, height: 128 });
+                window.ui.el('btn-pay-app').onclick = () => window.location.href = link;
+                window.ui.el('modal-payment').classList.remove('hidden');
             } else {
                 window.queueHandler.add();
             }
         },
 
         verifyPay: () => {
-            if(window.ui.el('pay-txn').value.length < 4) return alert("Invalid Ref ID");
-            window.queueHandler.add(window.ui.el('pay-txn').value);
-            window.ui.closeModal('modal-pay');
+            if(window.ui.el('user-txn-id').value.length < 4) return alert("Invalid Ref ID");
+            window.queueHandler.add(window.ui.el('user-txn-id').value);
+            window.ui.closeModal('modal-payment');
         },
 
         add: async (txn = null) => {
@@ -905,7 +896,7 @@
     window.loadLocationsList = window.queueHandler.loadList;
     window.handleJoin = window.queueHandler.join;
     window.leaveQueue = window.queueHandler.leave;
-    window.verifyPay = window.queueHandler.verifyPay;
+    window.confirmPayment = window.queueHandler.verifyPay;
 
     // 7. ADMIN HANDLER
     window.adminHandler = {
@@ -915,49 +906,30 @@
                 const l = window.ui.el('god-list'); l.innerHTML = "";
                 for(const d of s.docs) {
                     const q = d.data();
-                    let u = { name: "Loading..." };
-                    try { const us = await getDoc(doc(db, "users", q.uid)); if(us.exists()) u = us.data(); } catch(e){}
+                    let name = "Loading...";
+                    try { const u = await getDoc(doc(db, "users", q.uid)); if(u.exists()) name = u.data().name; } catch(e){}
                     
                     const div = document.createElement('div');
-                    div.style.cssText = "padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;";
-                    div.innerHTML = `
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <img src="${u.photoURL}" style="width:30px; height:30px; border-radius:50%;">
-                            <div>
-                                <div style="font-size:13px; font-weight:700;">${u.name}</div>
-                                <div style="font-size:10px; color:var(--primary); font-family:var(--font-mono);">${q.txn!=='free'?'PAID':'FREE'}</div>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="window.ui.showProfile('${q.uid}')" class="btn btn-outline" style="padding:5px;"><i data-lucide="eye" style="width:12px;"></i></button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'serve')" style="background:var(--success); border:none; border-radius:4px; padding:5px;">✓</button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'kick')" style="background:var(--danger); border:none; border-radius:4px; padding:5px;">✕</button>
-                        </div>
-                    `;
+                    div.style.padding = "10px"; div.style.borderBottom = "1px solid #333"; div.style.display = "flex"; div.style.justifyContent = "space-between";
+                    div.innerHTML = `<span>${name}</span> <div><button onclick="window.openProfile('${q.uid}')">👁️</button> <button onclick="window.adminAct('${d.id}')">✅</button></div>`;
                     l.appendChild(div);
                 }
             }));
             
             // Logs
-            state.unsubs.push(onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp","desc"), limit(20)), (s) => {
-                const gl = window.ui.el('god-logs'); gl.innerHTML = "";
-                s.forEach(d => {
-                    const l = d.data();
-                    const div = document.createElement('div');
-                    div.style.cssText = "padding:5px 0; border-bottom:1px dashed rgba(255,255,255,0.1); font-family:var(--font-data); font-size:10px; color:#aaa;";
-                    div.innerText = `[${l.timestamp?.toDate().toLocaleTimeString()}] ${l.action}`;
-                    gl.appendChild(div);
-                });
+            state.unsubs.push(onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp", "desc"), limit(10)), (s) => {
+                const l = window.ui.el('god-logs'); l.innerHTML = "";
+                s.forEach(d => l.innerHTML += `<div>${d.data().action} at ${new Date(d.data().timestamp?.seconds*1000).toLocaleTimeString()}</div>`);
             }));
         },
 
-        act: async (qid, type) => {
+        act: async (qid) => {
             await deleteDoc(doc(db, "queue", qid));
-            await addDoc(collection(db, "logs"), { locationId: state.locId, action: type.toUpperCase(), timestamp: serverTimestamp() });
+            await addDoc(collection(db, "logs"), { locationId: state.locId, action: 'SERVED', timestamp: serverTimestamp() });
         },
 
         nuke: async () => {
-            if(!confirm("Reset entire queue?")) return;
+            if(!confirm("Reset?")) return;
             const q = query(collection(db, "queue"), where("locationId", "==", state.locId));
             const s = await getDocs(q);
             const b = writeBatch(db);
@@ -966,21 +938,22 @@
         },
 
         saveLoc: async () => {
-            const id = window.ui.el('conf-id').value;
+            const id = window.ui.el('new-loc-id').value;
             const data = {
-                name: window.ui.el('conf-name').value,
-                imageURL: window.ui.el('conf-img').value,
-                description: window.ui.el('conf-desc').value,
-                notice: window.ui.el('conf-notice').value,
-                openTime: window.ui.el('conf-open').value,
-                closeTime: window.ui.el('conf-close').value,
-                bookingType: window.ui.el('conf-type').value,
-                upiId: window.ui.el('conf-upi').value,
-                ticketPrice: window.ui.el('conf-price').value
+                name: window.ui.el('new-loc-name').value,
+                imageURL: window.ui.el('new-loc-img').value,
+                description: window.ui.el('new-loc-desc').value,
+                notice: window.ui.el('new-loc-notice').value,
+                openTime: window.ui.el('new-loc-open').value,
+                closeTime: window.ui.el('new-loc-close').value,
+                bookingType: window.ui.el('new-loc-type').value,
+                upiId: window.ui.el('new-loc-upi').value,
+                ticketPrice: window.ui.el('new-loc-price').value,
+                status: 'open'
             };
             if(id) await updateDoc(doc(db, "locations", id), data);
-            else { data.status = 'open'; await addDoc(collection(db, "locations"), data); }
-            window.ui.closeModal('modal-edit-loc');
+            else await addDoc(collection(db, "locations"), data);
+            window.closeModals();
         },
         
         lock: async () => updateDoc(doc(db, "locations", state.locId), { status: 'closed', notice: 'Emergency Lockdown' })
@@ -988,8 +961,12 @@
 
     // EXPOSE ADMIN
     window.adminHandler = window.adminHandler;
-    window.saveLoc = window.adminHandler.saveLoc;
-    window.resetQueue = window.adminHandler.nuke;
+    window.saveLoc = window.adminHandler.saveLoc; // Fix mismatch
+    window.createLocation = window.adminHandler.saveLoc; // Fix mismatch
+    window.resetQueueCloud = window.adminHandler.nuke; // Fix mismatch
+    window.adminAct = window.adminHandler.act;
+    window.emergencyLock = window.adminHandler.lock;
+
 
     // 8. AI & CHAT
     window.aiHandler = {
@@ -1001,16 +978,8 @@
                 state.camActive = true;
                 state.camInterval = setInterval(async () => {
                     const p = await state.aiModel.detect(v);
-                    const count = p.filter(x=>x.class==='person').length;
-                    window.ui.el('cam-count').innerText = count;
-                    if(count > 10) window.ui.el('god-alert').classList.remove('hidden');
-                    else window.ui.el('god-alert').classList.add('hidden');
-                    
-                    const c = window.ui.el('cam-overlay'); const ctx = c.getContext('2d');
-                    c.width = v.videoWidth; c.height = v.videoHeight;
-                    ctx.clearRect(0,0,c.width,c.height);
-                    p.forEach(x => { if(x.class==='person'){ ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2; ctx.strokeRect(...x.bbox); } });
-                }, 500);
+                    window.ui.el('cam-count').innerText = p.filter(x=>x.class==='person').length;
+                }, 1000);
             } else {
                 clearInterval(state.camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); state.camActive=false;
             }
@@ -1043,16 +1012,16 @@
                 // Fill Edit Modal for ease
                 getDoc(doc(db, "locations", id)).then(s => {
                     const d = s.data();
-                    window.ui.el('conf-id').value = id;
-                    window.ui.el('conf-name').value = d.name;
-                    window.ui.el('conf-img').value = d.imageURL;
-                    window.ui.el('conf-desc').value = d.description;
-                    window.ui.el('conf-notice').value = d.notice;
-                    window.ui.el('conf-open').value = d.openTime;
-                    window.ui.el('conf-close').value = d.closeTime;
-                    window.ui.el('conf-type').value = d.bookingType;
-                    window.ui.togglePay();
-                    if(d.bookingType==='paid') { window.ui.el('conf-upi').value = d.upiId; window.ui.el('conf-price').value = d.ticketPrice; }
+                    window.ui.el('new-loc-id').value = id;
+                    window.ui.el('new-loc-name').value = d.name;
+                    window.ui.el('new-loc-img').value = d.imageURL;
+                    window.ui.el('new-loc-desc').value = d.description;
+                    window.ui.el('new-loc-notice').value = d.notice;
+                    window.ui.el('new-loc-open').value = d.openTime;
+                    window.ui.el('new-loc-close').value = d.closeTime;
+                    window.ui.el('new-loc-type').value = d.bookingType;
+                    window.togglePaymentFields();
+                    if(d.bookingType==='paid') { window.ui.el('new-loc-upi').value = d.upiId; window.ui.el('new-loc-price').value = d.ticketPrice; }
                 });
             } else {
                 window.ui.el('view-dashboard').classList.remove('hidden');
@@ -1061,11 +1030,11 @@
         },
         initChat: (id) => {
             state.unsubs.push(onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp","asc"), limit(50)), (s) => {
-                const f = window.ui.el('chat-feed'); f.innerHTML = "";
+                const f = window.ui.el('location-chat-box'); f.innerHTML = "";
                 s.forEach(d => {
                     const m = d.data();
-                    const el = document.createElement('div'); el.className = 'chat-bubble';
-                    el.innerHTML = `<strong style="color:var(--primary);">${m.user}:</strong> ${m.text}`;
+                    const el = document.createElement('div'); el.className = 'chat-msg';
+                    el.innerHTML = `<div class="chat-bubble"><div class="chat-header">${m.user}</div>${m.text}</div>`;
                     f.appendChild(el);
                 });
                 f.scrollTop = f.scrollHeight;
@@ -1082,7 +1051,7 @@
                 },
                 options: { responsive: true, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{display:false} } }
             });
-            window.ui.el('dash-ai-msg').innerText = "AI PREDICTION: Traffic peaking in 30 mins.";
+            window.ui.el('dash-ai-advice').innerText = "AI PREDICTION: Traffic peaking in 30 mins.";
         }
     };
     window.selectLocation = window.logic.selectLoc;
@@ -1096,10 +1065,12 @@
                 const d = s.data();
                 state.isAdmin = (d.role === 'admin');
                 window.ui.el('nav-profile-pic').style.backgroundImage = `url('${d.photoURL}')`;
+                
                 if(state.isAdmin) {
                     document.body.classList.add('god-mode');
-                    window.ui.el('btn-admin-add').classList.remove('hidden');
+                    window.ui.el('admin-add-loc-btn').classList.remove('hidden');
                 }
+                
                 window.ui.showView('view-select');
                 window.queueHandler.loadList();
             } else {
