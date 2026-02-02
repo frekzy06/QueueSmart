@@ -1581,105 +1581,112 @@
     
 // 11. AI RECOMMENDATION ENGINE (SECURE BACKEND VERSION)
 
-    window.aiAssistant = {
-        isMuted: false, 
-        open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
+window.aiAssistant = {
+    isMuted: false, 
+    open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
 
-        // 1. ROBUST VOICE FUNCTION
-speak: (text) => {
-    if (window.aiAssistant.isMuted) return;
-    window.speechSynthesis.cancel(); // Stop current speech
-    const utterance = new SpeechSynthesisUtterance(text);
-    // Set Speed and Pitch for a natural feel
-    utterance.rate = 1.0; 
-    utterance.pitch = 1.1;
-    // FIND THE BEST INDIAN VOICE
-    const voices = window.speechSynthesis.getVoices();
-    const indianVoice = 
-        voices.find(v => v.name.includes("India") && v.lang.includes("en")) || // English (India)
-        voices.find(v => v.lang === "hi-IN") ||                                // Hindi (India)
-        voices.find(v => v.name.includes("Google") && v.lang.includes("en"));  // Fallback Google
-    if (indianVoice) {
-        utterance.voice = indianVoice;
-    }
-    window.speechSynthesis.speak(utterance);
-},
-        // 2. TOGGLE MUTE LOGIC
-        toggleMute: () => {
-            window.aiAssistant.isMuted = !window.aiAssistant.isMuted;
-            const btn = document.getElementById('btn-ai-mute');
-            if(window.aiAssistant.isMuted) {
-  window.speechSynthesis.cancel(); 
- btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
-           } else {
-                btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
-            }
-            if(window.lucide) lucide.createIcons();
-        },
-        // 3. SECURE SEND FUNCTION
-       send: async () => {
-           const inputEl = document.getElementById('ai-input');
-            const msgBox = document.getElementById('ai-messages');            
-           const userText = inputEl.value.trim();
-            if (!userText) return;
-
-            // UI: Show User Message
-           inputEl.value = "";
-            msgBox.innerHTML += `
-                <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
-                    ${userText}
-                </div>`;
-            msgBox.scrollTop = msgBox.scrollHeight;
-
-     // UI: Show Loading
-     const loadingId = "loading-" + Date.now();
-            msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
-
-      try {
-           // 1. Gather Context Data (Client Side)
-                const snap = await getDocs(collection(db, "locations"));
-                let openLocs = [];
-                let closedLocs = [];
-
-                snap.forEach(d => {
-                   const data = d.data();
-                    const status = window.logic.checkTimeStatus(data); 
-                    const info = `${data.name} (${data.description})`;
-                  if(status.isOpen) openLocs.push(info);
-                    else closedLocs.push(info);
-                });
-
-                const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-              // 2. Call YOUR Vercel Backend (No Keys Here!)
-           const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: userText,
-                        openLocs: openLocs.join(", "),
-                        closedLocs: closedLocs.join(", "),
-                        time: now
-                    })
-                });
-                if (!response.ok) throw new Error("Backend Error");
-                const data = await response.json();
-                const aiText = data.text.replace(/[*#]/g, ''); 
-                // 3. Display Result
-             document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `
-                    <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
-                        ${aiText}
-                    </div>`;
-                msgBox.scrollTop = msgBox.scrollHeight;                
-                window.aiAssistant.speak(aiText);
-            } catch (e) {
-                const loader = document.getElementById(loadingId);
-                if(loader) loader.remove();
-                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Connection Error (Check API).</div>`;
-                console.error(e);
-            }
+    // 1. ROBUST VOICE FUNCTION
+    speak: (text) => {
+        if (window.aiAssistant.isMuted) return;
+        window.speechSynthesis.cancel(); // Stop current speech
+        const utterance = new SpeechSynthesisUtterance(text);
+        // Set Speed and Pitch for a natural feel
+        utterance.rate = 1.0; 
+        utterance.pitch = 1.1;
+        // FIND THE BEST INDIAN VOICE
+        const voices = window.speechSynthesis.getVoices();
+        const indianVoice = 
+            voices.find(v => v.name.includes("India") && v.lang.includes("en")) || // English (India)
+            voices.find(v => v.lang === "hi-IN") ||                                // Hindi (India)
+            voices.find(v => v.name.includes("Google") && v.lang.includes("en"));  // Fallback Google
+        if (indianVoice) {
+            utterance.voice = indianVoice;
         }
-    };
+        window.speechSynthesis.speak(utterance);
+    },
+    // 2. TOGGLE MUTE LOGIC
+    toggleMute: () => {
+        window.aiAssistant.isMuted = !window.aiAssistant.isMuted;
+        const btn = document.getElementById('btn-ai-mute');
+        if(window.aiAssistant.isMuted) {
+            window.speechSynthesis.cancel(); 
+            btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
+        } else {
+            btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
+        }
+        if(window.lucide) lucide.createIcons();
+    },
+    // 3. SECURE SEND FUNCTION
+    send: async () => {
+        const inputEl = document.getElementById('ai-input');
+        const msgBox = document.getElementById('ai-messages');            
+        const userText = inputEl.value.trim();
+        if (!userText) return;
+
+        // UI: Show User Message
+        inputEl.value = "";
+        msgBox.innerHTML += `
+            <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
+                ${userText}
+            </div>`;
+        msgBox.scrollTop = msgBox.scrollHeight;
+
+        // UI: Show Loading
+        const loadingId = "loading-" + Date.now();
+        msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
+
+        try {
+            // 1. Gather Context Data (Client Side)
+            const snap = await getDocs(collection(db, "locations"));
+            let openLocs = [];
+            let closedLocs = [];
+
+            snap.forEach(d => {
+                const data = d.data();
+                const status = window.logic.checkTimeStatus(data); 
+                const info = `${data.name} (${data.description})`;
+                if(status.isOpen) openLocs.push(info);
+                else closedLocs.push(info);
+            });
+
+            const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // 2. Call YOUR Vercel Backend (No Keys Here!)
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: userText,
+                    openLocs: openLocs.join(", "),
+                    closedLocs: closedLocs.join(", "),
+                    time: now
+                })
+            });
+            if (!response.ok) {
+                if (response.status === 429) {
+                    const data = await response.json();
+                    msgBox.innerHTML += `<div style="color:#ffaa00; font-size:11px;">${data.message} (Retry in ${data.retryAfter}s)</div>`;
+                    return;
+                }
+                throw new Error("Backend Error");
+            }
+            const data = await response.json();
+            const aiText = data.text.replace(/[*#]/g, ''); 
+            // 3. Display Result
+            document.getElementById(loadingId).remove();
+            msgBox.innerHTML += `
+                <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
+                    ${aiText}
+                </div>`;
+            msgBox.scrollTop = msgBox.scrollHeight;                
+            window.aiAssistant.speak(aiText);
+        } catch (e) {
+            const loader = document.getElementById(loadingId);
+            if(loader) loader.remove();
+            msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Connection Error (Check API).</div>`;
+            console.error(e);
+        }
+    }
+};
    // 12. BOOTSTRAP & HISTORY HANDLING
     
     // Handle Browser Back Button
