@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#050505">
+    <meta name="theme-color" content="#000000">
     <meta name="google-site-verification" content="3iTHxwxKKxe7fuQj4WGVzRshn9mNbUsbPVFTtJ275RE" />
-    <meta name="description" content="QueueSmart: Digital Public Infrastructure for Time Management.">
+    <meta name="description" content="QueueSmart: Time Infrastructure for India.">
     <title>QueueSmart | Digital Public Infrastructure</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -18,9 +18,9 @@
 
     <script>
         window.onerror = function(msg, url, line) {
-            // Ignore standard resize/extension errors
-            if(msg.includes("ResizeObserver") || msg.includes("null") || msg.includes("innerText")) return true;
-            console.warn(`[App Warning] ${msg} at line ${line}`);
+            // Only suppress benign ResizeObserver errors
+            if(msg.includes("ResizeObserver")) return true;
+            console.error(`[System Error] ${msg} at line ${line}`);
             return false;
         };
     </script>
@@ -34,17 +34,21 @@
             --primary-glow: rgba(255, 153, 51, 0.4);
             
             --secondary: #138808; /* India Green */
+            --secondary-glow: rgba(19, 136, 8, 0.3);
             
-            --bg-deep: #020202;
-            --surface: #0a0a0c;
-            --border: rgba(255,255,255,0.1);
-            --border-hover: rgba(255,255,255,0.25);
+            --bg-deep: #050505;
+            --bg-card: #0a0a0c;
+            --bg-input: #121215;
+            
+            --border: #333;
+            --border-hover: #555;
             
             --text-main: #ffffff;
-            --text-muted: #94a3b8;
+            --text-muted: #888;
             
             --success: #00ff9d;
             --danger: #ff4444;
+            --warning: #ffaa00;
 
             --font-ui: 'Inter', sans-serif;
             --font-tech: 'Rajdhani', sans-serif;
@@ -66,8 +70,8 @@
             margin: 0; padding: 0; font-family: var(--font-ui);
             background-color: var(--bg-deep);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.08) 0%, transparent 40%), 
-                radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.08) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(255, 153, 51, 0.05) 0%, transparent 40%), 
+                radial-gradient(circle at 90% 80%, rgba(19, 136, 8, 0.05) 0%, transparent 40%);
             background-attachment: fixed; color: var(--text-main); min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
         }
@@ -79,8 +83,8 @@
 
         /* --- GLASS CARD --- */
         .glass-card {
-            background: rgba(15, 15, 20, 0.7);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            background: rgba(15, 15, 18, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border); border-radius: 16px; 
             padding: 24px; margin-bottom: 24px;
             box-shadow: 0 20px 50px -10px rgba(0,0,0,0.8);
@@ -104,14 +108,13 @@
 
         /* --- OFFICIAL DPI CARD --- */
         .dpi-card {
-            background: linear-gradient(145deg, #151922 0%, #080a0d 100%);
+            background: linear-gradient(145deg, #121214 0%, #050505 100%);
             border: 1px solid var(--primary); border-radius: 18px;
             padding: 0; position: relative; overflow: hidden;
             box-shadow: 0 30px 60px rgba(0,0,0,0.7);
             width: 100%; max-width: 380px; margin: 0 auto;
-            transform-style: preserve-3d;
         }
-        .dpi-strip { height: 6px; width: 100%; background: linear-gradient(90deg, #FF9933, #ffffff, #138808); }
+        .dpi-strip { height: 6px; width: 100%; background: linear-gradient(90deg, #FF9933, #fff, #138808); }
         .dpi-body { padding: 25px; position: relative; }
         .dpi-watermark {
             position: absolute; bottom: -20px; right: -20px; font-size: 120px; font-weight: 900;
@@ -127,19 +130,23 @@
         /* --- LOCATIONS --- */
         .loc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .loc-card { 
-            background: #0a0a0c; border: 1px solid var(--border); border-radius: 14px; 
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; 
             overflow: hidden; cursor: pointer; transition: 0.3s var(--ease);
         }
         .loc-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 30px -10px var(--primary-dim); }
         .loc-img-box { height: 150px; width: 100%; overflow: hidden; position: relative; }
         .loc-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
         .loc-card:hover .loc-img { transform: scale(1.05); }
+        .loc-overlay { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: linear-gradient(to top, #000 20%, transparent); padding: 50px 20px 15px 20px;
+        }
         .loc-footer { padding: 15px; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
         /* --- INPUTS & BUTTONS --- */
         .input-group { margin-bottom: 15px; width: 100%; }
         .input-field { 
-            width: 100%; background: #121215; border: 1px solid var(--border); 
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border); 
             padding: 14px 16px; border-radius: 10px; color: #fff; font-size: 14px; 
             font-family: var(--font-ui); transition: 0.2s;
         }
@@ -175,7 +182,7 @@
         }
 
         .chat-panel { 
-            background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--border); 
+            background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); 
             display: flex; flex-direction: column; height: 600px; max-height: 60vh; 
         }
         .chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
@@ -214,6 +221,7 @@
             cursor: pointer; transition: 0.3s;
         }
         .profile-uploader:hover { border-style: solid; box-shadow: 0 0 20px var(--primary-glow); }
+        .profile-uploader img { width: 100%; height: 100%; object-fit: cover; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -240,7 +248,7 @@
         <div style="padding: 0 40px 40px 40px;">
             
             <div id="panel-signin">
-                <button onclick="window.authHandler.googleLogin()" class="btn btn-primary" style="margin-bottom: 20px; background: #fff; color: #000;">
+                <button onclick="window.googleLogin()" class="btn btn-primary" style="margin-bottom: 20px; background: #fff; color: #000;">
                     <i data-lucide="shield"></i> Continue with Google
                 </button>
                 
@@ -251,7 +259,7 @@
                 <input type="email" id="login-email" class="input-field" placeholder="Email Address">
                 <input type="password" id="login-pass" class="input-field" placeholder="Password">
                 
-                <button onclick="window.authHandler.emailLogin()" class="btn btn-outline" style="margin-top: 10px;">Sign In</button>
+                <button onclick="window.emailLogin()" class="btn btn-outline" style="margin-top: 10px;">Sign In</button>
             </div>
 
             <div id="panel-signup" class="hidden">
@@ -259,12 +267,12 @@
                 <input type="email" id="reg-email" class="input-field" placeholder="Email Address">
                 <input type="text" id="reg-phone" class="input-field" placeholder="Mobile Number (Unique ID)">
                 <input type="password" id="reg-pass" class="input-field" placeholder="Create Password (min 6 chars)">
-                <button onclick="window.authHandler.emailSignup()" class="btn btn-primary" style="margin-top: 10px;">Create Account</button>
+                <button onclick="window.emailSignup()" class="btn btn-primary" style="margin-top: 10px;">Create Account</button>
             </div>
 
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 10px;">
-                <button onclick="window.authHandler.demoLogin('user')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px;">👤 Citizen Demo</button>
-                <button onclick="window.authHandler.demoLogin('admin')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px; color: var(--danger); border-color: rgba(255,68,68,0.3);">🔑 Facility Admin</button>
+                <button onclick="window.demoLogin('user')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px;">👤 Citizen Demo</button>
+                <button onclick="window.demoLogin('admin')" class="btn btn-outline" style="font-size: 10px; width: auto; padding: 8px 12px; color: var(--danger); border-color: rgba(255,68,68,0.3);">🔑 Facility Admin</button>
             </div>
         </div>
     </div>
@@ -275,23 +283,20 @@
         
         <label class="profile-uploader">
             <img id="setup-preview" src="https://ui-avatars.com/api/?name=User&background=random">
-            <input type="file" hidden accept="image/*" onchange="window.profileHandler.preview(this)">
+            <input type="file" hidden accept="image/*" onchange="window.handleImageUpload(this, 'setup-preview')">
         </label>
 
         <div class="input-group">
-            <label class="dpi-label">Full Name</label>
-            <input type="text" id="setup-name" class="input-field" placeholder="As per official ID">
+            <input type="text" id="setup-name" class="input-field" placeholder="Full Name (As per ID)">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div class="input-group">
-                <label class="dpi-label">Age</label>
-                <input type="number" id="setup-age" class="input-field" placeholder="Years">
+                <input type="number" id="setup-age" class="input-field" placeholder="Age">
             </div>
             <div class="input-group">
-                <label class="dpi-label">Gender</label>
                 <select id="setup-gender" class="input-field">
-                    <option value="">Select...</option>
+                    <option value="">Select Gender...</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
@@ -300,20 +305,18 @@
         </div>
 
         <div class="input-group">
-            <label class="dpi-label">Mobile (Confirmation)</label>
-            <input type="text" id="setup-phone" class="input-field" placeholder="Mobile Number">
+            <input type="text" id="setup-phone" class="input-field" placeholder="Mobile Number (Unique ID)">
         </div>
 
         <div class="input-group">
-            <label class="dpi-label">Verification ID (Aadhar / Voter ID)</label>
-            <input type="text" id="setup-vid" class="input-field" placeholder="XXXX-XXXX-XXXX">
+            <input type="text" id="setup-vid" class="input-field" placeholder="Verification ID (Aadhar / Voter ID)">
             <div style="font-size: 10px; color: var(--success); margin-top: 5px; display: flex; align-items: center; gap: 5px;">
                 <i data-lucide="lock" style="width: 10px;"></i>
                 Masked & Encrypted. Visible only to Admins.
             </div>
         </div>
 
-        <button onclick="window.profileHandler.save()" class="btn btn-primary" style="margin-top: 20px;">Complete Registration</button>
+        <button onclick="window.saveProfile()" class="btn btn-primary" style="margin-top: 20px;">Complete Registration</button>
     </div>
 
     <div id="view-select" class="hidden">
@@ -322,37 +325,39 @@
                 <h1 style="font-size: 26px; font-weight: 900; margin: 0; font-family: var(--font-tech);">FACILITIES HUB</h1>
                 <p style="color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 1px; margin: 5px 0 0 0;">VIKSIT BHARAT NETWORK</p>
             </div>
-            <div onclick="window.ui.showProfile()" id="nav-profile-pic" style="width: 45px; height: 45px; border-radius: 50%; background: #222; border: 2px solid var(--border); cursor: pointer; background-size: cover;"></div>
+            <div onclick="window.openProfile()" id="nav-profile-pic" class="profile-uploader" style="width: 45px; height: 45px; margin:0; border: 2px solid var(--border);">
+                <img id="nav-profile-img" src="" style="width:100%; height:100%; object-fit:cover;">
+            </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-            <button onclick="window.ui.showInfo('about')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="info" style="width: 14px;"></i> ABOUT</button>
-            <button onclick="window.ui.showInfo('manual')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="book-open" style="width: 14px;"></i> MANUAL</button>
-            <button onclick="window.ui.showInfo('motto')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="flag" style="width: 14px;"></i> MOTTO</button>
+            <button onclick="window.showInfo('about')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="info" style="width: 14px;"></i> ABOUT</button>
+            <button onclick="window.showInfo('manual')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="book-open" style="width: 14px;"></i> MANUAL</button>
+            <button onclick="window.showInfo('motto')" class="btn btn-outline" style="font-size: 10px; padding: 12px;"><i data-lucide="flag" style="width: 14px;"></i> MOTTO</button>
         </div>
 
-        <div id="location-list" class="loc-grid">
+        <div id="location-list-container" class="loc-grid">
             <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--text-muted);">
                 <i data-lucide="loader-2" class="animate-spin"></i><br><br>Syncing Infrastructure...
             </div>
         </div>
 
-        <button id="btn-admin-add" class="btn btn-outline hidden" onclick="window.ui.openLocModal(true)" style="margin-top: 40px; border-style: dashed; opacity: 0.6;">
+        <button id="btn-admin-add" class="btn btn-outline hidden" onclick="window.openLocModal(true)" style="margin-top: 40px; border-style: dashed; opacity: 0.6;">
             <i data-lucide="plus"></i> Register New Facility
         </button>
     </div>
 
     <div id="view-dashboard" class="hidden">
-        <button onclick="window.ui.goBack()" class="btn btn-outline" style="width: auto; padding: 8px 15px; margin-bottom: 20px; font-size: 11px;">
+        <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 8px 15px; margin-bottom: 20px; font-size: 11px;">
             <i data-lucide="arrow-left" style="width: 14px;"></i> RETURN TO HUB
         </button>
 
-        <div class="dash-layout">
+        <div class="dash-grid">
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <div class="glass-card" style="padding: 0; display: flex; flex-direction: column;">
                     <div id="dash-img" style="height: 180px; width: 100%; background: #222; background-size: cover; position: relative;">
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, #0e0e12 10%, transparent);">
-                            <h2 id="dash-name" style="margin: 0; font-size: 24px; font-weight: 800;">Loading...</h2>
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, #0a0a0c, transparent);">
+                            <h2 id="dash-name" style="margin: 0; font-size: 24px; font-weight: 800;">Location</h2>
                             <div style="display: flex; gap: 10px; margin-top: 8px;">
                                 <span id="dash-status" class="badge closed">OFFLINE</span>
                                 <span id="dash-type" class="badge" style="background: rgba(255,255,255,0.1); color: #fff;">STANDARD</span>
@@ -382,17 +387,17 @@
                             </div>
                         </div>
 
-                        <button onclick="document.getElementById('chart-wrap').classList.toggle('hidden')" class="btn btn-outline" style="margin-bottom: 15px; font-size: 11px;">
+                        <button onclick="window.toggleGraph()" class="btn btn-outline" style="margin-bottom: 15px; font-size: 11px;">
                             <i data-lucide="bar-chart-2"></i> Toggle Prediction
                         </button>
-                        <div id="chart-wrap" class="hidden" style="margin-bottom: 20px;">
+                        <div id="neural-box" class="hidden" style="margin-bottom: 20px;">
                             <div style="height: 150px;"><canvas id="userChart"></canvas></div>
                             <div id="dash-ai-msg" style="text-align: center; font-size: 11px; color: var(--success); margin-top: 10px;"></div>
                         </div>
 
                         <div style="margin-top: auto;">
-                            <button id="btn-join" onclick="window.queueHandler.join()" class="btn btn-primary">JOIN QUEUE</button>
-                            <button id="btn-leave" onclick="window.queueHandler.leave()" class="btn btn-danger hidden">LEAVE QUEUE</button>
+                            <button id="btn-join" onclick="window.handleJoin()" class="btn btn-primary">JOIN QUEUE</button>
+                            <button id="btn-leave" onclick="window.leaveQueue()" class="btn btn-danger hidden">LEAVE QUEUE</button>
                         </div>
                     </div>
                 </div>
@@ -406,7 +411,7 @@
                 <div id="chat-feed" class="chat-box"></div>
                 <div class="input-group" style="padding: 15px; border-top: 1px solid var(--border); margin: 0; display: flex; gap: 10px;">
                     <input type="text" id="chat-input" class="input-field" placeholder="Ask the crowd..." style="margin-bottom: 0; font-size: 13px;">
-                    <button onclick="window.chatHandler.send()" class="btn btn-primary" style="width: auto; padding: 0 12px;"><i data-lucide="send" style="width: 16px;"></i></button>
+                    <button onclick="window.sendChat()" class="btn btn-primary" style="width: auto; padding: 0 12px;"><i data-lucide="send" style="width: 16px;"></i></button>
                 </div>
             </div>
         </div>
@@ -418,7 +423,7 @@
                 <h2 style="margin: 0; color: var(--primary); font-weight: 900; font-size: 24px; font-family: var(--font-tech); letter-spacing: 1px;">COMMAND CENTER</h2>
                 <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">FACILITY ID: <span id="god-loc-id">...</span></div>
             </div>
-            <button onclick="window.ui.goBack()" class="btn btn-outline" style="width: auto; padding: 10px 20px; font-size: 11px;">EXIT CONSOLE</button>
+            <button onclick="window.goBack()" class="btn btn-outline" style="width: auto; padding: 10px 20px; font-size: 11px;">EXIT CONSOLE</button>
         </div>
 
         <div class="god-grid">
@@ -426,8 +431,8 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
                     <h4 style="margin: 0; font-size: 13px; text-transform: uppercase;">Citizen Queue</h4>
                     <div>
-                        <button onclick="window.ui.openLocModal(false)" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; display: inline-flex;"><i data-lucide="edit-2" style="width: 10px;"></i> Edit</button>
-                        <button onclick="window.adminHandler.nuke()" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; color: var(--danger); border-color: rgba(255,68,68,0.3); display: inline-flex;">Reset</button>
+                        <button onclick="window.openLocModal(false)" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; display: inline-flex;"><i data-lucide="edit-2" style="width: 10px;"></i> Edit</button>
+                        <button onclick="window.resetQueue()" class="btn btn-outline" style="width: auto; font-size: 9px; padding: 4px 8px; color: var(--danger); border-color: rgba(255,68,68,0.3); display: inline-flex;">Reset</button>
                     </div>
                 </div>
                 <div id="god-list" style="flex: 1; overflow-y: auto;"></div>
@@ -457,7 +462,7 @@
                     </div>
                     <div style="padding: 15px; background: rgba(0,0,0,0.6); display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-size: 11px;">Count: <b id="cam-count" style="font-size: 16px; color: var(--primary);">0</b></div>
-                        <button id="btn-cam" onclick="window.aiHandler.toggle()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 10px;">ACTIVATE</button>
+                        <button id="btn-cam" onclick="window.toggleCamera()" class="btn btn-outline" style="width: auto; padding: 6px 12px; font-size: 10px;">ACTIVATE</button>
                     </div>
                 </div>
             </div>
@@ -498,8 +503,8 @@
             </div>
         </div>
         <div style="padding: 15px; background: rgba(0,0,0,0.5); display: flex; gap: 10px; justify-content: flex-end;">
-            <button onclick="window.authHandler.logout()" class="btn btn-danger" style="width: auto; font-size: 10px; padding: 8px 15px;">Sign Out</button>
-            <button onclick="window.ui.closeModal('modal-profile')" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 15px;">Close</button>
+            <button onclick="window.logout()" class="btn btn-danger" style="width: auto; font-size: 10px; padding: 8px 15px;">Sign Out</button>
+            <button onclick="window.closeModals()" class="btn btn-outline" style="width: auto; font-size: 10px; padding: 8px 15px;">Close</button>
         </div>
     </div>
 </div>
@@ -530,7 +535,7 @@
         </div>
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
             <span class="dpi-label" style="color: var(--primary);">Access Control</span>
-            <select id="conf-type" class="input-field" onchange="window.ui.togglePay()">
+            <select id="conf-type" class="input-field" onchange="window.togglePay()">
                 <option value="free">Free Entry</option>
                 <option value="paid">Paid Reservation</option>
             </select>
@@ -539,8 +544,8 @@
                 <input type="number" id="conf-price" class="input-field" placeholder="Amount (₹)">
             </div>
         </div>
-        <button onclick="window.adminHandler.saveLoc()" class="btn btn-primary">Save Changes</button>
-        <button onclick="window.ui.closeModal('modal-edit-loc')" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+        <button onclick="window.saveLoc()" class="btn btn-primary">Save Changes</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
 
@@ -556,8 +561,8 @@
             <span class="dpi-label">Ref ID (Last 4 digits)</span>
             <input type="text" id="pay-txn" class="input-field" placeholder="xxxx">
         </div>
-        <button onclick="window.queueHandler.verifyPay()" class="btn btn-primary">Verify & Join</button>
-        <button onclick="window.ui.closeModal('modal-pay')" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
+        <button onclick="window.verifyPay()" class="btn btn-primary">Verify & Join</button>
+        <button onclick="window.closeModals()" class="btn btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
 </div>
 
@@ -565,7 +570,7 @@
     <div class="glass-card" style="max-width: 450px; max-height: 80vh; overflow-y: auto;">
         <h3 id="info-head" style="color: var(--primary); margin-top: 0; font-family: var(--font-tech); text-transform: uppercase;"></h3>
         <div id="info-body" style="font-size: 14px; line-height: 1.7; color: #ccc;"></div>
-        <button onclick="window.ui.closeModal('modal-info')" class="btn btn-primary" style="margin-top: 20px;">Close</button>
+        <button onclick="window.closeModals()" class="btn btn-primary" style="margin-top: 20px;">Close</button>
     </div>
 </div>
 
@@ -574,7 +579,7 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, where, orderBy, limit, addDoc, serverTimestamp, deleteDoc, writeBatch, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 1. FIREBASE CONFIG
+    // 1. CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyDyJVNgrFX3od1LYYyIVtdEq7O5-I34BTk",
       authDomain: "queuesmart-c3c28.firebaseapp.com",
@@ -606,470 +611,380 @@
             window.ui.el(vid).classList.remove('hidden');
             window.scrollTo(0,0);
         },
+    };
 
-        openModal: (id) => window.ui.el(id).classList.remove('hidden'),
-        closeModal: (id) => window.ui.el(id).classList.add('hidden'),
-        goBack: () => location.reload(),
+    // 4. ATTACH TO WINDOW
+    window.closeModals = () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    window.goBack = () => location.reload();
+    window.toggleGraph = () => document.getElementById('neural-box').classList.toggle('hidden');
 
-        // Toggle Login vs Signup
-        switchAuthTab: (tab) => {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            window.ui.el('tab-'+tab).classList.add('active');
-            if(tab === 'signin') {
-                window.ui.el('panel-signin').classList.remove('hidden');
-                window.ui.el('panel-signup').classList.add('hidden');
-            } else {
-                window.ui.el('panel-signin').classList.add('hidden');
-                window.ui.el('panel-signup').classList.remove('hidden');
-            }
-        },
-
-        togglePay: () => {
-            if(window.ui.el('conf-type').value === 'paid') window.ui.el('conf-pay').classList.remove('hidden');
-            else window.ui.el('conf-pay').classList.add('hidden');
-        },
-
-        showInfo: (type) => {
-            const h = window.ui.el('info-head'); const b = window.ui.el('info-body');
-            if(type==='about') {
-                h.innerText = "Vision: Viksit Bharat";
-                b.innerHTML = "India pays an 'Invisible Tax' in lost time. QueueSmart transforms manual queues into digital systems.";
-            } else if(type==='help') {
-                h.innerText = "Manual";
-                b.innerHTML = "1. Scan QR.<br>2. Choose Free/Paid entry.<br>3. Wait comfortably.<br>4. AI predicts traffic.";
-            } else {
-                h.innerText = "Mission";
-                b.innerHTML = "Queuing is not inevitable. It is a solvable data problem.";
-            }
-            window.ui.openModal('modal-info');
-        },
-
-        showProfile: async (uid = null) => {
-            const targetUid = uid || state.user.uid;
-            const snap = await getDoc(doc(db, "users", targetUid));
-            if(!snap.exists()) return;
-            const d = snap.data();
-            
-            window.ui.el('card-name').innerText = d.name;
-            window.ui.el('card-img').src = d.photoURL;
-            window.ui.el('card-age').innerText = d.age || '-';
-            window.ui.el('card-gender').innerText = d.gender || '-';
-            window.ui.el('card-phone').innerText = d.phone || '-';
-            
-            // ADMIN POV LOGIC
-            let vidText = "MASKED";
-            if(state.isAdmin) {
-                vidText = d.vid || "N/A"; // Admin sees full ID
-                window.ui.el('card-vid').style.color = "#00ff9d";
-            } else {
-                if(d.vid && d.vid.length > 4) vidText = "XXXX-" + d.vid.slice(-4); // User sees masked
-                window.ui.el('card-vid').style.color = "var(--primary)";
-            }
-            window.ui.el('card-vid').innerText = vidText;
-            window.ui.openModal('modal-profile');
-        },
-
-        openLocModal: (isNew) => {
-            if(isNew) {
-                window.ui.el('conf-id').value = "";
-                window.ui.el('conf-name').value = "";
-                window.ui.el('conf-img').value = "";
-                window.ui.el('conf-desc').value = "";
-                window.ui.el('conf-notice').value = "";
-                window.ui.el('conf-type').value = "free";
-            }
-            window.ui.openModal('modal-edit-loc');
+    window.switchAuth = (tab) => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+tab).classList.add('active');
+        if(tab === 'signin') {
+            document.getElementById('panel-signin').classList.remove('hidden');
+            document.getElementById('panel-signup').classList.add('hidden');
+        } else {
+            document.getElementById('panel-signin').classList.add('hidden');
+            document.getElementById('panel-signup').classList.remove('hidden');
         }
     };
 
-    // 4. AUTH HANDLER
-    window.authHandler = {
-        googleLogin: async () => { try { await signInWithPopup(auth, provider); } catch(e){ alert(e.message); } },
-        
-        emailLogin: async () => {
-            const e = window.ui.el('login-email').value; const p = window.ui.el('login-pass').value;
-            try { await signInWithEmailAndPassword(auth, e, p); } catch(err) { alert(err.message); }
-        },
-
-        // NEW: Check Phone Uniqueness
-        emailSignup: async () => {
-            const e = window.ui.el('reg-email').value; const p = window.ui.el('reg-pass').value;
-            const ph = window.ui.el('reg-phone').value;
-            
-            if(!ph) return alert("Mobile Number Required for One-to-One Identity");
-
-            // Check if phone exists
-            const q = query(collection(db, "users"), where("phone", "==", ph));
-            const check = await getDocs(q);
-            if(!check.empty) return alert("Mobile Number already registered to another citizen.");
-
-            try { 
-                const cred = await createUserWithEmailAndPassword(auth, e, p);
-                // Save initial data to bind phone
-                await setDoc(doc(db, "users", cred.user.uid), { 
-                    uid: cred.user.uid, phone: ph, role: 'user', createdAt: serverTimestamp() 
-                }, { merge: true });
-            } catch(err) { alert(err.message); }
-        },
-
-        demoLogin: async (role) => {
-            if(role==='admin' && prompt("PIN:")!=="queuesmart90") return;
-            const c = await signInAnonymously(auth);
-            await setDoc(doc(db, "users", c.user.uid), {
-                uid: c.user.uid, name: role==='admin'?"Admin Demo":"User Demo",
-                role: role, photoURL: `https://ui-avatars.com/api/?name=${role}`, isDemo: true,
-                phone: '000-000-0000', vid: 'DEMO-1234'
-            });
-            location.reload();
-        },
-        logout: () => signOut(auth).then(()=>location.reload())
+    window.togglePay = () => {
+        const t = document.getElementById('conf-type').value;
+        if(t === 'paid') document.getElementById('conf-pay').classList.remove('hidden');
+        else document.getElementById('conf-pay').classList.add('hidden');
     };
 
-    // 5. PROFILE HANDLER
-    window.profileHandler = {
-        preview: (inp) => {
-            if(inp.files[0]) {
-                const r = new FileReader();
-                r.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-                        c.width = 150; c.height = 150; ctx.drawImage(img,0,0,150,150);
-                        state.tempImg = c.toDataURL('image/jpeg', 0.8);
-                        window.ui.el('setup-preview').src = state.tempImg;
-                    }
-                };
-                r.readAsDataURL(inp.files[0]);
-            }
-        },
-        save: async () => {
-            const n = window.ui.el('setup-name').value;
-            const a = window.ui.el('setup-age').value;
-            const g = window.ui.el('setup-gender').value;
-            const v = window.ui.el('setup-vid').value;
-            // Phone comes from signup or input
-            const p = window.ui.el('setup-phone').value;
+    window.showInfo = (type) => {
+        const h = document.getElementById('info-head'); const b = document.getElementById('info-body');
+        if(type==='about') {
+            h.innerText = "Vision: Viksit Bharat";
+            b.innerHTML = "India pays an 'Invisible Tax' in lost time. QueueSmart transforms manual queues into digital systems.";
+        } else if(type==='manual') {
+            h.innerText = "Manual";
+            b.innerHTML = "1. Scan QR.<br>2. Choose Free/Paid entry.<br>3. Wait comfortably.<br>4. AI predicts traffic.";
+        } else {
+            h.innerText = "Mission";
+            b.innerHTML = "Queuing is not inevitable. It is a solvable data problem.";
+        }
+        document.getElementById('modal-info').classList.remove('hidden');
+    };
 
-            if(!n || !v || !p) return alert("Verification fields required");
-            
-            await setDoc(doc(db, "users", state.user.uid), {
-                uid: state.user.uid, name: n, age: a, gender: g, vid: v, phone: p,
-                photoURL: state.tempImg || `https://ui-avatars.com/api/?name=${n}`,
-                role: 'user', createdAt: serverTimestamp()
+    window.openProfile = async (uid = null) => {
+        const target = uid || state.user.uid;
+        const snap = await getDoc(doc(db, "users", target));
+        if(!snap.exists()) return;
+        const d = snap.data();
+        
+        document.getElementById('card-name').innerText = d.name;
+        document.getElementById('card-img').src = d.photoURL;
+        document.getElementById('card-age').innerText = d.age || '-';
+        document.getElementById('card-gender').innerText = d.gender || '-';
+        document.getElementById('card-phone').innerText = d.phone || '-';
+        
+        // ADMIN POV
+        let vidText = "MASKED";
+        if(state.isAdmin) {
+            vidText = d.vid || "N/A";
+            document.getElementById('card-vid').style.color = "#00ff9d";
+        } else {
+            if(d.vid && d.vid.length > 4) vidText = "XXXX-" + d.vid.slice(-4);
+            document.getElementById('card-vid').style.color = "var(--primary)";
+        }
+        document.getElementById('card-vid').innerText = vidText;
+        document.getElementById('modal-profile').classList.remove('hidden');
+    };
+
+    // 5. AUTH LOGIC
+    window.googleLogin = async () => { try { await signInWithPopup(auth, provider); } catch(e){ alert(e.message); } };
+    
+    window.emailLogin = async () => {
+        try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value); } 
+        catch(e){ alert(e.message); }
+    };
+
+    window.emailSignup = async () => {
+        const e = document.getElementById('reg-email').value;
+        const p = document.getElementById('reg-pass').value;
+        const ph = document.getElementById('reg-phone').value;
+        if(!ph) return alert("Mobile Number Required for One-to-One Identity");
+
+        const q = query(collection(db, "users"), where("phone", "==", ph));
+        const check = await getDocs(q);
+        if(!check.empty) return alert("Mobile number already registered.");
+
+        try { 
+            const cred = await createUserWithEmailAndPassword(auth, e, p);
+            await setDoc(doc(db, "users", cred.user.uid), { 
+                uid: cred.user.uid, phone: ph, role: 'user', createdAt: serverTimestamp() 
             }, { merge: true });
-            location.reload();
+        } catch(err) { alert(err.message); }
+    };
+
+    window.demoLogin = async (role) => {
+        if(role==='admin' && prompt("PIN:")!=="queuesmart90") return;
+        const c = await signInAnonymously(auth);
+        await setDoc(doc(db, "users", c.user.uid), {
+            uid: c.user.uid, name: role==='admin'?"Demo Admin":"Demo Citizen",
+            role: role, isDemo: true, photoURL: `https://ui-avatars.com/api/?name=${role}`,
+            phone: '000-000-0000', vid: 'DEMO-1234'
+        });
+        location.reload();
+    };
+
+    window.logout = () => signOut(auth).then(()=>location.reload());
+
+    // 6. PROFILE LOGIC
+    window.handleImageUpload = (input, target) => {
+        if(input.files[0]) {
+            const r = new FileReader();
+            r.onload = (e) => { state.tempImg = e.target.result; document.getElementById(target).src = state.tempImg; };
+            r.readAsDataURL(input.files[0]);
         }
     };
 
-    // 6. QUEUE HANDLER
-    window.queueHandler = {
-        loadList: () => {
-            const l = window.ui.el('location-list');
-            state.unsubs.push(onSnapshot(collection(db, "locations"), (snap) => {
-                l.innerHTML = "";
-                snap.forEach(d => {
-                    const loc = d.data();
-                    const isOpen = window.logic.isOpen(loc);
-                    const div = document.createElement('div'); div.className = 'loc-card';
-                    div.onclick = () => window.logic.selectLoc(d.id);
-                    div.innerHTML = `
-                        <div class="loc-img-box"><img src="${loc.imageURL}" class="loc-img"></div>
-                        <div class="loc-overlay">
-                            <h3 style="margin:0; text-shadow:0 2px 4px #000;">${loc.name}</h3>
-                        </div>
-                        <div class="loc-footer">
-                            <span class="badge ${isOpen?'open':'closed'}">${isOpen?'OPEN':'CLOSED'}</span>
-                            <span style="font-size:10px;">${loc.bookingType.toUpperCase()}</span>
-                        </div>
-                    `;
-                    l.appendChild(div);
-                });
-            }));
-        },
-
-        initDash: (id) => {
-            // Loc Data
-            state.unsubs.push(onSnapshot(doc(db, "locations", id), (s) => {
-                if(!s.exists()) return;
-                const d = s.data(); state.locData = d;
-                window.ui.el('dash-name').innerText = d.name;
-                window.ui.el('dash-desc').innerText = d.description || "";
-                window.ui.el('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
-                
-                const open = window.logic.isOpen(d);
-                window.ui.el('dash-status').innerText = open?"ONLINE":"OFFLINE";
-                window.ui.el('dash-status').className = `badge ${open?'open':'closed'}`;
-                window.ui.el('dash-type').innerText = d.bookingType.toUpperCase();
-
-                if(d.notice) {
-                    window.ui.el('dash-notice').classList.remove('hidden');
-                    window.ui.el('dash-notice-text').innerText = d.notice;
-                }
-
-                // Btn Logic
-                const btn = window.ui.el('btn-join');
-                if(!open) { btn.disabled=true; btn.innerText="CLOSED"; btn.style.opacity=0.5; }
-                else { btn.disabled=false; btn.style.opacity=1; btn.innerText = d.bookingType==='paid'?`BOOK (₹${d.ticketPrice})`:"JOIN QUEUE"; }
-            }));
-
-            // Queue
-            state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
-                const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=>a.timestamp-b.timestamp);
-                const pos = docs.findIndex(x => x.uid === state.user.uid);
-                
-                if(pos !== -1) {
-                    window.ui.el('dash-count').innerText = pos; 
-                    window.ui.el('dash-label').innerText = "PEOPLE AHEAD";
-                    window.ui.el('dash-time').innerText = `~${(pos+1)*5} min`;
-                    window.ui.el('btn-join').classList.add('hidden');
-                    window.ui.el('btn-leave').classList.remove('hidden');
-                } else {
-                    window.ui.el('dash-count').innerText = docs.length;
-                    window.ui.el('dash-label').innerText = "TOTAL IN LINE";
-                    window.ui.el('dash-time').innerText = "--";
-                    window.ui.el('btn-join').classList.remove('hidden');
-                    window.ui.el('btn-leave').classList.add('hidden');
-                }
-                window.logic.updateChart(docs.length);
-            }));
-            
-            window.logic.initChat(id);
-        },
-
-        join: () => {
-            if(state.locData.bookingType === 'paid') {
-                window.ui.el('pay-amt').innerText = "₹"+state.locData.ticketPrice;
-                const link = `upi://pay?pa=${state.locData.upiId}&pn=QueueSmart&am=${state.locData.ticketPrice}&cu=INR`;
-                window.ui.el('pay-qr').innerHTML = "";
-                new QRCode(window.ui.el('pay-qr'), { text: link, width: 128, height: 128 });
-                window.ui.el('btn-pay-app').onclick = () => window.location.href = link;
-                window.ui.openModal('modal-pay');
-            } else {
-                window.queueHandler.add();
-            }
-        },
-
-        verifyPay: () => {
-            if(window.ui.el('user-txn-id').value.length < 4) return alert("Invalid Ref ID");
-            window.queueHandler.add(window.ui.el('user-txn-id').value);
-            window.ui.closeModal('modal-pay');
-        },
-
-        add: async (txn = null) => {
-            await addDoc(collection(db, "queue"), {
-                uid: state.user.uid, locationId: state.locId, timestamp: serverTimestamp(), txn: txn || 'free'
-            });
-            await addDoc(collection(db, "logs"), {
-                locationId: state.locId, action: "JOIN", user: state.user.uid, timestamp: serverTimestamp()
-            });
-        },
-
-        leave: async () => {
-            const q = query(collection(db, "queue"), where("uid", "==", state.user.uid), where("locationId", "==", state.locId));
-            const s = await getDocs(q);
-            s.forEach(d => deleteDoc(d.ref));
-        }
-    };
-
-    // 7. ADMIN HANDLER
-    window.adminHandler = {
-        init: (id) => {
-            // Queue List with "Inspect" Button
-            state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
-                const l = window.ui.el('god-list'); l.innerHTML = "";
-                for(const d of s.docs) {
-                    const q = d.data();
-                    let u = { name: "Loading..." };
-                    try { const us = await getDoc(doc(db, "users", q.uid)); if(us.exists()) u = us.data(); } catch(e){}
-                    
-                    const div = document.createElement('div');
-                    div.style.cssText = "padding:12px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
-                    div.innerHTML = `
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <img src="${u.photoURL}" style="width:30px; height:30px; border-radius:50%;">
-                            <div>
-                                <div style="font-size:13px; font-weight:700;">${u.name}</div>
-                                <div style="font-size:10px; color:var(--primary); font-family:var(--font-mono);">${q.txn!=='free'?'PAID':'FREE'}</div>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="window.ui.showProfile('${q.uid}')" class="btn btn-outline" style="padding:6px;" title="Inspect ID"><i data-lucide="eye" style="width:14px;"></i></button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'serve')" style="background:var(--success); border:none; border-radius:4px; padding:6px; color:#000;">✓</button>
-                            <button onclick="window.adminHandler.act('${d.id}', 'kick')" style="background:var(--danger); border:none; border-radius:4px; padding:6px; color:#fff;">✕</button>
-                        </div>
-                    `;
-                    l.appendChild(div);
-                }
-            }));
-            
-            // Logs
-            state.unsubs.push(onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp","desc"), limit(20)), (s) => {
-                const gl = window.ui.el('god-logs'); gl.innerHTML = "";
-                s.forEach(d => {
-                    const l = d.data();
-                    const div = document.createElement('div');
-                    div.style.cssText = "padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.1); font-family:var(--font-data); font-size:10px; color:#aaa;";
-                    div.innerText = `[${l.timestamp?.toDate().toLocaleTimeString()}] ${l.action}`;
-                    gl.appendChild(div);
-                });
-            }));
-        },
-
-        act: async (qid, type) => {
-            await deleteDoc(doc(db, "queue", qid));
-            await addDoc(collection(db, "logs"), { locationId: state.locId, action: type.toUpperCase(), timestamp: serverTimestamp() });
-        },
-
-        nuke: async () => {
-            if(!confirm("Reset entire queue?")) return;
-            const q = query(collection(db, "queue"), where("locationId", "==", state.locId));
-            const s = await getDocs(q);
-            const b = writeBatch(db);
-            s.forEach(d => b.delete(d.ref));
-            await b.commit();
-        },
-
-        saveLoc: async () => {
-            const id = window.ui.el('conf-id').value;
-            const data = {
-                name: window.ui.el('conf-name').value,
-                imageURL: window.ui.el('conf-img').value,
-                description: window.ui.el('conf-desc').value,
-                notice: window.ui.el('conf-notice').value,
-                openTime: window.ui.el('conf-open').value,
-                closeTime: window.ui.el('conf-close').value,
-                bookingType: window.ui.el('conf-type').value,
-                upiId: window.ui.el('conf-upi').value,
-                ticketPrice: window.ui.el('conf-price').value
-            };
-            if(id) await updateDoc(doc(db, "locations", id), data);
-            else { data.status = 'open'; await addDoc(collection(db, "locations"), data); }
-            window.ui.closeModal('modal-edit-loc');
-        },
+    window.saveProfile = async () => {
+        const n = document.getElementById('setup-name').value;
+        const v = document.getElementById('setup-vid').value;
+        const p = document.getElementById('setup-phone').value;
+        if(!n || !v) return alert("All fields required");
         
-        lock: async () => updateDoc(doc(db, "locations", state.locId), { status: 'closed', notice: 'Emergency Lockdown' })
+        await setDoc(doc(db, "users", state.user.uid), {
+            uid: state.user.uid, name: n, vid: v, phone: p || "N/A",
+            age: document.getElementById('setup-age').value,
+            gender: document.getElementById('setup-gender').value,
+            photoURL: state.tempImg || `https://ui-avatars.com/api/?name=${n}`,
+            role: 'user', createdAt: serverTimestamp()
+        }, { merge: true });
+        location.reload();
     };
 
-    // 8. AI & CHAT
-    window.aiHandler = {
-        toggle: async () => {
-            const v = window.ui.el('webcam');
-            if(!state.camActive) {
-                if(!state.aiModel) state.aiModel = await cocoSsd.load();
-                v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
-                state.camActive = true;
-                state.camInterval = setInterval(async () => {
-                    const p = await state.aiModel.detect(v);
-                    const count = p.filter(x=>x.class==='person').length;
-                    window.ui.el('cam-count').innerText = count;
-                    if(count > 10) window.ui.el('god-alert-box').classList.remove('hidden');
-                    else window.ui.el('god-alert-box').classList.add('hidden');
-                    
-                    const c = window.ui.el('cam-overlay'); const ctx = c.getContext('2d');
-                    c.width = v.videoWidth; c.height = v.videoHeight;
-                    ctx.clearRect(0,0,c.width,c.height);
-                    p.forEach(x => { if(x.class==='person'){ ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2; ctx.strokeRect(...x.bbox); } });
-                }, 500);
-            } else {
-                clearInterval(state.camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); state.camActive=false;
-            }
-        }
-    };
-
-    window.chatHandler = {
-        send: async () => {
-            const t = window.ui.el('chat-input').value; if(!t) return;
-            await addDoc(collection(db, "comments"), { locationId: state.locId, text: t, user: state.user.displayName||state.user.name, timestamp: serverTimestamp() });
-            window.ui.el('chat-input').value = "";
-        }
-    };
-
-    window.logic = {
-        isOpen: (loc) => {
-            if(loc.status === 'closed') return false;
-            const now = new Date(); const c = ("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
-            return (!loc.openTime || (c >= loc.openTime && c < loc.closeTime));
-        },
-        selectLoc: (id) => {
-            state.locId = id;
-            window.ui.el('view-select').classList.add('hidden');
-            if(state.isAdmin) {
-                window.ui.el('view-god-mode').classList.remove('hidden');
-                window.ui.el('god-loc-id').innerText = id;
-                window.adminHandler.init(id);
-                // Fill Edit Modal
-                getDoc(doc(db, "locations", id)).then(s => {
-                    const d = s.data();
-                    window.ui.el('conf-id').value = id;
-                    window.ui.el('conf-name').value = d.name;
-                    window.ui.el('conf-img').value = d.imageURL;
-                    window.ui.el('conf-desc').value = d.description;
-                    window.ui.el('conf-notice').value = d.notice;
-                    window.ui.el('conf-open').value = d.openTime;
-                    window.ui.el('conf-close').value = d.closeTime;
-                    window.ui.el('conf-type').value = d.bookingType;
-                    window.ui.togglePay();
-                    if(d.bookingType==='paid') { window.ui.el('conf-upi').value = d.upiId; window.ui.el('conf-price').value = d.ticketPrice; }
-                });
-            } else {
-                window.ui.el('view-dashboard').classList.remove('hidden');
-                window.queueHandler.initDash(id);
-            }
-        },
-        initChat: (id) => {
-            state.unsubs.push(onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp","asc"), limit(50)), (s) => {
-                const f = window.ui.el('location-chat-box'); f.innerHTML = "";
-                s.forEach(d => {
-                    const m = d.data();
-                    const el = document.createElement('div'); el.className = 'chat-bubble';
-                    el.innerHTML = `<strong style="color:var(--primary);">${m.user}:</strong> ${m.text}`;
-                    f.appendChild(el);
-                });
-                f.scrollTop = f.scrollHeight;
-            }));
-        },
-        updateChart: (count) => {
-            const ctx = window.ui.el('userChart').getContext('2d');
-            if(state.chart) state.chart.destroy();
-            state.chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Now', '+15', '+30', '+45'],
-                    datasets: [{ label: 'Traffic', data: [count, count+2, count+5, count-1], borderColor: '#FF9933', backgroundColor: 'rgba(255,153,51,0.1)', fill: true }]
-                },
-                options: { responsive: true, plugins: { legend: {display:false} }, scales: { x:{display:false}, y:{display:false} } }
+    // 7. CORE LOGIC
+    window.loadLocationsList = () => {
+        const l = document.getElementById('location-list');
+        onSnapshot(collection(db, "locations"), (snap) => {
+            l.innerHTML = "";
+            snap.forEach(d => {
+                const loc = d.data();
+                const div = document.createElement('div'); div.className = 'loc-card';
+                div.onclick = () => window.selectLocation(d.id);
+                div.innerHTML = `
+                    <div class="loc-img-box"><img src="${loc.imageURL}" class="loc-img"></div>
+                    <div class="loc-overlay"><h3 style="margin:0; text-shadow:0 2px 4px #000;">${loc.name}</h3></div>
+                    <div class="loc-footer">
+                        <span class="badge ${loc.status==='open'?'open':'closed'}">${loc.status.toUpperCase()}</span>
+                        <span style="font-size:10px;">${loc.bookingType.toUpperCase()}</span>
+                    </div>`;
+                l.appendChild(div);
             });
-            window.ui.el('dash-ai-advice').innerText = "AI PREDICTION: Traffic peaking in 30 mins.";
+        });
+    };
+
+    window.selectLocation = (id) => {
+        state.locId = id;
+        window.ui.showView(state.isAdmin ? 'view-god-mode' : 'view-dashboard');
+        if(state.isAdmin) {
+            document.getElementById('god-loc-id').innerText = id;
+            window.initGodMode(id);
+        } else {
+            window.initDashboard(id);
         }
     };
 
-    // 9. BOOTSTRAP
+    window.initDashboard = (id) => {
+        if(state.unsubs.length) state.unsubs.forEach(u => u());
+        
+        // Location Data
+        state.unsubs.push(onSnapshot(doc(db, "locations", id), (s) => {
+            if(!s.exists()) return;
+            const d = s.data(); state.locData = d;
+            document.getElementById('dash-name').innerText = d.name;
+            document.getElementById('dash-desc').innerText = d.description;
+            document.getElementById('dash-img').style.backgroundImage = `url('${d.imageURL}')`;
+            
+            const isOpen = (d.status === 'open');
+            const btn = document.getElementById('btn-join');
+            if(!isOpen) { btn.disabled = true; btn.innerText = "CLOSED"; }
+            else { btn.disabled = false; btn.innerText = d.bookingType === 'paid' ? "BOOK SLOT" : "JOIN QUEUE"; }
+            
+            if(d.notice) { 
+                document.getElementById('dash-notice').classList.remove('hidden'); 
+                document.getElementById('dash-notice-text').innerText = d.notice; 
+            }
+        }));
+
+        // Queue Data
+        state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), (s) => {
+            const docs = s.docs.map(x=>x.data());
+            const myPos = docs.findIndex(x => x.uid === state.user.uid);
+            
+            if(myPos !== -1) {
+                document.getElementById('dash-count').innerText = myPos;
+                document.getElementById('dash-time').innerText = `~${(myPos+1)*5} min`;
+                document.getElementById('btn-join').classList.add('hidden');
+                document.getElementById('btn-leave').classList.remove('hidden');
+            } else {
+                document.getElementById('dash-count').innerText = docs.length;
+                document.getElementById('dash-time').innerText = "--";
+                document.getElementById('btn-join').classList.remove('hidden');
+                document.getElementById('btn-leave').classList.add('hidden');
+            }
+            window.renderUserChart(docs.length);
+        }));
+        
+        window.initChat(id);
+    };
+
+    window.handleJoin = async () => {
+        if(!state.locData) return;
+        if(state.locData.bookingType === 'paid') {
+            document.getElementById('pay-amt').innerText = "₹"+state.locData.ticketPrice;
+            const link = `upi://pay?pa=${state.locData.upiId}&pn=QueueSmart&am=${state.locData.ticketPrice}&cu=INR`;
+            document.getElementById('pay-qr').innerHTML = "";
+            new QRCode(document.getElementById('pay-qr'), { text: link, width: 128, height: 128 });
+            document.getElementById('btn-pay-upi').onclick = () => window.location.href = link;
+            document.getElementById('modal-pay').classList.remove('hidden');
+        } else {
+            await addDoc(collection(db, "queue"), { uid: state.user.uid, locationId: state.locId, timestamp: serverTimestamp(), txn: 'free' });
+        }
+    };
+
+    window.verifyPay = async () => {
+        if(document.getElementById('pay-txn').value.length < 4) return alert("Invalid Ref ID");
+        await addDoc(collection(db, "queue"), { uid: state.user.uid, locationId: state.locId, timestamp: serverTimestamp(), txn: document.getElementById('pay-txn').value });
+        window.closeModals();
+    };
+
+    window.leaveQueue = async () => {
+        const q = query(collection(db, "queue"), where("uid", "==", state.user.uid), where("locationId", "==", state.locId));
+        const s = await getDocs(q);
+        s.forEach(d => deleteDoc(d.ref));
+    };
+
+    window.initChat = (id) => {
+        const b = document.getElementById('chat-feed');
+        state.unsubs.push(onSnapshot(query(collection(db, "comments"), where("locationId", "==", id), orderBy("timestamp", "asc")), (s) => {
+            b.innerHTML = "";
+            s.forEach(d => {
+                const c = d.data();
+                b.innerHTML += `<div class="chat-msg"><img class="chat-avatar" src="${c.userPhoto}"><div class="chat-bubble"><div class="chat-header">${c.userName}</div>${c.text}</div></div>`;
+            });
+            b.scrollTop = b.scrollHeight;
+        }));
+    };
+
+    window.sendChat = async () => {
+        const t = document.getElementById('chat-input').value; if(!t) return;
+        const u = (await getDoc(doc(db, "users", state.user.uid))).data();
+        await addDoc(collection(db, "comments"), { locationId: state.locId, text: t, uid: state.user.uid, userName: u.name, userPhoto: u.photoURL, timestamp: serverTimestamp() });
+        document.getElementById('chat-input').value = "";
+    };
+
+    // --- ADMIN ---
+    window.initGodMode = (id) => {
+        state.unsubs.push(onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
+            const l = document.getElementById('god-list'); l.innerHTML = "";
+            for(const d of s.docs) {
+                const q = d.data();
+                let name = "Loading...";
+                try { const u = await getDoc(doc(db, "users", q.uid)); if(u.exists()) name = u.data().name; } catch(e){}
+                
+                const div = document.createElement('div');
+                div.style.padding = "10px"; div.style.borderBottom = "1px solid #333"; div.style.display = "flex"; div.style.justifyContent = "space-between";
+                div.innerHTML = `<span>${name}</span> <div><button onclick="window.openProfile('${q.uid}')">👁️</button> <button onclick="window.adminAct('${d.id}')">✅</button></div>`;
+                l.appendChild(div);
+            }
+            window.renderAdminChart(s.size);
+        }));
+        
+        state.unsubs.push(onSnapshot(query(collection(db, "logs"), where("locationId", "==", id), orderBy("timestamp", "desc"), limit(10)), (s) => {
+            const l = document.getElementById('god-logs'); l.innerHTML = "";
+            s.forEach(d => l.innerHTML += `<div>${d.data().action} at ${new Date(d.data().timestamp?.seconds*1000).toLocaleTimeString()}</div>`);
+        }));
+    };
+
+    window.adminAct = async (qid) => {
+        await deleteDoc(doc(db, "queue", qid));
+        await addDoc(collection(db, "logs"), { locationId: state.locId, action: 'SERVED', timestamp: serverTimestamp() });
+    };
+    
+    window.resetQueue = async () => {
+        if(!confirm("Reset?")) return;
+        const s = await getDocs(query(collection(db, "queue"), where("locationId", "==", state.locId)));
+        s.forEach(d => deleteDoc(d.ref));
+    };
+
+    window.openLocModal = (isNew) => {
+        if(isNew) {
+            document.getElementById('conf-id').value = "";
+            document.getElementById('conf-name').value = "";
+        } else if(state.locData) {
+             document.getElementById('conf-id').value = state.locId;
+             document.getElementById('conf-name').value = state.locData.name;
+             document.getElementById('conf-img').value = state.locData.imageURL;
+             document.getElementById('conf-desc').value = state.locData.description;
+        }
+        document.getElementById('modal-edit-loc').classList.remove('hidden');
+    };
+
+    window.saveLoc = async () => {
+        const id = document.getElementById('conf-id').value;
+        const data = {
+            name: document.getElementById('conf-name').value,
+            imageURL: document.getElementById('conf-img').value,
+            description: document.getElementById('conf-desc').value,
+            notice: document.getElementById('conf-notice').value,
+            openTime: document.getElementById('conf-open').value,
+            closeTime: document.getElementById('conf-close').value,
+            bookingType: document.getElementById('conf-type').value,
+            upiId: document.getElementById('conf-upi').value,
+            ticketPrice: document.getElementById('conf-price').value,
+            status: 'open'
+        };
+        if(id) await updateDoc(doc(db, "locations", id), data);
+        else await addDoc(collection(db, "locations"), data);
+        window.closeModals();
+    };
+
+    window.toggleCamera = async () => {
+        const v = document.getElementById('webcam');
+        if(!state.camActive) {
+            if(!state.aiModel) state.aiModel = await cocoSsd.load();
+            v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
+            state.camActive = true;
+            state.camInterval = setInterval(async () => {
+                const p = await state.aiModel.detect(v);
+                document.getElementById('cam-count').innerText = p.filter(x=>x.class==='person').length;
+            }, 1000);
+        } else {
+            clearInterval(state.camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); state.camActive=false;
+        }
+    };
+    
+    // --- CHARTS ---
+    window.renderUserChart = (count) => {
+        const ctx = document.getElementById('userChart');
+        if(state.chart) state.chart.destroy();
+        state.chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['Now','+15','+30'], datasets: [{label:'Traffic', data:[count, count+2, count-1], borderColor:'#ff9933'}] },
+            options: { responsive:true, plugins:{legend:{display:false}}, scales:{x:{display:false}} }
+        });
+    };
+    
+    window.renderAdminChart = (count) => {
+        const ctx = document.getElementById('adminChart');
+        if(state.adminChart) state.adminChart.destroy();
+        state.adminChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Current'], datasets: [{label:'Density', data:[count], backgroundColor:'#00d4ff'}] },
+            options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+        });
+    };
+
+    // --- BOOTSTRAP ---
     onAuthStateChanged(auth, async (u) => {
         state.user = u;
         if(u) {
-            const s = await getDoc(doc(db, "users", u.uid));
-            if(s.exists()) {
-                const d = s.data();
+            const snap = await getDoc(doc(db, "users", u.uid));
+            if(!snap.exists()) {
+                window.ui.showView('view-setup');
+            } else {
+                const d = snap.data();
                 state.isAdmin = (d.role === 'admin');
-                window.ui.el('nav-profile-pic').style.backgroundImage = `url('${d.photoURL}')`;
+                document.getElementById('nav-profile-img').src = d.photoURL;
                 if(state.isAdmin) {
                     document.body.classList.add('god-mode');
-                    window.ui.el('btn-admin-add').classList.remove('hidden');
+                    document.getElementById('btn-admin-add').classList.remove('hidden');
                 }
                 window.ui.showView('view-select');
-                window.queueHandler.loadList();
-            } else {
-                window.ui.showView('view-setup');
-                // Pre-fill phone if available
-                if(u.phoneNumber) window.ui.el('setup-phone').value = u.phoneNumber;
+                window.loadLocationsList();
             }
         } else {
             window.ui.showView('view-login');
         }
     });
-    
-    // EXPOSE LOGOUT TO WINDOW FOR HTML
-    window.logout = window.authHandler.logout;
 
     if(window.lucide) lucide.createIcons();
 </script>
