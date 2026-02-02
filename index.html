@@ -307,12 +307,17 @@
 <div id="modal-ai-chat" class="modal-overlay hidden">
     <div class="glass-card" style="width: 100%; max-width: 400px; height: 600px; display:flex; flex-direction:column; padding:0; overflow:hidden;">
         <div style="padding:15px; background:rgba(255,255,255,0.05); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <i data-lucide="sparkles" style="color:#00d4ff;"></i>
-                <h3 style="margin:0; font-size:16px;">QueueSmart AI</h3>
-            </div>
-            <button onclick="document.getElementById('modal-ai-chat').classList.add('hidden')" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
-        </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <i data-lucide="sparkles" style="color:#00d4ff;"></i>
+        <h3 style="margin:0; font-size:16px;">QueueSmart AI</h3>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <button onclick="window.aiAssistant.stopSpeaking()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;" title="Stop Voice">
+            <i data-lucide="volume-x" style="width:18px;"></i>
+        </button>
+        <button onclick="document.getElementById('modal-ai-chat').classList.add('hidden')" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
+    </div>
+</div>
         
         <div id="ai-messages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px;">
             <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
@@ -1574,11 +1579,35 @@
             }
         }
     };
-    // 11. AI RECOMMENDATION ENGINE
+    // 11. AI RECOMMENDATION ENGINE (WITH VOICE)
     window.aiAssistant = {
-        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
+        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI",
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
+        
+        // New: Function to Make AI Talk
+        speak: (text) => {
+            if ('speechSynthesis' in window) {
+                // Stop any previous speech
+                window.speechSynthesis.cancel(); 
+                
+                // Create the speech object
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0; // Speed (0.1 to 10)
+                utterance.pitch = 1.0; // Pitch (0 to 2)
+                
+                // Try to find a good English voice
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => v.name.includes("Google US English")) || voices[0];
+                if(preferredVoice) utterance.voice = preferredVoice;
+
+                window.speechSynthesis.speak(utterance);
+            }
+        },
+
+        stopSpeaking: () => {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        },
         
         send: async () => {
             const inputEl = document.getElementById('ai-input');
@@ -1594,60 +1623,57 @@
                 </div>`;
             msgBox.scrollTop = msgBox.scrollHeight;
 
-            // 2. Show Loading Bubble
+            // 2. Show Loading
             const loadingId = "loading-" + Date.now();
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // 3. Fetch Live Location Data for Context
+                // 3. Fetch Location Data
                 const snap = await getDocs(collection(db, "locations"));
                 const locations = snap.docs.map(d => {
                     const data = d.data();
-                    return `- ${data.name} (ID: ${d.id}): ${data.description}. Status: ${data.status}. Type: ${data.bookingType}.`;
+                    return `- ${data.name}: ${data.description}. Status: ${data.status}.`;
                 }).join("\n");
 
-                // 4. Build the Prompt
+                // 4. Build Prompt
                 const prompt = `
-                    You are the AI assistant for QueueSmart.
-                    Here is the list of available facilities right now:
+                    You are "QueueSmart AI".
+                    Here are the facilities:
                     ${locations}
 
                     User Request: "${userText}"
 
-                    Task: Recommend the best facility from the list above based on their request.
-                    If they want sports, look for stadiums or courts. If they want food, look for cafeterias.
-                    
-                    Important:
-                    1. Be short and friendly.
-                    2. If you find a match, tell them "You should join [Facility Name]".
-                    3. If nothing matches, apologize and suggest browsing the list.
+                    Task: Recommend a facility. Keep it very short (max 2 sentences) so it is easy to speak out loud.
+                    If nothing matches, say "I couldn't find a match."
                 `;
 
-                // 5. Call Gemini API
+                // 5. Call Gemini 2.0 Flash
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+                // Updated to use the model you found
+                const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
-                const aiText = response.text();
+                // Remove markdown symbols (*, #) so the voice reads it cleanly
+                const aiText = response.text().replace(/[*#]/g, '');
 
-                // 6. Display AI Response
+                // 6. Display & SPEAK Response
                 document.getElementById(loadingId).remove();
                 msgBox.innerHTML += `
                     <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
-                        ${aiText.replace(/\*\*/g, '')} </div>`;
+                        ${aiText}
+                    </div>`;
                 msgBox.scrollTop = msgBox.scrollHeight;
+                
+                // TRIGGER VOICE
+                window.aiAssistant.speak(aiText);
 
             } catch (e) {
                 document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">AI Error: ${e.message}</div>`;
+                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
             }
         }
     };
-    
-    // Add Enter Key Support for AI Chat
-    document.getElementById('ai-input').addEventListener("keydown", (e) => {
-        if(e.key === "Enter") window.aiAssistant.send();
-    });
 
    // 12. BOOTSTRAP & HISTORY HANDLING
     
