@@ -620,36 +620,39 @@
     
  // 3. UI CONTROLLER
     window.ui = {
-        // Updated ShowView to handle History
-        showView: (vid, addToHistory = false) => {
+        showView: (vid) => {
             // Hide all views
             ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(id => document.getElementById(id).classList.add('hidden'));
             
             // Show target
             document.getElementById(vid).classList.remove('hidden');
             window.scrollTo(0,0);
-
-            // Add to browser history if requested
-            if(addToHistory) {
-                const currentUrl = new URL(window.location);
-                // We use a query param to track state cleanly
-                if(vid === 'view-dashboard' || vid === 'view-god-mode') {
-                    currentUrl.searchParams.set('view', vid);
-                    currentUrl.searchParams.set('id', currentLocId);
-                } else {
-                    currentUrl.searchParams.delete('view');
-                    currentUrl.searchParams.delete('id');
-                }
-                window.history.pushState({ view: vid, id: currentLocId }, "", currentUrl);
-            }
         },
 
         closeModals: () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')),
         
-        // FIXED: Now uses browser history to go back
+        // --- FIXED: FORCE NAVIGATION TO HUB ---
         goBack: () => {
-            window.history.back(); 
+            // 1. Stop all active database listeners to save memory/data
+            if(locUnsub) locUnsub();
+            if(qUnsub) qUnsub();
+            if(chatUnsub) chatUnsub();
+            
+            // Safe check for admin listeners
+            if(typeof adminQUnsub !== 'undefined' && adminQUnsub) adminQUnsub();
+            if(typeof adminLUnsub !== 'undefined' && adminLUnsub) adminLUnsub();
+
+            // 2. Reset State
+            currentLocId = null;
+
+            // 3. Clean the URL (Remove ?view=dashboard&id=...) without reloading
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({ path: cleanUrl }, "", cleanUrl);
+
+            // 4. Force switch to Hub View
+            window.ui.showView('view-select');
         },
+        // -------------------------------------
 
         toggleGraph: () => document.getElementById('neural-box').classList.toggle('hidden'),
         
