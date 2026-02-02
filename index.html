@@ -14,7 +14,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="config.js"></script>
 
     <script>
         window.onerror = function(msg, url, line) {
@@ -619,15 +618,6 @@
     </div>
 </div>
 
-    <script type="module">
-        import { GoogleGenerativeAI } from "@google/generative-ai";
-
-        // Access the key from the global CONFIG object
-        const genAI = new GoogleGenerativeAI(CONFIG.API_KEY);
-
-        // ... rest of your code ...
-    </script>
-    
 <script type="module">
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -1569,64 +1559,77 @@
         }
     };
 
-// 11. AI ENGINE
+    // 10. AI CAM HANDLER
+    window.aiHandler = {
+        toggle: async () => {
+            const v = document.getElementById('webcam');
+            if(!isCamActive) {
+                if(!aiModel) aiModel = await cocoSsd.load();
+                v.srcObject = await navigator.mediaDevices.getUserMedia({video:true});
+                isCamActive = true;
+                camInterval = setInterval(async () => {
+                    const p = await aiModel.detect(v);
+                    const count = p.filter(x=>x.class==='person').length;
+                    const el = document.getElementById('cam-count'); if(el) el.innerText = count;
+                    const alertBox = document.getElementById('god-alert');
+                    if(alertBox) { if(count > 10) alertBox.classList.remove('hidden'); else alertBox.classList.add('hidden'); }
+                }, 500);
+            } else {
+                clearInterval(camInterval); v.srcObject.getTracks().forEach(t=>t.stop()); isCamActive=false;
+            }
+        }
+    };
+    
+// 11. AI RECOMMENDATION ENGINE (SMART + ROBUST VOICE)
     window.aiAssistant = {
-        // SECURE CHANGE: Use the variable from config.js instead of the hardcoded string
-        apiKey: CONFIG.API_KEY, 
-        
-        isMuted: false, 
+        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
+        isMuted: false, // State to track mute
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
-
+        
+        // 1. ROBUST VOICE FUNCTION
         speak: (text) => {
-            if (window.aiAssistant.isMuted) return;
+            if (window.aiAssistant.isMuted) return; // Don't speak if muted
+            if (!('speechSynthesis' in window)) return;
 
-            window.speechSynthesis.cancel();
+            window.speechSynthesis.cancel(); // Stop any previous talking
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0; 
+            utterance.pitch = 1.0;
 
-            const runSpeech = () => {
-                const voices = window.speechSynthesis.getVoices();
-                if (voices.length === 0) return;
-
-                const u = new SpeechSynthesisUtterance(text);
-                u.volume = 1; 
-                u.rate = 1;  
-                u.pitch = 1; 
-
-                // Try to find an Indian English voice for local context
-                const voice = voices.find(v => v.name.includes("English India") && v.name.includes("Google")) || 
-                              voices.find(v => v.lang === "en-IN") || 
-                              voices.find(v => v.lang === "hi-IN") || 
-                              voices.find(v => v.name.includes("India")) ||
-                              voices.find(v => v.lang === "en-US") ||
-                              voices[0];
-                
-                if (voice) {
-                    u.voice = voice;
-                }
-                
-                window.speechSynthesis.speak(u);
+            // Wait for voices to load (fixes the "not speaking" bug)
+            let voices = window.speechSynthesis.getVoices();
+            const setVoice = () => {
+                const preferred = voices.find(v => v.name.includes("Google US English")) || 
+                                  voices.find(v => v.lang === "en-US") || 
+                                  voices[0];
+                if(preferred) utterance.voice = preferred;
+                window.speechSynthesis.speak(utterance);
             };
 
-            if (window.speechSynthesis.getVoices().length === 0) {
-                window.speechSynthesis.addEventListener('voiceschanged', function onVoices() {
-                    runSpeech();
-                    window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
-                });
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    voices = window.speechSynthesis.getVoices();
+                    setVoice();
+                };
             } else {
-                runSpeech();
+                setVoice();
             }
         },
 
+        // 2. TOGGLE MUTE LOGIC
         toggleMute: () => {
             window.aiAssistant.isMuted = !window.aiAssistant.isMuted;
             const btn = document.getElementById('btn-ai-mute');
             
             if(window.aiAssistant.isMuted) {
-                window.speechSynthesis.cancel();
+                window.speechSynthesis.cancel(); // Stop talking immediately
                 btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
             } else {
                 btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
-                window.aiAssistant.speak("Namaste! Voice activated."); 
+                // Optional: Feedback sound
+                // window.aiAssistant.speak("Voice enabled.");
             }
             if(window.lucide) lucide.createIcons();
         },
@@ -1637,75 +1640,83 @@
             const userText = inputEl.value.trim();
             if (!userText) return;
 
+            // Show User Message
             inputEl.value = "";
             msgBox.innerHTML += `
                 <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
                     ${userText}
                 </div>`;
             msgBox.scrollTop = msgBox.scrollHeight;
-            
+
+            // Show Loading
             const loadingId = "loading-" + Date.now();
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // Ensure 'getDocs', 'collection', and 'db' are imported/available in this scope
-                // If they are not working, you might need to use window.db, window.getDocs etc.
+                // Fetch & Filter Locations
                 const snap = await getDocs(collection(db, "locations"));
-                let openLocs = [], closedLocs = [];
+                let openLocs = [];
+                let closedLocs = [];
                 
                 snap.forEach(d => {
                     const data = d.data();
-                    const status = window.logic.checkTimeStatus(data); // Ensure logic is available
+                    const status = window.logic.checkTimeStatus(data); // Use your existing time logic
                     const info = `${data.name} (${data.description})`;
-                    if(status.isOpen) openLocs.push(info); else closedLocs.push(info);
+                    
+                    if(status.isOpen) openLocs.push(info);
+                    else closedLocs.push(info);
                 });
 
+                // Get Current Time for the AI
                 const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+                // 3. SMARTER PROMPT
                 const prompt = `
-                    You are "QueueSmart AI". Time: ${now}.
-                    OPEN: ${openLocs.join(", ") || "None"}
-                    CLOSED: ${closedLocs.join(", ") || "None"}
-                    User: "${userText}"
+                    You are "QueueSmart AI".
+                    Current Time: ${now}
                     
+                    OPEN Facilities: ${openLocs.join(", ") || "None"}
+                    CLOSED Facilities: ${closedLocs.join(", ") || "None"}
+
+                    User said: "${userText}"
+
                     Instructions:
-                    1. Answer in a friendly, helpful Indian tone.
-                    2. Use very short, simple sentences (spoken style).
-                    3. No emojis or asterisks.
-                    4. Max 2 sentences.
+                    1. If the user greets you (Hi/Hello), welcome them warmly.
+                    2. If the user asks a general question (Time, Math, Jokes), answer it correctly and briefly.
+                    3. If the user asks for a recommendation, suggest an OPEN facility.
+                    4. If they ask about a CLOSED facility, tell them it is closed and suggest an open one.
+                    5. Keep response under 2 sentences. Spoken style.
                 `;
 
-                // Uses the key from the top of this object, which now comes from config.js
+                // Call Gemini
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name to standard
+                const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+                
                 const result = await model.generateContent(prompt);
-                const aiText = result.response.text().replace(/[*#]/g, '').trim(); 
+                const response = await result.response;
+                const aiText = response.text().replace(/[*#]/g, ''); 
 
+                // Display & Speak
                 document.getElementById(loadingId).remove();
-                
-                const safeText = aiText.replace(/'/g, "\\'"); 
                 msgBox.innerHTML += `
-                    <div style="align-self:flex-start; display:flex; gap:8px; align-items:flex-end; max-width:85%;">
-                        <div style="background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; font-size:13px; line-height:1.5;">
-                            ${aiText}
-                        </div>
-                        <button onclick="window.aiAssistant.speak('${safeText}')" style="background:rgba(255,255,255,0.1); border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#00d4ff;">
-                            <i data-lucide="play" style="width:14px; height:14px;"></i>
-                        </button>
+                    <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
+                        ${aiText}
                     </div>`;
-                
                 msgBox.scrollTop = msgBox.scrollHeight;
-                if(window.lucide) lucide.createIcons();
-
+                
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
-                if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
-                console.error(e);
+                document.getElementById(loadingId).remove();
+                let errText = "Sorry, I'm having trouble connecting.";
+                if(e.message.includes("429")) errText = "I'm a bit overwhelmed, please wait.";
+                
+                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">${errText}</div>`;
+                window.aiAssistant.speak(errText);
             }
         }
     };
+
    // 12. BOOTSTRAP & HISTORY HANDLING
     
     // Handle Browser Back Button
