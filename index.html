@@ -1582,7 +1582,7 @@
     
 // 11. AI ENGINE
     window.aiAssistant = {
-        apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
+        apiKey: "PASTE_YOUR_GEMINI_KEY_HERE", 
         isMuted: false, 
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
@@ -1590,39 +1590,38 @@
         speak: (text) => {
             if (window.aiAssistant.isMuted) return;
 
-            // 1. Cancel any stuck audio
             window.speechSynthesis.cancel();
 
-            // 2. Define the speak logic
             const runSpeech = () => {
                 const voices = window.speechSynthesis.getVoices();
-                if (voices.length === 0) return; // Still no voices? Wait.
+                if (voices.length === 0) return;
 
                 const u = new SpeechSynthesisUtterance(text);
                 u.volume = 1; 
-                u.rate = 1; 
-                u.pitch = 1;
+                u.rate = 1;  // Normal speed
+                u.pitch = 1; // Natural pitch
 
-                // 3. Pick the best voice (Google > US English > First Available)
-                const voice = voices.find(v => v.name.includes("Google US English")) || 
-                              voices.find(v => v.lang === "en-US") || 
+                const voice = voices.find(v => v.name.includes("English India") && v.name.includes("Google")) || 
+                              voices.find(v => v.lang === "en-IN") || 
+                              voices.find(v => v.lang === "hi-IN") || 
+                              voices.find(v => v.name.includes("India")) ||
+                              voices.find(v => v.lang === "en-US") ||
                               voices[0];
                 
-                u.voice = voice;
-                console.log("Speaking with voice:", voice.name);
+                if (voice) {
+                    u.voice = voice;
+                    console.log("Selected Voice:", voice.name, voice.lang);
+                }
+                
                 window.speechSynthesis.speak(u);
             };
 
-            // 4. CHECK IF VOICES ARE READY
             if (window.speechSynthesis.getVoices().length === 0) {
-                console.log("Voices not ready. Waiting...");
-                // Wait for the browser to load voices, THEN speak
                 window.speechSynthesis.addEventListener('voiceschanged', function onVoices() {
                     runSpeech();
-                    window.speechSynthesis.removeEventListener('voiceschanged', onVoices); // Run only once
+                    window.speechSynthesis.removeEventListener('voiceschanged', onVoices);
                 });
             } else {
-                // Voices are ready, speak now
                 runSpeech();
             }
         },
@@ -1636,8 +1635,8 @@
                 btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
             } else {
                 btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
-                // CLICKING THIS UNLOCKS AUDIO
-                window.aiAssistant.speak("Voice activated."); 
+                // Test the new voice immediately
+                window.aiAssistant.speak("Namaste! Voice activated."); 
             }
             if(window.lucide) lucide.createIcons();
         },
@@ -1655,12 +1654,10 @@
                 </div>`;
             msgBox.scrollTop = msgBox.scrollHeight;
             
-            // Show Loading
             const loadingId = "loading-" + Date.now();
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // Fetch & Filter Locations
                 const snap = await getDocs(collection(db, "locations"));
                 let openLocs = [], closedLocs = [];
                 snap.forEach(d => {
@@ -1677,7 +1674,12 @@
                     OPEN: ${openLocs.join(", ") || "None"}
                     CLOSED: ${closedLocs.join(", ") || "None"}
                     User: "${userText}"
-                    Task: Answer in 1-2 short sentences. Spoken style. No emojis.
+                    
+                    Instructions:
+                    1. Answer in a friendly, helpful Indian tone.
+                    2. Use very short, simple sentences (spoken style).
+                    3. No emojis or asterisks.
+                    4. Max 2 sentences.
                 `;
 
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
@@ -1685,10 +1687,8 @@
                 const result = await model.generateContent(prompt);
                 const aiText = result.response.text().replace(/[*#]/g, '').trim(); 
 
-                // Remove Loading
                 document.getElementById(loadingId).remove();
                 
-                // Add Replay Button
                 const safeText = aiText.replace(/'/g, "\\'"); 
                 msgBox.innerHTML += `
                     <div style="align-self:flex-start; display:flex; gap:8px; align-items:flex-end; max-width:85%;">
@@ -1703,7 +1703,6 @@
                 msgBox.scrollTop = msgBox.scrollHeight;
                 if(window.lucide) lucide.createIcons();
 
-                // Speak
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
@@ -1712,7 +1711,6 @@
             }
         }
     };
-
    // 12. BOOTSTRAP & HISTORY HANDLING
     
     // Handle Browser Back Button
