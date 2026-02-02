@@ -1632,75 +1632,52 @@
         
         // 3. SECURE SEND FUNCTION
         send: async () => {
-            const inputEl = document.getElementById('ai-input');
-            const msgBox = document.getElementById('ai-messages');
-            const userText = inputEl.value.trim();
-            if (!userText) return;
+    const inputEl = document.getElementById('ai-input');
+    const msgBox = document.getElementById('ai-messages');
+    const userText = inputEl.value.trim();
+    if (!userText) return;
 
-            // UI: Show User Message
-            inputEl.value = "";
-            msgBox.innerHTML += `
-                <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
-                    ${userText}
-                </div>`;
-            msgBox.scrollTop = msgBox.scrollHeight;
+    inputEl.value = "";
+    msgBox.innerHTML += `<div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">${userText}</div>`;
+    msgBox.scrollTop = msgBox.scrollHeight;
 
-            // UI: Show Loading
-            const loadingId = "loading-" + Date.now();
-            msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
+    const loadingId = "loading-" + Date.now();
+    msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
-            try {
-                // 1. Gather Context Data (Client Side)
-                const snap = await getDocs(collection(db, "locations"));
-                let openLocs = [];
-                let closedLocs = [];
-                
-                snap.forEach(d => {
-                    const data = d.data();
-                    const status = window.logic.checkTimeStatus(data); 
-                    const info = `${data.name} (${data.description})`;
-                    if(status.isOpen) openLocs.push(info);
-                    else closedLocs.push(info);
-                });
+    try {
+        const snap = await getDocs(collection(db, "locations"));
+        let openLocs = [], closedLocs = [];
+        snap.forEach(d => {
+            const data = d.data();
+            const status = window.logic.checkTimeStatus(data);
+            if(status.isOpen) openLocs.push(data.name); else closedLocs.push(data.name);
+        });
 
-                const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: userText,
+                openLocs: openLocs.join(", "),
+                closedLocs: closedLocs.join(", "),
+                time: new Date().toLocaleTimeString()
+            })
+        });
 
-                // 2. Call YOUR Vercel Backend (No Keys Here!)
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: userText,
-                        openLocs: openLocs.join(", "),
-                        closedLocs: closedLocs.join(", "),
-                        time: now
-                    })
-                });
+        const data = await response.json();
+        document.getElementById(loadingId).remove();
 
-                if (!response.ok) throw new Error("Backend Error");
+        if (data.error) throw new Error(data.error);
 
-                const data = await response.json();
-                const aiText = data.text.replace(/[*#]/g, ''); 
+        msgBox.innerHTML += `<div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">${data.text}</div>`;
+        msgBox.scrollTop = msgBox.scrollHeight;
+        window.aiAssistant.speak(data.text);
 
-                // 3. Display Result
-                document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `
-                    <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
-                        ${aiText}
-                    </div>`;
-                msgBox.scrollTop = msgBox.scrollHeight;
-                
-                window.aiAssistant.speak(aiText);
-
-            } catch (e) {
-                const loader = document.getElementById(loadingId);
-                if(loader) loader.remove();
-                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Connection Error (Check API).</div>`;
-                console.error(e);
-            }
-        }
-    };
-
+    } catch (e) {
+        if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+        msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
+    }
+}
    // 12. BOOTSTRAP & HISTORY HANDLING
     
     // Handle Browser Back Button
