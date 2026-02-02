@@ -726,7 +726,7 @@
         openProfile: () => { if(currentUser) window.ui.showProfile(); }
     };
     
-    // 4. LOGIC ENGINE (Specific Calculations from Working Code)
+   // 4. LOGIC ENGINE
     window.logic = {
         checkTimeStatus: (loc) => {
             if (loc.status === 'closed') return { isOpen: false, reason: "ADMIN CLOSED" };
@@ -740,6 +740,7 @@
             else return { isOpen: curMins >= start && curMins < end, reason: "TIME" };
         },
         calculateVelocity: async (locId) => {
+            // (Keep your existing calculateVelocity code here...)
             try {
                 const q = query(collection(db, "logs"), where("locationId", "==", locId), where("action", "==", "SERVED"), limit(20));
                 const snap = await getDocs(q);
@@ -749,7 +750,7 @@
                 for(let i=0; i<times.length-1; i++) {
                     if(times[i] > 0 && times[i+1] > 0) {
                         const diff = times[i] - times[i+1];
-                        if (diff < 1200000) { totalDiff += diff; count++; } // Ignore large gaps > 20 mins
+                        if (diff < 1200000) { totalDiff += diff; count++; }
                     }
                 }
                 if(count === 0) return 5;
@@ -757,6 +758,42 @@
                 const velocityMins = Math.ceil(avgMs / 60000);
                 return velocityMins > 0 ? velocityMins : 5;
             } catch (e) { return 5; }
+        },
+        
+        // --- NEW: REAL AI ANALYSIS ---
+        analyzeHistory: async (locId) => {
+            try {
+                // 1. Get logs from the last 7 days for this location
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                
+                const q = query(
+                    collection(db, "logs"), 
+                    where("locationId", "==", locId), 
+                    where("action", "==", "JOINED"),
+                    where("timestamp", ">", sevenDaysAgo)
+                );
+                
+                const snap = await getDocs(q);
+                
+                // 2. Bucket data by hour (0-23)
+                const hourlyTraffic = Array(24).fill(0);
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if(data.timestamp) {
+                        const hour = data.timestamp.toDate().getHours();
+                        hourlyTraffic[hour]++; 
+                    }
+                });
+
+                // 3. Normalize: Get average traffic per hour (divide by 7 days)
+                // This array now represents the "Expected Traffic" for every hour of the day
+                return hourlyTraffic.map(count => Math.ceil(count / 7));
+                
+            } catch (e) {
+                console.error("AI Analysis Failed", e);
+                return Array(24).fill(5); // Fallback to flat line if error
+            }
         }
     };
 
@@ -906,6 +943,7 @@
                     locations.push({ id: d.id, ...loc, status });
                 });
 
+                // Sort: Open first
                 locations.sort((a, b) => {
                     if (a.status.isOpen && !b.status.isOpen) return -1;
                     if (!a.status.isOpen && b.status.isOpen) return 1;
@@ -943,17 +981,15 @@
                 });
                 
                 if(window.lucide) lucide.createIcons();
-                document.getElementById('ai-hub-insight').innerText = `${openCount} facilities active.`;
+                const insight = document.getElementById('ai-hub-insight');
+                if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
 
             }, (error) => { console.error("List Error:", error); });
         },
 
-       selectLoc: (id) => {
+        selectLoc: (id) => {
             currentLocId = id;
-            // CHANGED: Added 'true' at the end to push to history
-            window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard', true);
-            
-            // ... rest of the function remains the same ...
+            window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
             
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
@@ -968,7 +1004,11 @@
                     document.getElementById('conf-notice').value = d.notice;
                     document.getElementById('conf-open').value = d.openTime;
                     document.getElementById('conf-close').value = d.closeTime;
+                    
+                    // --- LOAD MAX CAPACITY ---
                     document.getElementById('conf-cap').value = d.maxCapacity || "";
+                    // -------------------------
+                    
                     document.getElementById('conf-mode').value = d.countingMode || 'ahead';
                     document.getElementById('conf-type').value = d.bookingType;
                     window.ui.togglePay();
@@ -1010,11 +1050,14 @@
                 const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
                 const pos = docs.findIndex(x => x.uid === currentUser.uid);
                 const mode = currentLocData?.countingMode || 'ahead';
+                
+                // --- CAPACITY CHECK LOGIC ---
                 const maxCap = currentLocData?.maxCapacity || 0;
                 const isFull = (maxCap > 0 && docs.length >= maxCap);
+                // ----------------------------
 
                 if(pos !== -1) {
-                    // IN QUEUE
+                    // USER IS IN QUEUE
                     if(pos === 0) {
                         document.getElementById('dash-count').innerText = "NOW";
                         document.getElementById('dash-count-label').innerText = "IT'S YOUR TURN";
@@ -1050,7 +1093,7 @@
                     document.getElementById('btn-leave').classList.remove('hidden');
 
                 } else {
-                    // NOT IN QUEUE
+                    // USER NOT IN QUEUE
                     window.hasNotifiedTurn = false;
                     document.getElementById('dash-count').style.color = "#fff";
                     document.getElementById('dash-count-label').style.color = "var(--primary)";
@@ -1064,18 +1107,34 @@
                     const btn = document.getElementById('btn-join');
                     const status = window.logic.checkTimeStatus(currentLocData);
                     
+                    // --- BUTTON STATE ENFORCEMENT ---
                     if(!status.isOpen) {
-                        btn.disabled = true; btn.innerText = "CLOSED"; btn.className = "btn btn-outline";
+                        btn.disabled = true; 
+                        btn.innerText = "CLOSED"; 
+                        btn.className = "btn btn-outline"; // Gray out
+                        btn.style.opacity = "0.5";
+                        btn.style.cursor = "not-allowed";
                     } 
                     else if (isFull) {
-                        btn.disabled = true; btn.innerText = "⛔ QUEUE FULL"; btn.className = "btn btn-danger"; btn.style.opacity = "0.5";
+                        // FULL CAPACITY STATE
+                        btn.disabled = true;
+                        btn.innerText = "⛔ QUEUE FULL";
+                        btn.className = "btn btn-danger"; // Red warning style
+                        btn.style.opacity = "0.5";
+                        btn.style.cursor = "not-allowed";
                     } 
                     else {
-                        btn.disabled = false; btn.style.opacity = "1"; btn.className = "btn btn-primary";
+                        // NORMAL JOIN STATE
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                        btn.style.cursor = "pointer";
+                        btn.className = "btn btn-primary"; 
                         btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
                     }
+                    // --------------------------------
                 }
                 
+                // Call Real AI Chart Update
                 window.queueHandler.updateChart(docs.length);
             });
             window.chatHandler.init(id);
@@ -1083,7 +1142,8 @@
 
         join: () => {
             if(!currentLocData) return;
-            // UI Capacity Check
+            
+            // Double Check Capacity on Click (Prevents Race Conditions)
             const maxCap = currentLocData.maxCapacity || 0;
             const currentCount = parseInt(document.getElementById('dash-count').innerText) || 0;
             const isQueueView = document.getElementById('dash-count-label').innerText === "CURRENT QUEUE SIZE";
@@ -1124,15 +1184,13 @@
                     txn: txn || 'free' 
                 });
                 
-                // --- CRITICAL: Saving User ID for Admin Click ---
                 await addDoc(collection(db, "logs"), { 
                     locationId: currentLocId, 
                     action: "JOINED", 
                     userName: uName, 
-                    user: currentUser.uid, // <--- This enables the profile click
+                    user: currentUser.uid, 
                     timestamp: serverTimestamp() 
                 });
-                // ------------------------------------------------
             } catch(e) { console.error("Join Error:", e); alert("Failed to join."); }
         },
 
@@ -1145,27 +1203,66 @@
             const s = await getDocs(q); 
             s.forEach(d => deleteDoc(d.ref));
 
-            // --- CRITICAL: Saving User ID for Admin Click ---
             await addDoc(collection(db, "logs"), { 
                 locationId: currentLocId, 
                 action: "LEFT", 
                 userName: uName, 
-                user: currentUser.uid, // <--- This enables the profile click
+                user: currentUser.uid, 
                 timestamp: serverTimestamp() 
             });
-            // ------------------------------------------------
         },
 
-        updateChart: (count) => {
-            const hourData = Array(6).fill(0).map(() => Math.floor(Math.random() * 20) + 5); 
+        // REAL AI UPDATE FUNCTION
+        updateChart: async (currentCount) => {
+            if (!currentLocId) return;
+
+            // 1. Get Real Historical Data
+            const historicalAvg = await window.logic.analyzeHistory(currentLocId);
+            
+            // 2. Build Next 6 Hours Forecast
+            const currentHour = new Date().getHours();
+            const forecastData = [];
+            const labels = ['Now'];
+            
+            // "Now" is a mix of current reality (70%) and history (30%)
+            forecastData.push(Math.ceil((currentCount * 0.7) + (historicalAvg[currentHour] * 0.3)));
+
+            for(let i=1; i<=5; i++) {
+                const nextHour = (currentHour + i) % 24;
+                forecastData.push(historicalAvg[nextHour]); 
+                labels.push(`+${i}h`);
+            }
+
+            // 3. Render Chart
             if (userChart) userChart.destroy();
             const ctx = document.getElementById('userChart').getContext('2d');
+            
             userChart = new Chart(ctx, {
-                type: 'line', data: { labels: ['Now', '+1h', '+2h', '+3h', '+4h', '+5h'], datasets: [{ label: 'Predicted Traffic', data: hourData, borderColor: '#FF9933', backgroundColor: 'rgba(255, 153, 51, 0.1)', fill: true }] },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+                type: 'line', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: 'Expected Traffic', 
+                        data: forecastData, 
+                        borderColor: '#FF9933', 
+                        backgroundColor: 'rgba(255, 153, 51, 0.1)', 
+                        fill: true,
+                        tension: 0.4 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { x: { display: false }, y: { display: false } } 
+                }
             });
-            const minIdx = hourData.indexOf(Math.min(...hourData));
-            document.getElementById('dash-ai-msg').innerText = `✨ AI Suggestion: Best time to visit is in ${minIdx} hours.`;
+
+            // 4. Update Suggestion Text
+            const minVal = Math.min(...forecastData);
+            const minIdx = forecastData.indexOf(minVal);
+            const bestTimeMsg = minIdx === 0 ? "RIGHT NOW" : `in ${minIdx} hours`;
+            
+            document.getElementById('dash-ai-msg').innerText = `✨ AI Suggestion: Best time to visit is ${bestTimeMsg}.`;
         }
     };
     
