@@ -153,6 +153,114 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* --- NEW HYBRID CARD STYLE --- */
+.loc-card {
+    height: 240px; /* Taller, immersive card */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Hover Effect: Glow + Zoom */
+.loc-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    border-color: var(--primary);
+    box-shadow: 0 15px 40px -5px var(--primary-glow);
+}
+
+/* Background Image */
+.loc-img-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    transition: transform 0.7s ease;
+    opacity: 0.8;
+}
+.loc-card:hover .loc-img-bg {
+    transform: scale(1.08);
+    opacity: 1;
+}
+
+/* Gradient Overlay for Text Readability */
+.loc-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 10%, rgba(0,0,0,0.7) 40%, transparent 100%);
+    z-index: 1;
+}
+
+/* Content Container */
+.loc-info {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Typography Overrides */
+.loc-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    font-family: var(--font-ui);
+    letter-spacing: -0.5px;
+}
+.loc-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+.loc-time {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.status-badge.open { background: #138808; color: #fff; box-shadow: 0 0 10px rgba(19, 136, 8, 0.4); }
+.status-badge.closed { background: #333; color: #888; border: 1px solid #444; }
+
+.type-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    backdrop-filter: blur(4px);
+}
+.type-badge.paid { border-color: var(--primary); color: var(--primary); background: rgba(255, 153, 51, 0.1); }
+        
     </style>
 </head>
 <body>
@@ -687,7 +795,7 @@
 
 // 7. QUEUE & DASHBOARD HANDLER
     window.queueHandler = {
-        loadList: () => {
+       loadList: () => {
             const l = document.getElementById('location-list');
             const spinner = document.getElementById('loading-spinner');
             
@@ -696,11 +804,11 @@
                 if(spinner) spinner.classList.add('hidden');
                 
                 if(snap.empty) {
-                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:20px;color:#666;'>No active facilities found.</div>";
+                    l.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;color:#666;'>No active facilities found.</div>";
                     return;
                 }
 
-                // 1. Collect Data & Calculate Status First
+                // 1. Process Data
                 let locations = [];
                 let openCount = 0;
 
@@ -711,58 +819,57 @@
                     locations.push({ id: d.id, ...loc, status });
                 });
 
-                // 2. SORT: Open facilities first, Closed facilities last
+                // 2. Sort: Open first
                 locations.sort((a, b) => {
-                    // If A is open and B is closed, A comes first (-1)
                     if (a.status.isOpen && !b.status.isOpen) return -1;
-                    // If A is closed and B is open, B comes first (1)
                     if (!a.status.isOpen && b.status.isOpen) return 1;
-                    return 0; // Keep original order if status is same
+                    return 0;
                 });
 
-                // 3. Render Sorted List
+                // 3. Render Cards
                 locations.forEach(loc => {
                     const div = document.createElement('div'); 
                     div.className = 'loc-card';
                     div.onclick = function() { window.queueHandler.selectLoc(loc.id); };
                     
-                    // Visual Style for Closed
+                    // Closed State Visuals
                     if (!loc.status.isOpen) {
-                        div.style.opacity = "0.6";
-                        div.style.filter = "grayscale(100%)";
-                        div.style.borderColor = "#333";
-                    } else {
-                        div.style.borderColor = "var(--primary)";
-                        div.style.boxShadow = "0 4px 20px rgba(0,0,0,0.5)";
+                        div.style.filter = "grayscale(100%) brightness(0.7)";
                     }
 
                     const bgImg = loc.imageURL || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80';
-                    
-                    // Format Time String (e.g. "09:00 - 17:00")
-                    const timeDisplay = (loc.openTime && loc.closeTime) 
-                        ? `${loc.openTime} - ${loc.closeTime}` 
-                        : "24 Hours";
+                    const timeDisplay = (loc.openTime && loc.closeTime) ? `${loc.openTime} - ${loc.closeTime}` : "24 Hours";
+                    const isPaid = loc.bookingType === 'paid';
 
                     div.innerHTML = `
-                        <div class="loc-img-box">
-                            <img src="${bgImg}" class="loc-img" onerror="this.style.display='none'">
-                        </div>
-                        <div class="loc-overlay">
-                            <h3 style="margin:0; text-shadow:0 2px 4px #000; color:#fff;">${loc.name}</h3>
-                        </div>
-                        <div class="loc-footer" style="display:block;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                                <span class="badge ${loc.status.isOpen?'open':'closed'}">${loc.status.isOpen?'OPEN':'CLOSED'}</span>
-                                <span style="font-size:11px; color:#fff; font-weight:700; font-family:var(--font-mono);">${timeDisplay}</span>
+                        <img src="${bgImg}" class="loc-img-bg" onerror="this.style.display='none'">
+                        
+                        <div class="loc-gradient"></div>
+
+                        <div class="loc-info">
+                            <div style="display:flex; justify-content:space-between; align-items:start;">
+                                <h3 class="loc-title">${loc.name}</h3>
+                                <span class="type-badge ${isPaid ? 'paid' : 'free'}">
+                                    ${isPaid ? '₹ PAID' : 'FREE'}
+                                </span>
                             </div>
-                            <div style="font-size:10px; color:#aaa; text-align:right;">
-                                ${loc.bookingType ? loc.bookingType.toUpperCase() : 'FREE'} ENTRY
+                            
+                            <div class="loc-meta">
+                                <span class="status-badge ${loc.status.isOpen?'open':'closed'}">
+                                    ${loc.status.isOpen ? '● OPEN' : 'CLOSED'}
+                                </span>
+                                <span class="loc-time">
+                                    <i data-lucide="clock" style="width:12px;"></i> ${timeDisplay}
+                                </span>
                             </div>
                         </div>
                     `;
                     l.appendChild(div);
                 });
                 
+                // Re-init icons for the new elements
+                if(window.lucide) lucide.createIcons();
+
                 const insight = document.getElementById('ai-hub-insight');
                 if(insight) insight.innerText = `${openCount} facilities active. Network synced.`;
 
