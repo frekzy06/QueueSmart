@@ -1581,6 +1581,7 @@
     
 // 11. AI RECOMMENDATION ENGINE (SECURE BACKEND VERSION)
     window.aiAssistant = {
+        // No API Key needed here anymore!
         isMuted: false, 
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
@@ -1664,7 +1665,7 @@
 
                 const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                // 2. Call YOUR Vercel Backend (No Keys Here!)
+                // 2. Call YOUR Vercel Backend
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
