@@ -1665,7 +1665,7 @@
 
                 const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                // 2. Call YOUR Vercel Backend
+                // 2. Call YOUR Vercel Backend (No Keys Here!)
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
