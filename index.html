@@ -452,6 +452,18 @@
                     <div style="height: 150px; width: 100%;"><canvas id="adminChart"></canvas></div>
                 </div>
 
+                
+            <div class="glass-card" style="padding: 25px; text-align: center;">
+    <h5 style="margin: 0 0 15px 0; font-size: 11px; color: var(--text-muted); letter-spacing: 1px;">FACILITY ACCESS QR</h5>
+    <div id="god-qr-container" style="background: #fff; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom: 15px; border: 4px solid var(--primary);">
+        <div id="god-facility-qr"></div>
+    </div>
+    <p style="font-size: 10px; color: var(--text-muted); margin-bottom: 15px;">Scanning this QR will take citizens directly to this facility's dashboard.</p>
+    <button onclick="window.adminHandler.downloadQR()" class="btn btn-outline" style="font-size: 10px; padding: 10px;">
+        <i data-lucide="download" style="width: 14px; margin-right: 5px;"></i> DOWNLOAD QR FOR PRINT
+    </button>
+</div>
+            
                 <div id="god-alert" class="glass-card hidden" style="background: rgba(255, 68, 68, 0.1); border-color: var(--danger); padding: 20px;">
                     <div style="display: flex; align-items: center; gap: 15px; color: var(--danger);">
                         <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
@@ -1020,13 +1032,22 @@
             }, (error) => { console.error("List Error:", error); });
         },
 
-        selectLoc: (id) => {
+       selectLoc: (id) => {
             currentLocId = id;
             window.ui.showView(isAdmin ? 'view-god-mode' : 'view-dashboard');
             
             if(isAdmin) {
                 document.getElementById('god-loc-id').innerText = id;
                 window.adminHandler.init(id);
+
+                // --- GENERATE FACILITY QR CODE ---
+                setTimeout(() => {
+                    if (window.adminHandler.generateQR) {
+                        window.adminHandler.generateQR(id);
+                    }
+                }, 500);
+                // ---------------------------------
+
                 getDoc(doc(db, "locations", id)).then(s => {
                     if(!s.exists()) return;
                     const d = s.data();
@@ -1461,7 +1482,32 @@
                 });
                 if(window.lucide) lucide.createIcons(); // Refresh icons for new logs
             });
-        },
+        },generateQR: (id) => {
+        const qrDiv = document.getElementById('god-facility-qr');
+        if (qrDiv) {
+            qrDiv.innerHTML = "";
+            const deepLink = `${window.location.origin}${window.location.pathname}?view=view-dashboard&id=${id}`;
+            new QRCode(qrDiv, {
+                text: deepLink,
+                width: 160,
+                height: 160,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    },
+
+    downloadQR: () => {
+        const qrImg = document.querySelector('#god-facility-qr img');
+        if (!qrImg) return alert("QR not generated yet.");
+        const link = document.createElement('a');
+        link.href = qrImg.src;
+        link.download = `QueueSmart_QR_${currentLocId}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    },
 
         act: async (qid, type, userName, uid) => {
             await deleteDoc(doc(db, "queue", qid));
