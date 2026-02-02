@@ -1580,51 +1580,65 @@
         }
     };
     
-// 11. AI RECOMMENDATION ENGINE 
+// 11. AI ENGINE
     window.aiAssistant = {
         apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
         isMuted: false, 
-        currentUtterance: null, // Global variable to prevent garbage collection
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
-        
-        // 1. ROBUST SPEAK FUNCTION
+
         speak: (text) => {
             if (window.aiAssistant.isMuted) return;
-            if (!('speechSynthesis' in window)) return;
 
-            // Stop previous
+            // 1. Cancel any stuck audio
             window.speechSynthesis.cancel();
-            
-            // Create utterance
-            const u = new SpeechSynthesisUtterance(text);
-            u.rate = 1.0; 
-            u.pitch = 1.0;
-            u.volume = 1.0;
-            
-            // Save to global to prevent browser deleting it
-            window.aiAssistant.currentUtterance = u;
 
-            // Simple Voice Loader
-            const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(v => v.lang.includes('en')) || voices[0];
-            if (voice) u.voice = voice;
-            
-            console.log("Attempting to speak:", text); // Debug log
-            window.speechSynthesis.speak(u);
+            // 2. Define the speak logic
+            const runSpeech = () => {
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length === 0) return; // Still no voices? Wait.
+
+                const u = new SpeechSynthesisUtterance(text);
+                u.volume = 1; 
+                u.rate = 1; 
+                u.pitch = 1;
+
+                // 3. Pick the best voice (Google > US English > First Available)
+                const voice = voices.find(v => v.name.includes("Google US English")) || 
+                              voices.find(v => v.lang === "en-US") || 
+                              voices[0];
+                
+                u.voice = voice;
+                console.log("Speaking with voice:", voice.name);
+                window.speechSynthesis.speak(u);
+            };
+
+            // 4. CHECK IF VOICES ARE READY
+            if (window.speechSynthesis.getVoices().length === 0) {
+                console.log("Voices not ready. Waiting...");
+                // Wait for the browser to load voices, THEN speak
+                window.speechSynthesis.addEventListener('voiceschanged', function onVoices() {
+                    runSpeech();
+                    window.speechSynthesis.removeEventListener('voiceschanged', onVoices); // Run only once
+                });
+            } else {
+                // Voices are ready, speak now
+                runSpeech();
+            }
         },
 
         toggleMute: () => {
             window.aiAssistant.isMuted = !window.aiAssistant.isMuted;
             const btn = document.getElementById('btn-ai-mute');
-            const icon = window.aiAssistant.isMuted ? 'volume-x' : 'volume-2';
-            const color = window.aiAssistant.isMuted ? 'var(--danger)' : 'var(--success)';
             
-            btn.innerHTML = `<i data-lucide="${icon}" style="width:20px; color:${color};"></i>`;
-            
-            if(window.aiAssistant.isMuted) window.speechSynthesis.cancel();
-            else window.aiAssistant.speak("Voice enabled.");
-            
+            if(window.aiAssistant.isMuted) {
+                window.speechSynthesis.cancel();
+                btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
+            } else {
+                btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
+                // CLICKING THIS UNLOCKS AUDIO
+                window.aiAssistant.speak("Voice activated."); 
+            }
             if(window.lucide) lucide.createIcons();
         },
         
@@ -1634,20 +1648,19 @@
             const userText = inputEl.value.trim();
             if (!userText) return;
 
-            // Clear Input & Show User Msg
             inputEl.value = "";
             msgBox.innerHTML += `
                 <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
                     ${userText}
                 </div>`;
             msgBox.scrollTop = msgBox.scrollHeight;
-
-            // Loading
+            
+            // Show Loading
             const loadingId = "loading-" + Date.now();
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // Fetch Data
+                // Fetch & Filter Locations
                 const snap = await getDocs(collection(db, "locations"));
                 let openLocs = [], closedLocs = [];
                 snap.forEach(d => {
@@ -1675,10 +1688,8 @@
                 // Remove Loading
                 document.getElementById(loadingId).remove();
                 
-                // --- 2. FAIL-SAFE UI: Add a Play Button to the Message ---
-                // We escape the text so it fits inside the onclick function
+                // Add Replay Button
                 const safeText = aiText.replace(/'/g, "\\'"); 
-                
                 msgBox.innerHTML += `
                     <div style="align-self:flex-start; display:flex; gap:8px; align-items:flex-end; max-width:85%;">
                         <div style="background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; font-size:13px; line-height:1.5;">
@@ -1692,7 +1703,7 @@
                 msgBox.scrollTop = msgBox.scrollHeight;
                 if(window.lucide) lucide.createIcons();
 
-                // 3. Try to Auto-Speak
+                // Speak
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
