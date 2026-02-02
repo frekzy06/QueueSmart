@@ -1582,21 +1582,25 @@
     
 // 11. AI RECOMMENDATION ENGINE
     window.aiAssistant = {
+       
         apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI", 
         
         isMuted: false, 
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
         
-        // 2. FIXED VOICE FUNCTION
+        // 2. NEW: AUDIO UNLOCKER (Tricks browser into allowing sound)
+        unlockAudio: () => {
+            if (!('speechSynthesis' in window)) return;
+            // Speak an empty string instantly to "wake up" the engine
+            const dummy = new SpeechSynthesisUtterance(" ");
+            window.speechSynthesis.speak(dummy);
+        },
+
         speak: (text) => {
-            // If muted, stop immediately
             if (window.aiAssistant.isMuted) return;
-            
-            // Check if browser supports speech
             if (!('speechSynthesis' in window)) return;
 
-            // Stop any previous talking
             window.speechSynthesis.cancel(); 
             
             const utterance = new SpeechSynthesisUtterance(text);
@@ -1604,26 +1608,17 @@
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // 3. VOICE LOADING STRATEGY (The Fix)
             const voices = window.speechSynthesis.getVoices();
-            
-            // Helper function to pick a good voice
             const play = () => {
-                const allVoices = window.speechSynthesis.getVoices();
-                const preferred = allVoices.find(v => v.name.includes("Google US English")) || 
-                                  allVoices.find(v => v.lang === "en-US") || 
-                                  allVoices[0];
-                
+                const preferred = voices.find(v => v.name.includes("Google US English")) || 
+                                  voices.find(v => v.lang === "en-US") || 
+                                  voices[0];
                 if(preferred) utterance.voice = preferred;
                 window.speechSynthesis.speak(utterance);
             };
 
-            // If voices are empty, wait for them to load
-            if (voices.length === 0) {
-                window.speechSynthesis.onvoiceschanged = play;
-            } else {
-                play();
-            }
+            if (voices.length === 0) window.speechSynthesis.onvoiceschanged = play;
+            else play();
         },
 
         toggleMute: () => {
@@ -1631,11 +1626,9 @@
             const btn = document.getElementById('btn-ai-mute');
             
             if(window.aiAssistant.isMuted) {
-                // Muted State
                 window.speechSynthesis.cancel();
                 btn.innerHTML = `<i data-lucide="volume-x" style="width:20px; color:var(--danger);"></i>`;
             } else {
-                // Unmuted State
                 btn.innerHTML = `<i data-lucide="volume-2" style="width:20px; color:var(--success);"></i>`;
                 window.aiAssistant.speak("Voice activated.");
             }
@@ -1648,7 +1641,10 @@
             const userText = inputEl.value.trim();
             if (!userText) return;
 
-            // UI Updates
+            // --- CRITICAL FIX: Unlock Audio NOW (Before the delay) ---
+            window.aiAssistant.unlockAudio(); 
+            // --------------------------------------------------------
+
             inputEl.value = "";
             msgBox.innerHTML += `
                 <div style="align-self:flex-end; background:#00d4ff; color:#000; padding:10px 15px; border-radius:15px 15px 0 15px; max-width:85%; font-size:13px; font-weight:600;">
@@ -1660,7 +1656,6 @@
             msgBox.innerHTML += `<div id="${loadingId}" style="align-self:flex-start; color:#888; font-size:11px; margin-left:10px;">Thinking...</div>`;
 
             try {
-                // Get Locations
                 const snap = await getDocs(collection(db, "locations"));
                 let openLocs = [];
                 let closedLocs = [];
@@ -1675,7 +1670,6 @@
 
                 const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                // Prompt
                 const prompt = `
                     You are "QueueSmart AI". Current Time: ${now}.
                     OPEN Facilities: ${openLocs.join(", ") || "None"}
@@ -1685,21 +1679,18 @@
 
                     Instructions:
                     1. If user greets, welcome them briefly.
-                    2. If user asks general info (Math/Time/Jokes), answer briefly.
+                    2. If user asks general info, answer briefly.
                     3. If user asks for a recommendation, suggest an OPEN facility.
                     4. Keep response under 2 sentences. Spoken style. No emojis.
                 `;
 
-                // Call Gemini
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
                 
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
-                // Clean text for speech (remove * and #)
                 const aiText = response.text().replace(/[*#]/g, '').trim(); 
 
-                // Show & Speak
                 document.getElementById(loadingId).remove();
                 msgBox.innerHTML += `
                     <div style="align-self:flex-start; background:rgba(255,255,255,0.1); padding:10px 15px; border-radius:15px 15px 15px 0; max-width:85%; font-size:13px; line-height:1.5;">
@@ -1707,7 +1698,7 @@
                     </div>`;
                 msgBox.scrollTop = msgBox.scrollHeight;
                 
-                // TRIGGER VOICE
+                // Speak Result
                 window.aiAssistant.speak(aiText);
 
             } catch (e) {
