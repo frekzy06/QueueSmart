@@ -20,9 +20,10 @@ export default async function handler(req, res) {
     // 2. Initialize with your Vercel Environment Variable
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    // 3. USE THE CORRECT MODEL STRING
+    // 3. USE THE CORRECT, STABLE MODEL
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash"  // Fixed: Changed from invalid "gemini-2.0-flash"
+      model: "gemini-1.5-pro"  // FIXED: Changed from "gemini-1.5-flash" to the available "gemini-1.5-pro"
+      // Removed apiVersion: "v1beta" as it's optional and can cause issues
     });
 
     const prompt = `You are "QueueSmart AI". Time: ${time}. 
@@ -44,12 +45,20 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Vercel Function Error:", error);
 
-    // Handle 429 Quota Exceeded (from your logs)
+    // Handle 429 Quota Exceeded
     if (error.status === 429) {
       return res.status(429).json({ 
         error: "Quota Exceeded", 
         message: "AI is temporarily unavailable due to high usage. Please try again later or contact support.",
         retryAfter: 40  // Seconds
+      });
+    }
+
+    // Handle 404 Model Not Found (new error)
+    if (error.status === 404) {
+      return res.status(404).json({ 
+        error: "Model Not Found", 
+        message: "The AI model is currently unavailable. Please try again later or contact support."
       });
     }
 
