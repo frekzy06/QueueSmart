@@ -20,17 +20,20 @@ export default async function handler(req, res) {
     // 2. Initialize with your Vercel Environment Variable
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    // 3. USE THE EXACT MODEL STRING FROM YOUR LIST
-    // Based on your console list, this is the most stable one for you:
+    // 3. USE THE CORRECT MODEL STRING
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      apiVersion: "v1beta" 
+      model: "gemini-1.5-flash"  // Fixed: Changed from invalid "gemini-2.0-flash"
     });
 
     const prompt = `You are "QueueSmart AI". Time: ${time}. 
     Facilities Open: ${openLocs}. Closed: ${closedLocs}.
     User: "${message}"
-    Reply as a helpful Indian assistant in under 2 sentences. No symbols.`;
+    
+    Instructions:
+    1. Answer in a friendly, helpful Indian tone.
+    2. Use very short, simple sentences (spoken style).
+    3. No emojis or asterisks.
+    4. Max 2 sentences.`;
 
     // 4. Call the API
     const result = await model.generateContent(prompt);
@@ -40,6 +43,17 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("Vercel Function Error:", error);
+
+    // Handle 429 Quota Exceeded (from your logs)
+    if (error.status === 429) {
+      return res.status(429).json({ 
+        error: "Quota Exceeded", 
+        message: "AI is temporarily unavailable due to high usage. Please try again later or contact support.",
+        retryAfter: 40  // Seconds
+      });
+    }
+
+    // Generic error
     return res.status(500).json({ 
       error: "Backend Error", 
       details: error.message 
