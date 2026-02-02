@@ -663,7 +663,7 @@
     let adminChart = null;
     let userChart = null;
     
-    // 3. UI CONTROLLER (Handles UI toggles and Modals)
+   // 3. UI CONTROLLER
     window.ui = {
         showView: (vid) => {
             ['view-login','view-setup','view-select','view-dashboard','view-god-mode'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -671,11 +671,21 @@
             window.scrollTo(0,0);
         },
         closeModals: () => document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')),
+        
+        // --- FIXED: Simply switch views instead of reloading ---
         goBack: () => {
-            if(locUnsub) locUnsub(); if(qUnsub) qUnsub(); 
+            // Stop listening to database updates to save data/battery
+            if(locUnsub) locUnsub(); 
+            if(qUnsub) qUnsub(); 
+            if(chatUnsub) chatUnsub(); 
+            
+            // Switch back to Hub
             window.ui.showView('view-select');
         },
+        // -----------------------------------------------------
+
         toggleGraph: () => document.getElementById('neural-box').classList.toggle('hidden'),
+        
         switchAuthTab: (tab) => {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('tab-'+tab).classList.add('active');
@@ -687,11 +697,13 @@
                 document.getElementById('panel-signup').classList.remove('hidden');
             }
         },
+        
         togglePay: () => {
             const el = document.getElementById('conf-type');
             if(el && el.value === 'paid') document.getElementById('conf-pay').classList.remove('hidden');
             else document.getElementById('conf-pay').classList.add('hidden');
         },
+        
         showInfo: (type) => {
             const h = document.getElementById('info-title'); const b = document.getElementById('info-content');
             if(type==='about') { h.innerText="Vision: Viksit Bharat"; b.innerHTML="India pays a massive 'Invisible Tax' daily in lost time. QueueSmart transforms manual queues into digital systems, returning dignity to citizens."; }
@@ -699,11 +711,9 @@
             else { h.innerText="Mission"; b.innerHTML="Queuing is not inevitable. It is a solvable data problem. We are the Virtual Line for India."; }
             document.getElementById('modal-info').classList.remove('hidden');
         },
-       showProfile: async (uid = null, readOnly = false) => {
+        
+        showProfile: async (uid = null, readOnly = false) => {
             const targetUid = uid || currentUser.uid;
-            
-            // If no UID is passed, it means I am viewing my own profile -> Show Buttons
-            // If UID is passed by Admin -> Hide Buttons (readOnly = true)
             const isSelf = (targetUid === currentUser.uid);
             const isReadOnly = readOnly || !isSelf;
 
@@ -729,14 +739,9 @@
                 }
                 document.getElementById('card-vid').innerText = vidText;
 
-                // --- NEW: Toggle Buttons based on who is viewing ---
                 const btnContainer = document.getElementById('profile-actions');
-                if(isReadOnly) {
-                    btnContainer.classList.add('hidden'); // Hide buttons for Admin
-                } else {
-                    btnContainer.classList.remove('hidden'); // Show for User
-                }
-                // --------------------------------------------------
+                if(isReadOnly) btnContainer.classList.add('hidden');
+                else btnContainer.classList.remove('hidden');
 
                 document.getElementById('modal-profile').classList.remove('hidden');
             } catch(e) { console.error("Profile Error", e); }
@@ -750,9 +755,10 @@
             }
             document.getElementById('modal-edit-loc').classList.remove('hidden');
         },
+        
         openProfile: () => { if(currentUser) window.ui.showProfile(); }
     };
-
+    
     // 4. LOGIC ENGINE (Specific Calculations from Working Code)
     window.logic = {
         checkTimeStatus: (loc) => {
