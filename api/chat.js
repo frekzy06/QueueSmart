@@ -1,39 +1,65 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(request, response) {
-  // CORS Headers
+  // 1. Setup headers for CORS (allows your frontend to talk to this backend)
+  response.setHeader('Access-Control-Allow-Credentials', true);
   response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  response.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
 
-  if (request.method === 'OPTIONS') return response.status(200).end();
+  // 2. Handle Options (Pre-flight check for browser safety)
+  if (request.method === 'OPTIONS') {
+    response.status(200).end();
+    return;
+  }
 
   try {
-    // Vercel body check
+    // 3. Parse Body Safely (Vercel can send strings or objects)
     const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
+    
+    if (!body || !body.message) {
+      return response.status(400).json({ error: "No message provided" });
+    }
+
     const { message, openLocs, closedLocs, time } = body;
 
+    // 4. Initialize Gemini with your SECRET key (Ensure GEMINI_API_KEY is in Vercel Settings)
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    /**
-     * FIX: Use 'gemini-2.0-flash' or 'gemini-1.5-flash-latest'
-     * Most 2026 accounts have moved to 2.0/2.5 logic.
-     */
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // Using 'gemini-2.0-flash' - Stable and Free-Tier Friendly in 2026
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const prompt = `You are "QueueSmart AI". Time: ${time}. 
-      OPEN: ${openLocs || "None"}. CLOSED: ${closedLocs || "None"}.
-      User: "${message}". 
-      Reply in friendly Indian style, max 2 sentences.`;
+    // 5. Build the system prompt
+    const prompt = `
+      You are "QueueSmart AI". Current Time: ${time || 'Unknown'}
+      OPEN Facilities: ${openLocs || "None"}
+      CLOSED Facilities: ${closedLocs || "None"}
+      User said: "${message}"
+      
+      Instructions:
+      1. Answer in a friendly, helpful Indian tone (Indian English).
+      2. If asking for recommendation, suggest an OPEN facility.
+      3. If asking about a CLOSED facility, suggest an open alternative.
+      4. Keep response under 2 sentences. Spoken style.
+      5. Do not use emojis, asterisks, or bold text.
+    `;
 
+    // 6. Generate Content
     const result = await model.generateContent(prompt);
-    const aiText = result.response.text();
+    const resultResponse = await result.response;
+    const responseText = resultResponse.text();
     
-    return response.status(200).json({ text: aiText });
+    // 7. Send back the clean JSON
+    return response.status(200).json({ text: responseText });
 
   } catch (error) {
     console.error("Backend Error:", error);
-    // Return specific error to help us debug
-    return response.status(500).json({ error: error.message });
+    return response.status(500).json({ 
+      error: "AI failed to respond", 
+      details: error.message 
+    });
   }
 }
