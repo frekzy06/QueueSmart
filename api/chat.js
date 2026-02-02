@@ -20,10 +20,10 @@ export default async function handler(req, res) {
     // 2. Initialize with your Vercel Environment Variable
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    // 3. USE THE CORRECT, STABLE MODEL
+    // 3. USE THE STABLE, WORKING MODEL
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro"  // FIXED: Changed from "gemini-1.5-flash" to the available "gemini-1.5-pro"
-      // Removed apiVersion: "v1beta" as it's optional and can cause issues
+      model: "gemini-pro"  // FIXED: Changed to "gemini-pro" (stable Gemini 1.0 model)
+      // No apiVersion needed for this model
     });
 
     const prompt = `You are "QueueSmart AI". Time: ${time}. 
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Handle 404 Model Not Found (new error)
+    // Handle 404 Model Not Found
     if (error.status === 404) {
       return res.status(404).json({ 
         error: "Model Not Found", 
