@@ -1016,13 +1016,27 @@
         }
     };
     
-    // 8. CHAT HANDLER
+   // 8. CHAT HANDLER (FIXED)
     window.chatHandler = {
         init: (id) => {
             if(chatUnsub) chatUnsub();
             
-            // FIX: Removed 'orderBy' from query to prevent Firebase Index errors.
-            // We will sort the messages in the code instead.
+            // 1. Setup Enter Key Listener
+            const inputEl = document.getElementById('chat-input');
+            if(inputEl) {
+                // Remove old listeners to prevent duplicates (cloning trick)
+                const newEl = inputEl.cloneNode(true);
+                inputEl.parentNode.replaceChild(newEl, inputEl);
+                
+                // Add new listener
+                newEl.addEventListener("keydown", function(event) {
+                    if (event.key === "Enter") {
+                        window.chatHandler.send();
+                    }
+                });
+            }
+
+            // 2. Load Messages (No 'orderBy' to prevent Index Errors)
             const q = query(collection(db, "comments"), where("locationId", "==", id));
             
             chatUnsub = onSnapshot(q, (s) => {
@@ -1036,19 +1050,16 @@
                     return;
                 }
 
-                // 1. Extract Data
-                const messages = [];
-                s.forEach(d => messages.push(d.data()));
-
-                // 2. Sort Data Client-Side (Oldest to Newest)
+                // 3. Process & Sort Client-Side (Oldest -> Newest)
+                const messages = s.docs.map(d => d.data());
                 messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
 
-                // 3. Render
+                // 4. Render
                 messages.forEach(m => {
                     const el = document.createElement('div'); 
                     el.className = 'chat-msg';
                     
-                    // Fallback for missing avatar
+                    // Fallback avatar
                     const avatar = m.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.userName||'User')}&background=random`;
                     
                     el.innerHTML = `
@@ -1060,7 +1071,7 @@
                     f.appendChild(el);
                 });
                 
-                // 4. Auto-Scroll to bottom
+                // 5. Scroll to bottom
                 setTimeout(() => f.scrollTop = f.scrollHeight, 100);
 
             }, (error) => {
@@ -1074,15 +1085,17 @@
             if(!t) return;
             
             if(!currentUser) return alert("Please sign in to chat.");
+            if(!currentLocId) return alert("System Error: No Location Selected.");
             
-            // Clear input immediately for better UI response
+            // Clear input immediately
             input.value = "";
 
             try {
-                // Fetch fresh user details to ensure name/photo are current
+                // Get User Info
                 const userDoc = await getDoc(doc(db, "users", currentUser.uid));
                 const userData = userDoc.exists() ? userDoc.data() : {};
                 
+                // Save to Database
                 await addDoc(collection(db, "comments"), { 
                     locationId: currentLocId, 
                     text: t, 
@@ -1093,7 +1106,7 @@
                 });
             } catch(e) {
                 console.error("Send failed", e);
-                alert("Message failed to send. Check console.");
+                alert("Could not save message. Check internet connection.");
             }
         }
     };
