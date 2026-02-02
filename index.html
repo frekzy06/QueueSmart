@@ -1579,24 +1579,21 @@
             }
         }
     };
-    // 11. AI RECOMMENDATION ENGINE (WITH VOICE)
+// 11. AI RECOMMENDATION ENGINE (STABLE + VOICE)
     window.aiAssistant = {
         apiKey: "AIzaSyCDCEoqJKlA_bBWlAeZEIs4eB7biVb7xXI",
         
         open: () => document.getElementById('modal-ai-chat').classList.remove('hidden'),
         
-        // New: Function to Make AI Talk
+        // Voice Feature
         speak: (text) => {
             if ('speechSynthesis' in window) {
-                // Stop any previous speech
-                window.speechSynthesis.cancel(); 
-                
-                // Create the speech object
+                window.speechSynthesis.cancel(); // Stop previous
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.0; // Speed (0.1 to 10)
-                utterance.pitch = 1.0; // Pitch (0 to 2)
+                utterance.rate = 1.0; 
+                utterance.pitch = 1.0;
                 
-                // Try to find a good English voice
+                // Try to find a good US English voice
                 const voices = window.speechSynthesis.getVoices();
                 const preferredVoice = voices.find(v => v.name.includes("Google US English")) || voices[0];
                 if(preferredVoice) utterance.voice = preferredVoice;
@@ -1647,15 +1644,15 @@
                     If nothing matches, say "I couldn't find a match."
                 `;
 
-                // 5. Call Gemini 2.0 Flash
+                // 5. Call Gemini (SWITCHED TO STABLE MODEL)
                 const genAI = new GoogleGenerativeAI(window.aiAssistant.apiKey);
-                // Updated to use the model you found
-                const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+                
+                // CHANGED: Using 1.5-flash for better free-tier reliability
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                 
                 const result = await model.generateContent(prompt);
                 const response = await result.response;
-                // Remove markdown symbols (*, #) so the voice reads it cleanly
-                const aiText = response.text().replace(/[*#]/g, '');
+                const aiText = response.text().replace(/[*#]/g, ''); // Clean text for voice
 
                 // 6. Display & SPEAK Response
                 document.getElementById(loadingId).remove();
@@ -1670,7 +1667,12 @@
 
             } catch (e) {
                 document.getElementById(loadingId).remove();
-                msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
+                // Handle Quota Error specifically
+                if(e.message.includes("429")) {
+                    msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">System overloaded. Please wait a moment.</div>`;
+                } else {
+                    msgBox.innerHTML += `<div style="color:#ff4444; font-size:11px;">Error: ${e.message}</div>`;
+                }
             }
         }
     };
