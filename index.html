@@ -1099,107 +1099,101 @@
                 }
             });
 
-           if(qUnsub) qUnsub();
-qUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
-    const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-    
-    // STRICT CHECK: Ensure currentUser exists before checking queue (prevents false "not joined" state)
-    const uid = currentUser ? currentUser.uid : null;
-    const pos = uid ? docs.findIndex(x => x.uid === uid) : -1;
-    
-    // DEBUG: Log for troubleshooting (remove in production)
-    console.log("User UID:", uid, "Position in queue:", pos, "Queue length:", docs.length);
-    
-    const mode = currentLocData?.countingMode || 'ahead';
-    
-    // --- CAPACITY CHECK LOGIC ---
-    const maxCap = currentLocData?.maxCapacity || 0;
-    const isFull = (maxCap > 0 && docs.length >= maxCap);
-    // ----------------------------
+            if(qUnsub) qUnsub();
+            qUnsub = onSnapshot(query(collection(db, "queue"), where("locationId", "==", id)), async (s) => {
+                const docs = s.docs.map(x => ({id:x.id, ...x.data()})).sort((a,b)=> (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+                const pos = docs.findIndex(x => x.uid === currentUser.uid);
+                const mode = currentLocData?.countingMode || 'ahead';
+                
+                // --- CAPACITY CHECK LOGIC ---
+                const maxCap = currentLocData?.maxCapacity || 0;
+                const isFull = (maxCap > 0 && docs.length >= maxCap);
+                // ----------------------------
 
-    if(pos !== -1) {
-        // USER IS IN QUEUE -> HIDE JOIN BUTTON IMMEDIATELY
-        document.getElementById('btn-join').classList.add('hidden');
-        document.getElementById('btn-leave').classList.remove('hidden');
+                if(pos !== -1) {
+                    // USER IS IN QUEUE
+                    if(pos === 0) {
+                        document.getElementById('dash-count').innerText = "NOW";
+                        document.getElementById('dash-count-label').innerText = "IT'S YOUR TURN";
+                        document.getElementById('dash-count').style.color = "var(--success)";
+                        document.getElementById('dash-count-label').style.color = "var(--success)";
+                        document.getElementById('dash-time').innerText = "PROCEED TO COUNTER";
 
-        if(pos === 0) {
-            document.getElementById('dash-count').innerText = "NOW";
-            document.getElementById('dash-count-label').innerText = "IT'S YOUR TURN";
-            document.getElementById('dash-count').style.color = "var(--success)";
-            document.getElementById('dash-count-label').style.color = "var(--success)";
-            document.getElementById('dash-time').innerText = "PROCEED TO COUNTER";
+                        if(!window.hasNotifiedTurn) {
+                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                            audio.play().catch(e => console.log("Audio play failed"));
+                            if ("Notification" in window && Notification.permission === "granted") {
+                                new Notification("QueueSmart: It's Your Turn!", { body: `Proceed to counter at ${currentLocData?.name}` });
+                            }
+                            window.hasNotifiedTurn = true;
+                        }
+                    } else {
+                        window.hasNotifiedTurn = false;
+                        document.getElementById('dash-count').style.color = "#fff";
+                        document.getElementById('dash-count-label').style.color = "var(--primary)";
 
-            if(!window.hasNotifiedTurn) {
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                audio.play().catch(e => console.log("Audio play failed"));
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification("QueueSmart: It's Your Turn!", { body: `Proceed to counter at ${currentLocData?.name}` });
+                        if(mode === 'total') {
+                            document.getElementById('dash-count').innerText = docs.length;
+                            document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT";
+                        } else {
+                            document.getElementById('dash-count').innerText = pos;
+                            document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
+                        }
+                        
+                        const velocity = await window.logic.calculateVelocity(id);
+                        document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
+                    }
+                    document.getElementById('btn-join').classList.add('hidden');
+                    document.getElementById('btn-leave').classList.remove('hidden');
+
+                } else {
+                    // USER NOT IN QUEUE
+                    window.hasNotifiedTurn = false;
+                    document.getElementById('dash-count').style.color = "#fff";
+                    document.getElementById('dash-count-label').style.color = "var(--primary)";
+                    document.getElementById('dash-count').innerText = docs.length;
+                    document.getElementById('dash-count-label').innerText = "CURRENT QUEUE SIZE";
+                    document.getElementById('dash-time').innerText = "--";
+                    
+                    document.getElementById('btn-join').classList.remove('hidden');
+                    document.getElementById('btn-leave').classList.add('hidden');
+
+                    const btn = document.getElementById('btn-join');
+                    const status = window.logic.checkTimeStatus(currentLocData);
+                    
+                    // --- BUTTON STATE ENFORCEMENT ---
+                    if(!status.isOpen) {
+                        btn.disabled = true; 
+                        btn.innerText = "CLOSED"; 
+                        btn.className = "btn btn-outline"; // Gray out
+                        btn.style.opacity = "0.5";
+                        btn.style.cursor = "not-allowed";
+                    } 
+                    else if (isFull) {
+                        // FULL CAPACITY STATE
+                        btn.disabled = true;
+                        btn.innerText = "⛔ QUEUE FULL";
+                        btn.className = "btn btn-danger"; // Red warning style
+                        btn.style.opacity = "0.5";
+                        btn.style.cursor = "not-allowed";
+                    } 
+                    else {
+                        // NORMAL JOIN STATE
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                        btn.style.cursor = "pointer";
+                        btn.className = "btn btn-primary"; 
+                        btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
+                    }
+                    // --------------------------------
                 }
-                window.hasNotifiedTurn = true;
-            }
-        } else {
-            window.hasNotifiedTurn = false;
-            document.getElementById('dash-count').style.color = "#fff";
-            document.getElementById('dash-count-label').style.color = "var(--primary)";
+                
+                // Call Real AI Chart Update
+                window.queueHandler.updateChart(docs.length);
+            });
+            window.chatHandler.init(id);
+        },
 
-            if(mode === 'total') {
-                document.getElementById('dash-count').innerText = docs.length;
-                document.getElementById('dash-count-label').innerText = "TOTAL HEADCOUNT";
-            } else {
-                document.getElementById('dash-count').innerText = pos;
-                document.getElementById('dash-count-label').innerText = "PEOPLE AHEAD";
-            }
-            
-            const velocity = await window.logic.calculateVelocity(id);
-            document.getElementById('dash-time').innerText = `~${(pos+1)*velocity} mins`;
-        }
-    } else {
-        // USER IS NOT IN QUEUE
-        window.hasNotifiedTurn = false;
-        document.getElementById('btn-join').classList.remove('hidden');
-        document.getElementById('btn-leave').classList.add('hidden');
-
-        document.getElementById('dash-count').style.color = "#fff";
-        document.getElementById('dash-count-label').style.color = "var(--primary)";
-        document.getElementById('dash-count').innerText = docs.length;
-        document.getElementById('dash-count-label').innerText = "CURRENT QUEUE SIZE";
-        document.getElementById('dash-time').innerText = "--";
-        
-        const btn = document.getElementById('btn-join');
-        const status = window.logic.checkTimeStatus(currentLocData);
-        
-        // --- BUTTON STATE ENFORCEMENT ---
-        if(!status.isOpen) {
-            btn.disabled = true; 
-            btn.innerText = "CLOSED"; 
-            btn.className = "btn btn-outline"; // Gray out
-            btn.style.opacity = "0.5";
-            btn.style.cursor = "not-allowed";
-        } 
-        else if (isFull) {
-            // FULL CAPACITY STATE
-            btn.disabled = true;
-            btn.innerText = "QUEUE FULL";
-            btn.className = "btn btn-danger"; // Red warning style
-            btn.style.opacity = "0.5";
-            btn.style.cursor = "not-allowed";
-        } 
-        else {
-            // NORMAL JOIN STATE
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.style.cursor = "pointer";
-            btn.className = "btn btn-primary"; 
-            btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
-        }
-        // --------------------------------
-    }
-    
-    // Call Real AI Chart Update
-    window.queueHandler.updateChart(docs.length);
-});
-window.chatHandler.init(id);
-            
         join: () => {
             if(!currentLocData) return;
             
@@ -1229,52 +1223,30 @@ window.chatHandler.init(id);
             window.queueHandler.add(document.getElementById('user-txn-id').value);
             window.ui.closeModals();
         },
-            
-add: async (txn = null) => {
-    const btn = document.getElementById('btn-join');
-    const originalText = btn ? btn.innerText : "JOIN QUEUE";
 
-    try {
-        if(btn) {
-            btn.innerText = "Processing...";
-            btn.disabled = true; // Prevent double clicks
-        }
-
-        const uDoc = await getDoc(doc(db, "users", currentUser.uid));
-        const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
-        
-        await addDoc(collection(db, "queue"), { 
-            uid: currentUser.uid, 
-            locationId: currentLocId, 
-            timestamp: serverTimestamp(), 
-            txn: txn || 'free' 
-        });
-        
-        await addDoc(collection(db, "logs"), { 
-            locationId: currentLocId, 
-            action: "JOINED", 
-            userName: uName, 
-            user: currentUser.uid, 
-            timestamp: serverTimestamp() 
-        });
-        
-        // SUCCESS: Reset button immediately (snapshot will hide it soon)
-        if(btn) {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-
-    } catch(e) { 
-        console.error("Join Error:", e); 
-        alert("Failed to join. Please check your connection.");
-        
-        // ERROR RECOVERY: Reset button so user can try again
-        if(btn) {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-    }
-},
+        add: async (txn = null) => {
+            try {
+                const btn = document.getElementById('btn-join');
+                if(btn) btn.innerText = "Processing...";
+                const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
+                
+                await addDoc(collection(db, "queue"), { 
+                    uid: currentUser.uid, 
+                    locationId: currentLocId, 
+                    timestamp: serverTimestamp(), 
+                    txn: txn || 'free' 
+                });
+                
+                await addDoc(collection(db, "logs"), { 
+                    locationId: currentLocId, 
+                    action: "JOINED", 
+                    userName: uName, 
+                    user: currentUser.uid, 
+                    timestamp: serverTimestamp() 
+                });
+            } catch(e) { console.error("Join Error:", e); alert("Failed to join."); }
+        },
 
         leave: async () => {
             if(!confirm("Leave queue?")) return;
