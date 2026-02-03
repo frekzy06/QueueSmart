@@ -1227,42 +1227,63 @@
         },
 
        add: async (txn = null) => {
-    try {
         const btn = document.getElementById('btn-join');
-        if(btn) btn.innerText = "Processing...";
-        const uDoc = await getDoc(doc(db, "users", currentUser.uid));
-        const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
-        
-        await addDoc(collection(db, "queue"), { 
-            uid: currentUser.uid, 
-            locationId: currentLocId, 
-            timestamp: serverTimestamp(), 
-            txn: txn || 'free' 
-        });
-        
-        await addDoc(collection(db, "logs"), { 
-            locationId: currentLocId, 
-            action: "JOINED", 
-            userName: uName, 
-            user: currentUser.uid, 
-            timestamp: serverTimestamp() 
-        });
-        
-        // SUCCESS: Reset button immediately (snapshot will hide it soon)
-        if(btn) {
-            btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
+        const originalText = btn ? btn.innerText : "JOIN QUEUE";
+
+        try {
+            if(btn) {
+                btn.innerText = "Verifying...";
+                btn.disabled = true; // 1. Disable immediately to prevent double-clicks
+            }
+
+            // 2. SECURITY CHECK: Query DB to see if user is ALREADY in this specific queue
+            const duplicateCheckQ = query(
+                collection(db, "queue"), 
+                where("uid", "==", currentUser.uid), 
+                where("locationId", "==", currentLocId)
+            );
+            
+            const snapshot = await getDocs(duplicateCheckQ);
+
+            if (!snapshot.empty) {
+                // User is already found in the queue
+                alert("You have already joined this queue!");
+                // The snapshot listener in initDash will catch up and hide the button automatically
+                return; // STOP HERE. Do not add a new ticket.
+            }
+
+            // 3. If check passes, proceed to add
+            if(btn) btn.innerText = "Processing...";
+            
+            const uDoc = await getDoc(doc(db, "users", currentUser.uid));
+            const uName = uDoc.exists() ? uDoc.data().name : "Unknown Citizen";
+            
+            await addDoc(collection(db, "queue"), { 
+                uid: currentUser.uid, 
+                locationId: currentLocId, 
+                timestamp: serverTimestamp(), 
+                txn: txn || 'free' 
+            });
+            
+            await addDoc(collection(db, "logs"), { 
+                locationId: currentLocId, 
+                action: "JOINED", 
+                userName: uName, 
+                user: currentUser.uid, 
+                timestamp: serverTimestamp() 
+            });
+
+        } catch(e) { 
+            console.error("Join Error:", e); 
+            alert("Failed to join. Please check your connection.");
+            
+            // ERROR RECOVERY: Reset button so user can try again
+            if(btn) {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
-    } catch(e) { 
-        console.error("Join Error:", e); 
-        alert("Failed to join."); 
-        
-        // ERROR RECOVERY: Reset button
-        const btn = document.getElementById('btn-join');
-        if(btn) {
-            btn.innerText = currentLocData.bookingType === 'paid' ? `BOOK (₹${currentLocData.ticketPrice})` : "JOIN QUEUE";
-        }
-    }
-},
+    },
 
         leave: async () => {
             if(!confirm("Leave queue?")) return;
